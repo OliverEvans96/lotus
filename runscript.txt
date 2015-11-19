@@ -1,0 +1,2 @@
+.L polarScatter.C+
+polarScatter("/home/oge1/lammps/sapphire/analysis/results/50A/atom3/calculated.txt","/home/oge1/lammps/sapphire/analysis/results/50A/atom3/polarScatter")
