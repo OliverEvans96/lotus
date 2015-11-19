@@ -14,7 +14,6 @@ Quiver::Quiver(int nx, double xlo, double xhi, int ny, double ylo, double yhi)
 	this->yhi = yhi;
 
 	// Create canvas
-	//cQuiver = new TCanvas("cQuiver","cQuiver",1000,800);
 	bool canvasCreated = false;
 
 	// Number of data points so far
@@ -76,10 +75,8 @@ void Quiver::Fill(double x, double y, double vx, double vy)
 void Quiver::Reset()
 {
 
-	//cout << "Resetting Quiver" << endl;
 	if(canvasCreated)
 	{
-		//cout << "Canvas reset" << endl;
 		cQuiver->Clear();
 	}
 
@@ -109,22 +106,17 @@ void Quiver::Calculate()
 			// Sums -> Averages (Divide by number of elements per bin)
 			nElements = int(hCount->GetBinContent(i+1,j+1));
 
-			//cout << "k=" << k << endl;
-
 			if (nElements != 0)
 			{
-				//cout << "nonzero " << nElements << " " << hvx->GetBinContent(i+1,j+1)<< endl;
 				vxk.push_back(hvx->GetBinContent(i+1,j+1) / nElements);
 				vyk.push_back(hvy->GetBinContent(i+1,j+1) / nElements);
 			}
 			else
 			{
-				//cout << "zero" << endl;
 				vxk.push_back(0);
 				vyk.push_back(0);
 			}
 
-			//cout << "vxk[" << k << "] = " << vxk[k] << endl;
 
 			x1.push_back(h->GetXaxis()->GetBinCenter(i+1));
 			y1.push_back(h->GetYaxis()->GetBinCenter(j+1));
@@ -225,48 +217,6 @@ void Quiver::Draw(TCanvas *c)
 		}
 
 	}
-
-	//cout << "*--------*" << endl;
-	//cout << "Total atoms counted: " << hCount->Integral() << endl;
-	//cout << "*--------*" << endl;
-
-	/*
-	cout << endl << "hCount" << endl;
-	for(int i=0;i<nx;i++)
-	{
-		for(int j=0;j<ny;j++)
-		{
-			if(hCount->GetBinContent(i+1,j+1) != 0)
-				cout << hCount->GetBinContent(i+1,j+1) << " ";
-		}
-		cout << endl;
-	}
-	k=0;
-	cout << endl << "hvx" << endl;
-	for(int i=0;i<nx;i++)
-	{
-		for(int j=0;j<ny;j++)
-		{
-			cout << vxk[k++] << " ";
-		}
-		cout << endl;
-	}
-	
-	*/
-
-	k=0;
-	cout << endl << "hvy" << endl;
-	for(int i=0;i<nx;i++)
-	{
-		for(int j=0;j<ny;j++)
-		{
-			cout << vyk[k++] << " ";
-		}
-		cout << endl;
-	}
-	cout << "minMax" << minVal << " " << maxVal << endl;
-
-
 }
 
 void Quiver::SetLevels(double min, double max)
