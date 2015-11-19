@@ -280,11 +280,14 @@ int main(int argc,char* argv[])
 	hA->SetStats(0);
 
 	hV->SetStats(0);
-	hV->SetMinimum(0);
-	hV->SetMaximum(1e10);
+	hV->SetMinimum(1);
+	hV->SetMaximum(1e13);
 	hV->SetLineWidth(2);
 	hV->GetXaxis()->SetTitle("z");
-	hV->GetYaxis()->SetTitle("v_r");
+	hV->GetXaxis()->CenterTitle();
+	hV->GetYaxis()->SetTitle("v_{r}");
+	hV->GetYaxis()->CenterTitle();
+	cV->SetLogy();
 
 	//Use OpenGL for antialiasing
 	gStyle->SetCanvasPreferGL(true);
