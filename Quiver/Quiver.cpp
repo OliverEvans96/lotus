@@ -41,27 +41,37 @@ Quiver::Quiver(int nx, double xlo, double xhi, int ny, double ylo, double yhi)
 	drawMarkers = false;
 	drawText = false;
 
-	//Arrow Parameters
+	// Arrow Parameters
 	arrowAngle = 40;
 	arrowWidth = 2;
 	padding = 0.05;
 
-	//Title
+	// Title
 	h->SetTitle("Vector Field");
 }
 
 // Destructors
 Quiver::~Quiver()
 {
-	//delete cQuiver;
+	delete cQuiver;
 	delete h;
 	delete hCount;
 	delete hvx;
 	delete hvy;
 
+	// Delete individual elements
+	for(int i=0;i<nx*ny;i++)
+	{
+		delete a[i];
+		delete l[i];
+		delete m[i];
+	}
+
+	// Delete arrays
 	delete [] levels;
 	delete [] a;
 	delete [] l;
+	delete [] m;
 }
 void Quiver::Fill(double x, double y, double vx, double vy)
 {
@@ -150,7 +160,7 @@ void Quiver::Draw(TCanvas *c)
 	cQuiver->cd();
 
 
-	//Set plot attributes
+	// Set plot attributes
 	gStyle->SetOptStat(0);
 	h->SetContour(nLevels, levels);
 	h->SetBinContent(0,0,0);
@@ -210,8 +220,6 @@ void Quiver::Draw(TCanvas *c)
 				}
 			}
 			
-			// ASK SOMEONE IF I SHOULD DELETE THESE TTEXTS AND TMARKERS
-
 			k++;
 
 		}
