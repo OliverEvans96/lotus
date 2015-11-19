@@ -18,7 +18,7 @@
 #include "TFile.h"
 
 #include "CircleFitClass.h"
-#include "Quiver.h"
+#include "Quiver/Quiver.h"
 
 using namespace std;
 
@@ -253,11 +253,12 @@ int main(int argc,char* argv[])
 	lineNum+=2;
 	
 	//Fix canvas height & scale width to preserve aspect ratio
-	int cH=600;
+	int cH=1200;
 	int cW=(int) round(cH*(rhi-rlo)/(zhi-zlo));
-	TCanvas *c1 = new TCanvas("c1","c1",cW,cH);
-	TCanvas *c2 = new TCanvas("c2","c2",cW,cH);
-	TCanvas *cQ = new TCanvas("cQ","cQ",cW,cH);
+	TCanvas *c1 = new TCanvas("c1","c1",cW,cH); //Dipole
+	TCanvas *c2 = new TCanvas("c2","c2",cW,cH); //2D density plot
+	TCanvas *cQ = new TCanvas("cQ","cQ",cW,cH); //Quiver
+	TCanvas *cV = new TCanvas("cV","cV",cW,cH); //Plot v_r(z)
 
 	//Values to use for equal-area bins
 	double aVals[nA];
@@ -272,7 +273,21 @@ int main(int argc,char* argv[])
 	//Create Histograms
 	TH2D *hA = new TH2D("hA","hA",nA,rVals,nz,zlo,zhi);
 	TH1D *hD = new TH1D("hD","hD",20,0,1);
+	TH1D *hV = new TH1D("hV","hV",nz,zlo,zhi); //For tracking v_r(z)
+	TH1D *hZ = new TH1D("hZ","hZ",nz,zlo,zhi); //For counting # of atoms in each z bin
+
+	//misc plot settings
 	hA->SetStats(0);
+
+	hV->SetStats(0);
+	hV->SetMinimum(0);
+	hV->SetMaximum(1e10);
+	hV->SetLineWidth(2);
+	hV->GetXaxis()->SetTitle("z");
+	hV->GetYaxis()->SetTitle("v_r");
+
+	//Use OpenGL for antialiasing
+	gStyle->SetCanvasPreferGL(true);
 	
 	//Quiver
 	Quiver *q = new Quiver(nr/2,rlo,rhi,nz/2,zlo,zhi);
@@ -333,6 +348,9 @@ int main(int argc,char* argv[])
 		}
 		monoIDsIn.close();
 	}
+
+	//Declare variables for velocity plot
+	double sum,num;
 	
 	//Declaring graphs in the if block seems to produce errors
 	TGraph* monoGraph1 = new TGraph(numMonoIDs); //Outline
@@ -354,7 +372,9 @@ int main(int argc,char* argv[])
 	system("mkdir -p img/hist"); 
 	system("mkdir -p img/mono");
 	system("mkdir -p img/quiver");
-	
+	system("mkdir -p img/dipole");
+	system("mkdir -p img/vr");
+
 	//Read data
 	//For each timestep
 	while(!inFile.eof()&&loopFlag1)
@@ -455,10 +475,13 @@ int main(int argc,char* argv[])
 
 			hA->Fill(r[i],z[i],convFact/(dV*stepsPerFrame));
 			hD->Fill(dipole,1/numAtoms);
+			hV->Fill(z[i],abs(vr[i]));
+			hZ->Fill(z[i]);
 			q->Fill(r[i],z[i],vr[i],vz[i]);
 			//cout << "Filling q: (" << vr[i] << "," << vz[i] << ") @ (" << r[i] << "," << z[i] << ")" << endl;
 
 		}
+
 		
 // 		//Polar Scatter Plot
 // 		ofstream psOut("pS.txt");
@@ -492,7 +515,7 @@ int main(int argc,char* argv[])
 		q->SetTitle(title.str().data());
 
 		
-		//Calculations
+		//Calculations - Every frame (5 timesteps)
 		if( (stepNum!=0) && ((stepNum+1)%stepsPerFrame==0) )
 		{
 			//Title
@@ -517,6 +540,23 @@ int main(int argc,char* argv[])
 			q->Draw(cQ);
 			cout << "Saving quiver" << endl;
 			q->SaveAs(title.str().data());
+
+			//Velocity Plot
+			//Scale values to create average
+			for(int i=0;i<nz;i++)
+			{
+				sum=hV->GetBinContent(i+1);
+				num=hZ->GetBinContent(i+1);
+				if(num!=0)
+					hV->SetBinContent(i+1,sum/num);
+			//	cout << "hV[" << i+1 << "] = " << hV->GetBinContent(i+1) << endl;
+			}
+			//Plot
+			cV->cd();
+			hV->Draw("L");
+			title.str("");
+			title << "img/vr/step" << setw(8) << setfill('0') << timestep << ".png";
+			cV->SaveAs(title.str().data());
 
 			//Draw histogram
 			c2->cd();
