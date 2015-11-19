@@ -1,2 +1,0 @@
-Oxygen# | Coord Vector | Speed | Velocity Vector | Unit Dipole Vector
-
