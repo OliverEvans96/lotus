@@ -269,7 +269,6 @@ int main(int argc,char* argv[])
 		rVals[i]=sqrt(aVals[i]/PI);
 	}
 		
-	
 	//Create Histograms
 	TH2D *hA = new TH2D("hA","hA",nA,rVals,nz,zlo,zhi);
 	TH1D *hD = new TH1D("hD","hD",20,0,1);
@@ -280,12 +279,12 @@ int main(int argc,char* argv[])
 	hA->SetStats(0);
 
 	hV->SetStats(0);
-	hV->SetMinimum(1);
-	hV->SetMaximum(1e13);
+	hV->SetMinimum(1e-5);
+	hV->SetMaximum(1);
 	hV->SetLineWidth(2);
-	hV->GetXaxis()->SetTitle("z");
+	hV->GetXaxis()->SetTitle("z (#AA)");
 	hV->GetXaxis()->CenterTitle();
-	hV->GetYaxis()->SetTitle("v_{r}");
+	hV->GetYaxis()->SetTitle("v_{r} (#AA/fs)");
 	hV->GetYaxis()->CenterTitle();
 	cV->SetLogy();
 
@@ -478,7 +477,7 @@ int main(int argc,char* argv[])
 
 			hA->Fill(r[i],z[i],convFact/(dV*stepsPerFrame));
 			hD->Fill(dipole,1/numAtoms);
-			hV->Fill(z[i],abs(vr[i]));
+			hV->Fill(z[i],vr[i]);
 			hZ->Fill(z[i]);
 			q->Fill(r[i],z[i],vr[i],vz[i]);
 			//cout << "Filling q: (" << vr[i] << "," << vz[i] << ") @ (" << r[i] << "," << z[i] << ")" << endl;
@@ -527,8 +526,16 @@ int main(int argc,char* argv[])
 			hA->SetTitle(title.str().data());
 
 			title.str("");
+			title << "Velocity Field: " << timestep;
+			q->SetTitle(title.str().data());
+
+			title.str("");
 			title << "Dipole Moment Distribution: " << timestep;
 			hD->SetTitle(title.str().data());
+
+			title.str("");
+			title << "Radial Velocity: " << timestep;
+			hV->SetTitle(title.str().data());
 
 			//Draw dipole Histogram
 			c1->cd();
@@ -551,7 +558,7 @@ int main(int argc,char* argv[])
 				sum=hV->GetBinContent(i+1);
 				num=hZ->GetBinContent(i+1);
 				if(num!=0)
-					hV->SetBinContent(i+1,sum/num);
+					hV->SetBinContent(i+1,abs(sum/num));
 			//	cout << "hV[" << i+1 << "] = " << hV->GetBinContent(i+1) << endl;
 			}
 			//Plot
