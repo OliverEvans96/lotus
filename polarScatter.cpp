@@ -255,10 +255,13 @@ int main(int argc,char* argv[])
 	//Fix canvas height & scale width to preserve aspect ratio
 	int cH=1200;
 	int cW=(int) round(cH*(rhi-rlo)/(zhi-zlo));
-	TCanvas *c1 = new TCanvas("c1","c1",cW,cH); //Dipole
-	TCanvas *c2 = new TCanvas("c2","c2",cW,cH); //2D density plot
+	TCanvas *cD = new TCanvas("cD","cD",cW,cH); //Dipole
+	TCanvas *cA = new TCanvas("cA","cA",cW,cH); //2D density plot
 	TCanvas *cQ = new TCanvas("cQ","cQ",cW,cH); //Quiver
 	TCanvas *cV = new TCanvas("cV","cV",cW,cH); //Plot v_r(z)
+
+	TCanvas *cAll = new TCanvas("cAll","cAll",cW,cH); //All 4 plots together
+	cAll->Divide(2,2,0,0);
 
 	//Values to use for equal-area bins
 	double aVals[nA];
@@ -279,14 +282,13 @@ int main(int argc,char* argv[])
 	hA->SetStats(0);
 
 	hV->SetStats(0);
-	hV->SetMinimum(1e-5);
-	hV->SetMaximum(1);
+	hV->SetMinimum(0);
+	hV->SetMaximum(2e-3);
 	hV->SetLineWidth(2);
 	hV->GetXaxis()->SetTitle("z (#AA)");
 	hV->GetXaxis()->CenterTitle();
 	hV->GetYaxis()->SetTitle("v_{r} (#AA/fs)");
 	hV->GetYaxis()->CenterTitle();
-	cV->SetLogy();
 
 	//Use OpenGL for antialiasing
 	gStyle->SetCanvasPreferGL(true);
@@ -294,7 +296,7 @@ int main(int argc,char* argv[])
 	//Quiver
 	Quiver *q = new Quiver(nr/2,rlo,rhi,nz/2,zlo,zhi);
 	q->SetArrowParams(30.0,0.01,2,0.05);
-	q->SetLevels(0,1.0e12);
+	q->SetLevels(0,2e-3);
 	
 	//Axis labels
 	hA->GetXaxis()->SetTitle("r (#AA)");
@@ -303,7 +305,7 @@ int main(int argc,char* argv[])
 	hA->GetYaxis()->CenterTitle();
 	
 	
-	hD->GetXaxis()->SetTitle("#cos#theta (rad)");
+	hD->GetXaxis()->SetTitle("cos#theta (rad)");
 	hD->GetXaxis()->CenterTitle();
 	hD->GetYaxis()->SetTitle("Occurrence");
 	hD->GetYaxis()->CenterTitle();
@@ -376,6 +378,8 @@ int main(int argc,char* argv[])
 	system("mkdir -p img/quiver");
 	system("mkdir -p img/dipole");
 	system("mkdir -p img/vr");
+	system("mkdir -p img/all");
+
 
 	//Read data
 	//For each timestep
@@ -538,11 +542,11 @@ int main(int argc,char* argv[])
 			hV->SetTitle(title.str().data());
 
 			//Draw dipole Histogram
-			c1->cd();
+			cD->cd();
 			hD->Draw();
 			title.str("");
 			title << "img/dipole/step" << setw(8) << setfill('0') << timestep << ".png";
-			c1->SaveAs(title.str().data());
+			cD->SaveAs(title.str().data());
 			
 			//Quiver
 			title.str("");
@@ -568,8 +572,8 @@ int main(int argc,char* argv[])
 			title << "img/vr/step" << setw(8) << setfill('0') << timestep << ".png";
 			cV->SaveAs(title.str().data());
 
-			//Draw histogram
-			c2->cd();
+			//Draw density histogram
+			cA->cd();
 			hA->Draw("colz");
 			//Find boundary points
 			TGraph* b2 = findBoundaryPoints(hA,"a",xBulkMax,xMonoEdge,stepNum,timestep);
@@ -577,7 +581,7 @@ int main(int argc,char* argv[])
 			b2->Draw("same L");
 			stringstream aName;
 			aName << "img/hist/abin" << setw(8) << setfill('0') << timestep << ".png";
-		
+
 			//Find interface & edge
 			cout << endl;
 			CircleFit Circle = fitCircle(b2,xBulkMax,stepNum,timestep);
@@ -586,7 +590,7 @@ int main(int argc,char* argv[])
 			bulkEdge[frameNum]=xBulkEdge;
 			cout << "Mono edge: " << xMonoEdge << endl;
 			monoEdge[frameNum]=xMonoEdge;
-			c2->SaveAs(aName.str().data());
+			cA->SaveAs(aName.str().data());
 			 	
 			//Draw mono atoms
 			if(trackMonoAtoms)
@@ -596,8 +600,26 @@ int main(int argc,char* argv[])
 				
 				stringstream mName;
 				mName << "img/mono/monoHist" << setw(8) << setfill('0') << timestep << ".png";
-				c2->SaveAs(mName.str().data());
+				cA->SaveAs(mName.str().data());
 			}
+		
+			//Draw all 4 together
+			cAll->cd(1);
+			gPad->Clear();
+			cA->DrawClonePad();
+			cAll->cd(2);
+			gPad->Clear();
+			cD->DrawClonePad();
+			cAll->cd(3);
+			gPad->Clear();
+			cV->DrawClonePad();
+			cAll->cd(4);
+			gPad->Clear();
+			cQ->DrawClonePad();
+
+			title.str("");
+			title << "img/all/step" << setw(8) << setfill('0') << timestep << ".png";
+			cAll->SaveAs(title.str().data());
 			
 			//Find contact angle
 			cout << "Intersect with " << zInterface << endl;
@@ -757,7 +779,7 @@ TGraph* findBoundaryPoints(TH2D* hist,char* aOrR,double& xBulkMax,double &xMonoE
 // 			TCanvas* cR = new TCanvas();
 // 			cR->cd();
 // 			gR->SetTitle(cName.str().data());
-// 			gR->SetMarkerStyle(20);
+// 			0SetMarkerStyle(20);
 // 			gR->SetMinimum(0.0);
 // 			gR->SetMaximum(1.5);
 // 			gR->Draw("APL");

@@ -87,7 +87,9 @@ void Quiver::Reset()
 
 	if(canvasCreated)
 	{
+		cout << "About to clear" << endl;
 		cQuiver->Clear();
+		cout << "Cleared" << endl;
 	}
 
 	h->Reset();
@@ -144,12 +146,11 @@ void Quiver::Calculate()
 	}
 }
 
-void Quiver::Draw(TCanvas *c)
+void Quiver::Draw(TCanvas *c,int pad)
 {
 	// First, perform calculations
 	Calculate();
 
-	cout << "vxk[7] = " << vxk[7] << endl;
 	// Draw hist & color scale
 	for (int i=1;i<nLevels;i++)
 		levels[i] = minVal + (maxVal - minVal) / (nLevels - 1) * (i);
@@ -157,7 +158,7 @@ void Quiver::Draw(TCanvas *c)
 	
 	canvasCreated = true;
 	cQuiver = c;
-	cQuiver->cd();
+	cQuiver->cd(pad);
 
 
 	// Set plot attributes

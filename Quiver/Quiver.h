@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <cmath>
-#include <iostream>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -25,7 +24,7 @@ public:
 	~Quiver();
 	void Fill(double x, double y, double vx, double vy);
 	void Calculate();
-	void Draw(TCanvas *c);
+	void Draw(TCanvas *c=gPad->GetCanvas(),int pad=gPad->GetNumber());
 
 	void Reset();
 	void SetLevels(double min, double max);
