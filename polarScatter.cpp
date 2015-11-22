@@ -51,6 +51,9 @@ double guessRowBoundary(TH2D* hist,int j);
 //Guess boundary of water molecule by counting for a single column
 double guessColBoundary(TH2D* hist,int i);
 
+//Draw a TH1D horizontally, returning a TGraph which should probably be deleted
+TGraph *horizontalHist(TH1D* hist);
+
 //Find boundary points by tanh fitting for each row
 TGraph* findBoundaryPoints(TH2D* hist,char* aOrR,double& xBulkMax,double &xMonoEdge,int stepNum,int timestep);
 
@@ -698,6 +701,52 @@ int main(int argc,char* argv[])
 // 	plotRadii(numSteps,bulkEdge,monoEdge,"a");
 	cout << "Done!"<<endl;
 	return 0;
+}
+
+TGraph *horizontalHist(TH1D* hist)
+{
+	char *title, *xLabel, *yLabel;
+	int n;
+	double *x,*y;
+
+	//Copy points
+	TGraph* g =	new TGraph(hist);
+	n=g->GetN();
+	x=g->GetX();
+	y=g->GetY();
+
+	cout << n << endl;
+	cout << x << endl;
+	cout << y << endl;
+
+	//Copy title and axis labels
+	title=h->GetTitle();
+	xLabel=h->GetXaxis()->GetTitle();
+	yLabel=h->GetYaxis()->GetTitle();
+
+	//Flip x & y
+	TGraph* g1 = new TGraph(n,y,x);
+
+	//Copy titles
+	g1->SetTitle(title);
+	g1->GetXaxis()->SetTitle(yLabel);
+	g1->GetYaxis()->SetTitle(xLabel);
+
+	//Copy line attributes
+	g1->SetLineStyle(g->GetLineStyle());
+	g1->SetLineWidth(g->GetLineWidth());
+	g1->SetLineColor(g->GetLineColor());
+
+	//Copy fill attributes
+	g1->SetFillStyle(g->GetFillStyle());
+	g1->SetFillColor(g->GetFillColor());
+
+	//Draw
+	g1->Draw();
+
+	//Delete
+	//delete g;
+	return g1;
 }
 
 //Find the edge of droplet by tanh fitting for each row given TH2D
