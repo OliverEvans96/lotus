@@ -78,8 +78,11 @@ bool isLess(int a,int b);
 //Plot bulk and mono radii over time
 void plotRadii(int numSteps,double* bulkEdge,double* monoEdge,char* name);
 
-//Find the minimum value of a vector
+//Find the minimum value of a vector or double pointer
 double findMinimum(vector<double> v);
+
+//Find the maximum value of a vector or double pointer
+double findMaximum(vector<double> v);
 
 //Count the number of timesteps
 int countSteps(ifstream &inFile);
@@ -161,11 +164,13 @@ int main(int argc,char* argv[])
 	vector<double> y(numAtoms);
 	vector<double> z(numAtoms);
 	vector<double> r(numAtoms);
+	vector<double> p(numAtoms);
 
 	vector<double> vx(numAtoms);
 	vector<double> vy(numAtoms);
 	vector<double> vz(numAtoms);
 	vector<double> vr(numAtoms);
+
 
 	vector<double> cosT(numAtoms);
 	
@@ -261,7 +266,8 @@ int main(int argc,char* argv[])
 	TCanvas *cD = new TCanvas("cD","cD",cW,cH); //Dipole
 	TCanvas *cA = new TCanvas("cA","cA",cW,cH); //2D density plot
 	TCanvas *cQ = new TCanvas("cQ","cQ",cW,cH); //Quiver
-	TCanvas *cV = new TCanvas("cV","cV",cW,cH); //Plot v_r(z)
+	TCanvas *cVr = new TCanvas("cVr","cVr",cW,cH); //Plot v_r(z)
+	TCanvas *cVp = new TCanvas("cVp","cVp",cW,cH); //Plot v_p(z)
 
 	TCanvas *cAll = new TCanvas("cAll","cAll",cW,cH); //All 4 plots together
 	cAll->Divide(2,2,0,0);
@@ -278,20 +284,19 @@ int main(int argc,char* argv[])
 	//Create Histograms
 	TH2D *hA = new TH2D("hA","hA",nA,rVals,nz,zlo,zhi);
 	TH1D *hD = new TH1D("hD","hD",20,0,1);
-	TH1D *hV = new TH1D("hV","hV",nz,zlo,zhi); //For tracking v_r(z)
+	TH1D *hVr = new TH1D("hVr","hVr",nz,zlo,zhi); //For tracking v_r(z)
+	TH1D *hVp = new TH1D("hVp","hVp",nz,0,100); //For tracking v_rho(z) (rho measured from (0,0)
 	TH1D *hZ = new TH1D("hZ","hZ",nz,zlo,zhi); //For counting # of atoms in each z bin
 
 	//misc plot settings
 	hA->SetStats(0);
 
-	hV->SetStats(0);
-	hV->SetMinimum(0);
-	hV->SetMaximum(2e-3);
-	hV->SetLineWidth(2);
-	hV->GetXaxis()->SetTitle("z (#AA)");
-	hV->GetXaxis()->CenterTitle();
-	hV->GetYaxis()->SetTitle("v_{r} (#AA/fs)");
-	hV->GetYaxis()->CenterTitle();
+	hVr->SetStats(0);
+	hVr->SetLineWidth(2);
+	hVr->GetXaxis()->SetTitle("z (#AA)");
+	hVr->GetXaxis()->CenterTitle();
+	hVr->GetYaxis()->SetTitle("v_{r} (#AA/fs)");
+	hVr->GetYaxis()->CenterTitle();
 
 	//Use OpenGL for antialiasing
 	gStyle->SetCanvasPreferGL(true);
@@ -381,6 +386,7 @@ int main(int argc,char* argv[])
 	system("mkdir -p img/quiver");
 	system("mkdir -p img/dipole");
 	system("mkdir -p img/vr");
+	system("mkdir -p img/vp");
 	system("mkdir -p img/all");
 
 
@@ -463,6 +469,11 @@ int main(int argc,char* argv[])
 		
 		}
 		
+		//Minimum
+		min=findMinimum(z);
+		static double z0 = min; //first min
+		cout << "Minimum z: " << findMinimum(z) << endl;
+
 		//Track mono atoms
 		if(trackMonoAtoms)
 		{
@@ -480,16 +491,21 @@ int main(int argc,char* argv[])
 		for(int i=0;i<numAtoms;i++)
 		{
 			r[i]=sqrt(square(x[i]-x0)+square(y[i]-y0));
+			p[i]=sqrt(square(r[i])+square(z[i]-z0));
+
 			vr[i]=(x[i]*vx[i]+y[i]*vy[i])/r[i]; // Chain rule
 
 			hA->Fill(r[i],z[i],convFact/(dV*stepsPerFrame));
 			hD->Fill(dipole,1/numAtoms);
-			hV->Fill(z[i],vr[i]);
+			hVr->Fill(z[i],vr[i]);
+			hVp->Fill(p[i],vr[i]);
 			hZ->Fill(z[i]);
 			q->Fill(r[i],z[i],vr[i],vz[i]);
 			//cout << "Filling q: (" << vr[i] << "," << vz[i] << ") @ (" << r[i] << "," << z[i] << ")" << endl;
 
 		}
+		cout << "min p = " << findMinimum(p) << endl;
+		cout << "max p = " << findMaximum(p) << endl;
 
 		
 // 		//Polar Scatter Plot
@@ -541,8 +557,12 @@ int main(int argc,char* argv[])
 			hD->SetTitle(title.str().data());
 
 			title.str("");
-			title << "Radial Velocity: " << timestep;
-			hV->SetTitle(title.str().data());
+			title << "2D Radial Velocity: " << timestep;
+			hVr->SetTitle(title.str().data());
+
+			title.str("");
+			title << "3D Radial Velocity: " << timestep;
+			hVp->SetTitle(title.str().data());
 
 			//Draw dipole Histogram
 			cD->cd();
@@ -558,25 +578,46 @@ int main(int argc,char* argv[])
 			cout << "Saving quiver" << endl;
 			q->SaveAs(title.str().data());
 
-			//Velocity Plot
+			//2D Velocity Plot
 			//Scale values to create average
 			for(int i=0;i<nz;i++)
 			{
-				sum=hV->GetBinContent(i+1);
+				sum=hVr->GetBinContent(i+1);
 				num=hZ->GetBinContent(i+1);
 				if(num!=0)
-					hV->SetBinContent(i+1,abs(sum/num));
-			//	cout << "hV[" << i+1 << "] = " << hV->GetBinContent(i+1) << endl;
+					hVr->SetBinContent(i+1,abs(sum/num));
+			//	cout << "hVr[" << i+1 << "] = " << hVr->GetBinContent(i+1) << endl;
 			}
 			//Plot
-			cV->cd();
-			TGraph *g = horizontalHist(hV);
-			//g->GetXaxis()->SetRangeUser(rlo,rhi);
-			g->GetYaxis()->SetRangeUser(zlo,zhi);
-			g->Draw("AL");
+			cVr->cd();
+			TGraph *g = horizontalHist(hVr);
 			title.str("");
 			title << "img/vr/step" << setw(8) << setfill('0') << timestep << ".png";
-			cV->SaveAs(title.str().data());
+			cVr->SaveAs(title.str().data());
+
+			//3D Velocity Plot
+			//Scale values to create average
+			for(int i=0;i<nz;i++)
+			{
+				sum=hVp->GetBinContent(i+1);
+				num=hZ->GetBinContent(i+1); //NOT SURE HOW TO HANDLE THIS. hVp is kind of meaningless.
+				if(num!=0)
+					hVp->SetBinContent(i+1,abs(sum/num));
+			}
+			//Plot
+			cVp->cd();
+			TGraph *g1 = new TGraph(hVp);
+			g1->Draw("AL");
+
+			g1->SetLineWidth(2);
+			g1->GetXaxis()->SetTitle("#rho (#AA)");
+			//g1->GetXaxis()->CenterTitle();
+			g1->GetYaxis()->SetTitle("v_{r} (#AA/fs)");
+			//g1->GetYaxis()->CenterTitle();
+
+			title.str("");
+			title << "img/vp/step" << setw(8) << setfill('0') << timestep << ".png";
+			cVp->SaveAs(title.str().data());
 
 			//Draw density histogram
 			cA->cd();
@@ -615,13 +656,17 @@ int main(int argc,char* argv[])
 			cA->DrawClonePad();
 			cAll->cd(2);
 			gPad->Clear();
-			cV->DrawClonePad();
+			cVr->DrawClonePad();
 			cAll->cd(3);
 			gPad->Clear();
-			cD->DrawClonePad();
+			cVp->DrawClonePad();
 			cAll->cd(4);
 			gPad->Clear();
 			cQ->DrawClonePad();
+
+			//Delete vr graph
+			delete g;
+			delete g1;
 
 			title.str("");
 			title << "img/all/step" << setw(8) << setfill('0') << timestep << ".png";
@@ -648,10 +693,7 @@ int main(int argc,char* argv[])
 	// 			b1->GetPoint(i,bPx[i],bPy[i]);
 	// 			cout << "("<<bPx[i]<<","<<bPy[i]<<")"<<endl;
 	// 		}
-	// 		
-			//Minimum
-			min=findMinimum(z);
-			cout << "Minimum z: " << findMinimum(z) << endl;
+	// 	
 
 			hA->Reset();
 			hD->Reset();
@@ -732,13 +774,15 @@ TGraph *horizontalHist(TH1D* hist)
 {
 	char *title, *xLabel, *yLabel;
 	int n;
-	double *x,*y;
+	double *x,*y, xlo, xhi;
 
 	//Copy points
 	TGraph* g =	new TGraph(hist);
 	n=g->GetN();
 	x=g->GetX();
 	y=g->GetY();
+	xlo=hist->GetXaxis()->GetXmin();
+	xhi=hist->GetXaxis()->GetXmax();
 
 	//Copy title and axis labels
 	title=(char*) hist->GetTitle();
@@ -763,6 +807,8 @@ TGraph *horizontalHist(TH1D* hist)
 	g1->SetFillColor(g->GetFillColor());
 
 	//Draw
+	g1->Draw("AL");
+	g1->GetYaxis()->SetRangeUser(xlo,xhi);
 	g1->Draw("AL");
 
 	//Delete
@@ -1153,10 +1199,10 @@ double max(vector<double> v)
 }
 
 //Square
-double square(double x) {return x*x;}
+inline double square(double x) {return x*x;}
 
 //Arctanh
-double atanh(double x) {return log((1+x)/(1-x))/2;}
+inline double atanh(double x) {return log((1+x)/(1-x))/2;}
 
 //Guess boundary of water molecule by counting for a single row
 double guessRowBoundary(TH2D* hist,int j)
@@ -1400,6 +1446,19 @@ double findMinimum(vector<double> v)
 		}
 	}
 	return min;
+}
+
+double findMaximum(vector<double> v)
+{
+	double max=v[0];
+	for(int i=0;i<v.size();i++)
+	{
+		if(v[i]>max) 
+		{
+			max=v[i];
+		}
+	}
+	return max;
 }
 
 //Count the number of timesteps
