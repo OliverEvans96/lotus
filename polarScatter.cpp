@@ -75,6 +75,9 @@ void leaveMonoPosition(vector<double> r,vector<double>z,double zInterface,double
 //Is a<b?
 bool isLess(int a,int b);
 
+//Is x in v?
+bool isIn(int x, vector<int>v);
+
 //Plot bulk and mono radii over time
 void plotRadii(int numSteps,double* bulkEdge,double* monoEdge,char* name);
 
@@ -512,8 +515,8 @@ int main(int argc,char* argv[])
 			//cout << "Filling q: (" << vr[i] << "," << vz[i] << ") @ (" << r[i] << "," << z[i] << ")" << endl;
 
 		}
-		cout << "min p = " << findMinimum(p) << endl;
-		cout << "max p = " << findMaximum(p) << endl;
+//		cout << "min p = " << findMinimum(p) << endl;
+//		cout << "max p = " << findMaximum(p) << endl;
 
 		
 // 		//Polar Scatter Plot
@@ -766,7 +769,7 @@ int main(int argc,char* argv[])
 	}
 	leaveJoinFile.close();
 	
-	TFile* LeaveJoin = new TFile("leavejoin.root","new");
+	TFile* LeaveJoin = new TFile("leavejoin.root","RECREATE");
 	rScaledJoin->Write("rScaledJoin");
 	rScaledLeave->Write("rScaledLeave");
 	rExchange->Write("rExchange");
@@ -1450,7 +1453,7 @@ void leaveMonoPosition(vector<double> r,vector<double> z,double zInterface,doubl
 bool isLess(int a,int b) { return (a<b); }
 
 //Check whether x is in v
-bool isIn(double x, vector<double>v)
+bool isIn(int x, vector<int>v)
 {
 	return binary_search(v.begin(),v.end(),x,isLess);
 }
