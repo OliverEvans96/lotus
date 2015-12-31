@@ -746,14 +746,15 @@ int main(int argc,char* argv[])
 	
 	//Join & Leave
 	double I;
-	TH1D* rExchange= new TH1D(*rScaledJoin);
+	TH1D* rExchange = rScaledJoin->Clone();
+	//Normalize histograms
 	rExchange->Add(rScaledLeave,-1);
 	I=rScaledJoin->Integral();
-	*rScaledJoin=*rScaledJoin*(1/I);
+	*rScaledJoin->Scale(1/I);
 	I=rScaledLeave->Integral();
-	*rScaledLeave=*rScaledLeave*(1/I);
+	*rScaledLeave->Scale(1/I);
 	I=rExchange->Integral();
-	*rExchange=*rExchange*(1/I);
+	*rExchange->Scale(1/I);
 	TCanvas* cE = new TCanvas();
 	cE->cd();
 	rScaledJoin->Draw("");
