@@ -154,7 +154,7 @@ void Quiver::Draw(TCanvas *c,int pad)
 	// Draw hist & color scale
 	for (int i=1;i<nLevels;i++)
 		levels[i] = minVal + (maxVal - minVal) / (nLevels - 1) * (i);
-	levels[0]=0.01;
+	levels[0]=1e-50;
 	
 	canvasCreated = true;
 	cQuiver = c;

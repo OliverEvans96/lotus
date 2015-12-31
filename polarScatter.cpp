@@ -171,7 +171,6 @@ int main(int argc,char* argv[])
 	vector<double> vz(numAtoms);
 	vector<double> vr(numAtoms);
 
-
 	vector<double> cosT(numAtoms);
 	
 	//Initial positions
@@ -229,14 +228,21 @@ int main(int argc,char* argv[])
 	double dA=500;
 	double alo=0;
 	double ahi=125500;
-// 	double alo=rlo;
-// 	double ahi=PI*rhi*rhi;
 	int nA=(int) round((ahi-alo)/dA);
 	
 	double dr=dz;
 	double rlo=sqrt(alo/PI);
 	double rhi=sqrt(ahi/PI);
 	int nr=(int) round((rhi-rlo)/dr);
+
+	double vlo=0;
+	double vhi=1e7;
+	int nV=(int) round((vhi-vlo)/dA);
+
+	double dp=dr;
+	double plo=pow((3*vlo/(4*PI)),(1.0/3));
+	double phi=pow((3*vhi/(4*PI)),(1.0/3));
+	int  np=(int) round((phi-plo)/dp);
 	
 	//Bin volume
 	double dV=dA*dz;
@@ -254,7 +260,6 @@ int main(int argc,char* argv[])
 	double gramsPerWaterMolecule=2.9914e-23;
 	double A3perCC=1.0e24;
 	double convFact=gramsPerWaterMolecule*A3perCC;
-
 
 	//Skip first 2 lines
 	for(int i=0;i<2;i++) inFile.ignore(256,'\n');
@@ -274,11 +279,15 @@ int main(int argc,char* argv[])
 
 	//Values to use for equal-area bins
 	double aVals[nA];
+	double vVals[nA];
 	double rVals[nA];
+	double pVals[nA];
 	for(int i=0;i<=nA;i++)
 	{
 		aVals[i]=i*dA;
+		vVals[i]=i*dV;
 		rVals[i]=sqrt(aVals[i]/PI);
+		pVals[i]=pow(((3*vVals[i])/(4*PI)),1.0/3);
 	}
 		
 	//Create Histograms
@@ -287,6 +296,7 @@ int main(int argc,char* argv[])
 	TH1D *hVr = new TH1D("hVr","hVr",nz,zlo,zhi); //For tracking v_r(z)
 	TH1D *hVp = new TH1D("hVp","hVp",nz,0,100); //For tracking v_rho(z) (rho measured from (0,0)
 	TH1D *hZ = new TH1D("hZ","hZ",nz,zlo,zhi); //For counting # of atoms in each z bin
+	TH1D *hP = new TH1D("hP","hP",np,zlo,zhi); //For counting # of atoms in each p bin
 
 	//misc plot settings
 	hA->SetStats(0);
@@ -471,8 +481,6 @@ int main(int argc,char* argv[])
 		
 		//Minimum
 		min=findMinimum(z);
-		static double z0 = min; //first min
-		cout << "Minimum z: " << findMinimum(z) << endl;
 
 		//Track mono atoms
 		if(trackMonoAtoms)
@@ -491,7 +499,7 @@ int main(int argc,char* argv[])
 		for(int i=0;i<numAtoms;i++)
 		{
 			r[i]=sqrt(square(x[i]-x0)+square(y[i]-y0));
-			p[i]=sqrt(square(r[i])+square(z[i]-z0));
+			p[i]=sqrt(square(r[i])+square(z[i]-zlo));
 
 			vr[i]=(x[i]*vx[i]+y[i]*vy[i])/r[i]; // Chain rule
 
@@ -591,6 +599,13 @@ int main(int argc,char* argv[])
 			//Plot
 			cVr->cd();
 			TGraph *g = horizontalHist(hVr);
+			g->GetXaxis()->SetLimits(1e-6,1e-3);
+			cVr->SetLogy();
+			g->Draw("AL");
+			cVr->Update();
+			cVp->cd();
+			//g->Draw("AL");
+			q->Draw(cVr);
 			title.str("");
 			title << "img/vr/step" << setw(8) << setfill('0') << timestep << ".png";
 			cVr->SaveAs(title.str().data());
@@ -600,15 +615,15 @@ int main(int argc,char* argv[])
 			for(int i=0;i<nz;i++)
 			{
 				sum=hVp->GetBinContent(i+1);
-				num=hZ->GetBinContent(i+1); //NOT SURE HOW TO HANDLE THIS. hVp is kind of meaningless.
+				num=hP->GetBinContent(i+1); //NOT SURE HOW TO HANDLE THIS. hVp is kind of meaningless.
 				if(num!=0)
 					hVp->SetBinContent(i+1,abs(sum/num));
 			}
 			//Plot
 			cVp->cd();
 			TGraph *g1 = new TGraph(hVp);
-			g1->Draw("AL");
-
+			//hVr->Draw("AL");
+			//g1->Draw("AL");
 			g1->SetLineWidth(2);
 			g1->GetXaxis()->SetTitle("#rho (#AA)");
 			//g1->GetXaxis()->CenterTitle();
@@ -1391,7 +1406,7 @@ void joinMonoPosition(vector<double> r,vector<double> z,double zInterface,double
 	for(int i=0;i<numMonoAtoms;i++)
 	{
 		//If it's new to the monolayer, save it's scaled radial position
-		if( !(binary_search(prevMonoList.begin(), prevMonoList.end(), monoList[i], isLess)) )
+		if( !isIn(monoList[i],prevMonoList) )
 			rScaledJoin->Fill(r[i]/baseRadius);
 	}
 	
@@ -1424,16 +1439,21 @@ void leaveMonoPosition(vector<double> r,vector<double> z,double zInterface,doubl
 	for(int i=0;i<numPrevMonoAtoms;i++)
 	{
 		//If has just left the monolayer, save it's scaled radial position
-		if( !(binary_search (monoList.begin(), monoList.end(), prevMonoList[i], isLess)) )
+		if( !isIn(prevMonoList[i],monoList) )
 			rScaledLeave->Fill(r[i]/baseRadius);
 	}
-			
 	
 	//Save monoList for next time
 	prevMonoList=monoList;
 }
 
 bool isLess(int a,int b) { return (a<b); }
+
+//Check whether x is in v
+bool isIn(double x, vector<double>v)
+{
+	return binary_search(v.begin(),v.end(),x,isLess);
+}
 
 double findMinimum(vector<double> v)
 {
