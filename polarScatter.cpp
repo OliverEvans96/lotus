@@ -55,10 +55,10 @@ double guessColBoundary(TH2D* hist,int i);
 TGraph *horizontalHist(TH1D* hist);
 
 //Find boundary points by tanh fitting for each row
-TGraph* findBoundaryPoints(TH2D* hist,char* aOrR,double& xBulkMax,double &xMonoEdge,int stepNum,int timestep);
+TGraph* findBoundaryPoints(TH2D* hist,char* aOrR,double& xBulkMax,double &xMonoEdge,int timestep);
 
 //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points
-CircleFit fitCircle(TGraph* g,double xMax,int stepNum,int timestep);
+CircleFit fitCircle(TGraph* g,double xMax,int timestep);
 
 //Calculate MSD - mean squared displacement
 vector<double> calculateMSD(vector<double> xi,vector<double> yi,vector<double> zi,vector<double> x, vector<double> y,vector<double> z);
@@ -67,10 +67,7 @@ vector<double> calculateMSD(vector<double> xi,vector<double> yi,vector<double> z
 double bulkMonoExchange(vector<double>z,double zInterface,int stepsPerFrame);
 
 //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius
-void joinMonoPosition(vector<double> r,vector<double>z,double zInterface,double baseRadius,TH1D* rScaledJoin);
-
-//Keep track of which atoms leave the monolayer, and save their radius scaled by the base radius to the vector rScaledLeave
-void leaveMonoPosition(vector<double> r,vector<double>z,double zInterface,double baseRadius,TH1D* rScaledLeave);
+int monoFlux(vector<double> r,vector<double>z,double zInterface,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave);
 
 //Is a<b?
 bool isLess(int a,int b);
@@ -101,7 +98,7 @@ int main(int argc,char* argv[])
 {	
 	//Command line arguments: inLoc,outLoc
 	cout << "Received " << argc+1 << " command line arguments." << endl;
-
+	
 	char* inLoc=argv[1];
 	char* outLoc=argv[2];
 	
@@ -126,11 +123,11 @@ int main(int argc,char* argv[])
 	
 	//Output file streams
 	FILE* avgStepData = fopen("avgStepData.txt","w");
- 	fprintf(avgStepData,"%7.7s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s\n","#timestep","bulkEdge","monoEdge","contactAngle","dropletHeight","avgRadius","avgDipole","monoExchange","MSDx","MSDy","MSDz","MSDavg");
+ 	fprintf(avgStepData,"%8.8s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s\n","#time","bulkEdge","monoEdge","contactAngle","dropletHeight","avgRadius","avgDipole","MSDx","MSDy","MSDz","MSDavg","frameFlux","dMe_dt");
 	fflush(avgStepData);
 	
 	FILE* instStepData = fopen("instStepData.txt","w");
- 	fprintf(instStepData,"%7.7s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s \n","#timestep","avgRadius","avgDipole","monoExchange","MSDx","MSDy","MSDz","MSDavg");
+ 	fprintf(instStepData,"%8.8s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s \n","#time","avgRadius","avgDipole","MSDx","MSDy","MSDz","MSDavg","stepFlux");
 	fflush(instStepData);
 	
 	//Variables
@@ -142,10 +139,11 @@ int main(int argc,char* argv[])
 	double velocities[3];
 	double dipole;
 	int timestep; //Real step number for simulation
-	int stepNum=0; //Step number relative to this file starting with 0
+	int stepNum=1; //Step number relative to this file starting with 1
 	int frameNum=0;
 	bool loopFlag1=true;
 	bool loopFlag2=true;
+	bool skipToEnd=true; //If true, skip first 485 steps
 	
 	//Find out some things about the file
 	cout << "Analyzing input file" << endl;
@@ -157,10 +155,21 @@ int main(int argc,char* argv[])
 	
 	//Number of timesteps to average together to make a frame
 	int stepsPerFrame=5;
-	
+
+	//Is the number of steps divisible by the number of steps per frame?
+	bool extraSteps = numSteps%stepsPerFrame;
+	bool divisible = (extraSteps==0);
+
+	//End of the penultimate frame (or middle of last frame if not divisible)
+	int penultimateFrame = numSteps-extraSteps;
+
+	cout << "extraSteps: " << extraSteps << endl;
+	cout << "divisible: " << divisible << endl;
+	cout << "penultimateFrame: " << penultimateFrame << endl;
+
 	//Number of frames (collections of timesteps)
-	//If numSteps%stepsPerFrame!=0, then the last frame will have fewer than the rest
-	int numFrames=(int) ceil(numSteps/stepsPerFrame);
+	//If not divisible, then the last frame will have more than the rest
+	int numFrames=(int) floor(numSteps/stepsPerFrame);
 
 	//Coordinates
 	vector<double> x(numAtoms);
@@ -200,13 +209,18 @@ int main(int argc,char* argv[])
 	
 	//Step variables
 	double xBulkMax;
-	double xBulkEdge=10; //Start with a small value for joinMonoPosition()
+	double xBulkEdge=10; //Start with a small value for monoFlux()
 	double xMonoEdge;
 	double dropletHeight,contactAngle;
 	double avgRadius,avgDipole;
 	vector<double> msd;
 	double exchange;
 	double min;
+
+	//Flux for this timestep
+	int stepFlux = 0;
+	//Average flux for frame
+	int frameFlux = 0;
 	
 	//Hist of where atoms join the monolayer
 	TH1D* rScaledJoin = new TH1D("rScaledJoin","rScaledJoin",30,0,1.5);
@@ -331,7 +345,7 @@ int main(int argc,char* argv[])
 	hD->GetYaxis()->SetTitle("Occurrence");
 	hD->GetYaxis()->CenterTitle();
 
-	//Z boundary between monolayer and bulk (boundary between first and second bins
+	//Z boundary between monolayer and bulk (boundary between first and second bins)
 	double zInterface = zlo+dz;
 	
 	
@@ -341,9 +355,12 @@ int main(int argc,char* argv[])
 	hA->SetMinimum(colzMin);
 	hA->SetMaximum(colzMax);
 
-// 	Edge r coordinates
+	//Edge r coordinates
 	double bulkEdge[numFrames];
 	double monoEdge[numFrames];
+	
+	//Rate of change of monoEdge w.r.t. time.
+	double dMe_dt;
 	
 	//Set all values to zero
 	for(int i=0;i<numSteps;i++)
@@ -402,10 +419,21 @@ int main(int argc,char* argv[])
 	system("mkdir -p img/vp");
 	system("mkdir -p img/all");
 
+	//Skip to end if desired (step 486,timestep 970000)
+	if(skipToEnd)
+	{
+		cout << "Skipping to end!" << endl;
+		while(lineNum<8374013)
+		{
+			getline(inFile,line);
+			lineNum++;
+		}
+		stepNum=486;
+	}
 
 	//Read data
 	//For each timestep
-	while(!inFile.eof()&&loopFlag1)
+	while( (stepNum<=numSteps) && (loopFlag1) && (!inFile.eof()))
 	{
 		//Read the header
 		inFile >> line >> timestep;
@@ -413,6 +441,7 @@ int main(int argc,char* argv[])
 		lineNum++;
 		
 		cout << "Timestep " << timestep << " @ line " << lineNum-1 << endl;
+		cout << "Step # " << stepNum << endl;
 		
 		loopFlag2=true;
 		
@@ -426,6 +455,8 @@ int main(int argc,char* argv[])
 			if(line=="") loopFlag2=false;
 			else
 			{
+				if(lineNum%1000==0)
+					cout << "Reading data for step " << stepNum << endl;
 				//Save data
 				strToData(coords,velocities,dipole,line);
 				x[atomNum]=coords[0];
@@ -442,7 +473,7 @@ int main(int argc,char* argv[])
 		}
 		
 		//Save first timestep
-		if( (!initWritten) && (stepNum==0) )
+		if( (!initWritten) && (stepNum==1) )
 		{
 			ofstream initOut("../init.txt");
 			for(int i=0;i<numAtoms;i++)
@@ -456,6 +487,9 @@ int main(int argc,char* argv[])
 			}
 			initOut.close();
 		}
+
+		//Test - why is the last timestep repeated in instStepData.txt?
+		cout << "Last line read: " << lineNum << endl;
 		
 		//Center
 		//If the center has already been determined for this simulation, use that.
@@ -518,17 +552,8 @@ int main(int argc,char* argv[])
 //		cout << "min p = " << findMinimum(p) << endl;
 //		cout << "max p = " << findMaximum(p) << endl;
 
-		
-// 		//Polar Scatter Plot
-// 		ofstream psOut("pS.txt");
-// 		for(int i=0;i<numAtoms;i++)
-// 		{
-// 			psOut << r[i] << " " << z[i] << endl;
-// 			psOut.flush();
-// 		}
-// 		psOut.close();
-		
-		
+		//INST CALCULATIONS
+
 		//Calculate average radius
 		avgRadius=mean(r);
 		
@@ -538,22 +563,31 @@ int main(int argc,char* argv[])
 		//Calculate MSD
 		msd=calculateMSD(xi,yi,zi,x,y,z);
 		
-		fprintf(instStepData,"%08d %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f  %15.6f\n",timestep,avgRadius,avgDipole,exchange,msd[0],msd[1],msd[2],msd[3]);
+		//Update lists of where atoms joined and left the monolayer
+		stepFlux = monoFlux(r,z,zInterface,xBulkEdge,rScaledJoin,rScaledLeave);
 		
-		//Update list of where atoms joined and left the monolayer
-		joinMonoPosition(r,z,zInterface,xBulkEdge,rScaledJoin);
-		leaveMonoPosition(r,z,zInterface,xBulkEdge,rScaledLeave);
-		
-		//Quiver
-		stringstream title;
-		title << "Radial Density (g/cc):  " << timestep;
-		hA->SetTitle(title.str().data());
-		q->SetTitle(title.str().data());
+		cout << endl;
+		cout << "Step Flux: " << stepFlux << endl;
+		cout << endl;
 
-		
-		//Calculations - Every frame (5 timesteps)
-		if( (stepNum!=0) && ((stepNum+1)%stepsPerFrame==0) )
+		//Calculate average flux for frame (gets reset after written every frame)
+		frameFlux += stepFlux;
+
+		//WRITE INST
+		fprintf(instStepData,"%08d %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15d\n",timestep,avgRadius,avgDipole,msd[0],msd[1],msd[2],msd[3],stepFlux);
+
+		//Calculations - Every frame (5 timesteps) or last step
+		//The last frame may contain more timesteps than other frames (generally 6, up to 9).
+		//So if numSteps is not divisible by stepsPerFrame, then the following should not run for what would be the penultimate frame, and it should be combined with the remaining steps to form the final frame.
+	   //stepsPerFrame may need to be altered for the last timestep to correct some calculations.
+		if( ((stepNum%stepsPerFrame==0)&&!(!divisible&&(stepNum==penultimateFrame))) || (stepNum==numSteps&&!divisible) )
 		{
+			cout << "FRAME " << stepNum/stepsPerFrame << endl;
+			//stepsPerFrame needs to be altered on the last frame if it has extra steps
+			if(!divisible && stepNum==numSteps)
+				stepsPerFrame+=extraSteps;
+			cout << stepsPerFrame << " steps this frame." << endl;
+			
 			//Title
 			stringstream title;
 			title << "Radial Density (g/cc):  " << timestep;
@@ -641,7 +675,7 @@ int main(int argc,char* argv[])
 			cA->cd();
 			hA->Draw("colz");
 			//Find boundary points
-			TGraph* b2 = findBoundaryPoints(hA,"a",xBulkMax,xMonoEdge,stepNum,timestep);
+			TGraph* b2 = findBoundaryPoints(hA,"a",xBulkMax,xMonoEdge,timestep);
 			b2->SetMarkerStyle(20);
 			b2->Draw("same L");
 			stringstream aName;
@@ -649,7 +683,7 @@ int main(int argc,char* argv[])
 
 			//Find interface & edge
 			cout << endl;
-			CircleFit Circle = fitCircle(b2,xBulkMax,stepNum,timestep);
+			CircleFit Circle = fitCircle(b2,xBulkMax,timestep);
 			xBulkEdge=Circle.Intersect(zInterface);
 			cout << "Bulk edge: " << xBulkEdge << endl;
 			bulkEdge[frameNum]=xBulkEdge;
@@ -699,7 +733,7 @@ int main(int argc,char* argv[])
 			
 			//Calculate exchange
 			exchange=bulkMonoExchange(z,zInterface,stepsPerFrame);
-			
+
 			//Find boundary
 	// 		int numBoundaryPoints=b1->GetN();
 	// 		double bPx[numBoundaryPoints],bPy[numBoundaryPoints];
@@ -716,11 +750,22 @@ int main(int argc,char* argv[])
 			hA->Reset();
 			hD->Reset();
 			q->Reset();
+
+			//Calculate rate of change of monoEdge w.r.t. time (units #/step)
+			dMe_dt=(monoEdge[frameNum]-monoEdge[frameNum-1])/(stepsPerFrame);
 			
-			//Save radii to file
-			fprintf(avgStepData,"%08d %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f\n",timestep,xBulkEdge,xMonoEdge,contactAngle,dropletHeight,avgRadius,avgDipole,exchange,msd[0],msd[1],msd[2],msd[3]);
+			cout << endl;
+			cout << "Frame Flux: " << frameFlux << endl;
+			cout << "dMe_dt: " << dMe_dt << endl;
+			cout << endl;
+
+			//Save average data for frame to file
+			fprintf(avgStepData,"%08d %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15d %15.6f\n",timestep,xBulkEdge,xMonoEdge,contactAngle,dropletHeight,avgRadius,avgDipole,msd[0],msd[1],msd[2],msd[3],frameFlux,dMe_dt);
 			fflush(avgStepData);
 			
+			//Reset frame flux
+			frameFlux = 0;
+
 			frameNum++;
 			
 		}
@@ -746,15 +791,15 @@ int main(int argc,char* argv[])
 	
 	//Join & Leave
 	double I;
-	TH1D* rExchange = rScaledJoin->Clone();
+	TH1D* rExchange = (TH1D*) rScaledJoin->Clone();
 	//Normalize histograms
 	rExchange->Add(rScaledLeave,-1);
 	I=rScaledJoin->Integral();
-	*rScaledJoin->Scale(1/I);
+	rScaledJoin->Scale(1/I);
 	I=rScaledLeave->Integral();
-	*rScaledLeave->Scale(1/I);
+	rScaledLeave->Scale(1/I);
 	I=rExchange->Integral();
-	*rExchange->Scale(1/I);
+	rExchange->Scale(1/I);
 	TCanvas* cE = new TCanvas();
 	cE->cd();
 	rScaledJoin->Draw("");
@@ -836,7 +881,7 @@ TGraph *horizontalHist(TH1D* hist)
 }
 
 //Find the edge of droplet by tanh fitting for each row given TH2D
-TGraph* findBoundaryPoints(TH2D* hist,char* aOrR,double& xBulkMax,double &xMonoEdge,int stepNum,int timestep)
+TGraph* findBoundaryPoints(TH2D* hist,char* aOrR,double& xBulkMax,double &xMonoEdge,int timestep)
 {
 	//Best guess for parameters
 	double guess;
@@ -1015,7 +1060,7 @@ TGraph* findBoundaryPoints(TH2D* hist,char* aOrR,double& xBulkMax,double &xMonoE
 
 
 //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points and find the intersection of the circle with the substrate interface. The result is the bulk-monolayer interface
-CircleFit fitCircle(TGraph* g,double xMax,int stepNum,int timestep)
+CircleFit fitCircle(TGraph* g,double xMax,int timestep)
 {
 	//Fit circle and intersect it with a constant c (Interface)
 	char* name1 = (char*) g->GetTitle();
@@ -1370,7 +1415,7 @@ double bulkMonoExchange(vector<double>z,double zInterface,int stepsPerFrame)
 			currCount++;
 	}
 	
-	//The number which have moved to the monolayer is the difference between the number this timestep and last timestep divided by the time passed (ps)
+	//The number which have moved to the monolayer is the difference between the number this timestep and last timestep divided by the time passed (units #/ps)
 	exchange=(currCount-prevCount)/(2*stepsPerFrame);
 	
 	//Save current count for next time
@@ -1385,70 +1430,81 @@ double bulkMonoExchange(vector<double>z,double zInterface,int stepsPerFrame)
 }
 
 //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius to the vector rScaledJoin
-void joinMonoPosition(vector<double> r,vector<double> z,double zInterface,double baseRadius,TH1D* rScaledJoin)
+int monoFlux(vector<double> r,vector<double> z,double zInterface,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave)
 {
-// 	cout << "Declare vars" << endl;
 	//Number of atoms in the simulation
 	int numAtoms=z.size();
+
 	//List of atoms currently in the monolayer
 	vector<int> monoList;
 	//List of atoms in the monolayer last timestep
-	static vector<int> prevMonoList;
-	
-// 	cout << "For loop" << endl;
+	static	vector<int> prevMonoList;
+
+	//Calculate flux since last step
+	int flux = 0;
+
+	//Count how many molecules should be in the monolayer based on the flux.
+	static int expected = 0;
+
+	cout << "Z values" << endl;
 	//Save ids of atoms below the bulk-mono threshold
 	for(int i=0;i<numAtoms;i++)
 	{
+		if(i%(numAtoms/20)==0)
+			cout << "#" << i << ": " << z[i] << endl;
 		if(z[i]<zInterface)
 			monoList.push_back(i);
 	}
-// 	cout << "Size" << endl;
+
 	//Number of atoms in the monolayer
 	int numMonoAtoms=monoList.size();
-// 	cout << "Check atoms" << endl;
+	//Number of atoms in the monolayer last step
+	int numPrevMonoAtoms=prevMonoList.size();
+
+	cout << endl;
+	cout << "Prev monolayer: " << numPrevMonoAtoms << endl;
+	cout << "This monolayer: " << numMonoAtoms << endl;
+	cout << endl;
+
 	//For each atom in the monolayer, check whether it was there last step
 	for(int i=0;i<numMonoAtoms;i++)
 	{
+		//Join
 		//If it's new to the monolayer, save it's scaled radial position
 		if( !isIn(monoList[i],prevMonoList) )
+		{
+			flux++;
 			rScaledJoin->Fill(r[i]/baseRadius);
+		}
 	}
-	
-	//Save monoList for next time
-	prevMonoList=monoList;
-}
 
-//Keep track of which atoms leave the monolayer, and save their radius scaled by the base radius to the vector rScaledLeave
-void leaveMonoPosition(vector<double> r,vector<double> z,double zInterface,double baseRadius,TH1D* rScaledLeave)
-{
-	//Number of atoms in the simulation
-	int numAtoms=z.size();
-	//List of atoms currently in the monolayer
-	vector<int> monoList;
-	monoList.clear();
-	//List of atoms in the monolayer last timestep
-	static vector<int> prevMonoList;
-	
-	//Save ids of atoms below the bulk-mono threshold
-	for(int i=0;i<numAtoms;i++)
-	{
-		if(z[i]<zInterface)
-			monoList.push_back(i);
-	}
-	
-	//Number of atoms in the monolayer
-	int numPrevMonoAtoms=prevMonoList.size();
-	
 	//For each atom in the monolayer last time, check whether it's still there
 	for(int i=0;i<numPrevMonoAtoms;i++)
 	{
+		//Leave
 		//If has just left the monolayer, save it's scaled radial position
 		if( !isIn(prevMonoList[i],monoList) )
+		{
+			flux--;
 			rScaledLeave->Fill(r[i]/baseRadius);
+		}
 	}
-	
+
+	//Check whether the expected value matches the counted value
+	/*
+	expected += flux;
+	cout << "Expected: " << expected;
+	cout << " Counted: " << numMonoAtoms;
+	if (expected == numMonoAtoms)
+		cout << " OK!" << endl;
+	else
+		cout << " NOOOOOOOOOOOO!" << endl;
+	*/
+
 	//Save monoList for next time
 	prevMonoList=monoList;
+
+	return flux;
 }
 
 bool isLess(int a,int b) { return (a<b); }

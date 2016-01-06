@@ -87,9 +87,7 @@ void Quiver::Reset()
 
 	if(canvasCreated)
 	{
-		cout << "About to clear" << endl;
 		cQuiver->Clear();
-		cout << "Cleared" << endl;
 	}
 
 	h->Reset();
