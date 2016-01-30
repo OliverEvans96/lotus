@@ -1,4 +1,1 @@
-   #time        bulkEdge        monoEdge    contactAngle   dropletHeight       avgRadius       avgDipole            MSDx            MSDy            MSDz          MSDavg       frameFlux          dMe_dt
-00978000       93.112378      119.270636        0.558748       57.849817       58.000004       -0.260939     1024.288893     1260.477655     2311.149025     1531.971858            3775       23.854127
-00988000       94.028827      119.711006        0.546746       57.619120       58.154712       -0.260818     1031.548107     1271.328621     2313.792076     1538.889601               7        0.088074
-01000000       87.278244      119.716744        0.815732       33.365553       22.232462       -0.201911      779.473790      716.167458     2391.626725     1295.755991           -3782        0.000956
+   #time        bulkEdge        monoEdge    contactAngle   dropletHeight       avgRadius       avgDipole            MSDx            MSDy            MSDz          MSDavg       frameFlux          dMe_dt           nMono

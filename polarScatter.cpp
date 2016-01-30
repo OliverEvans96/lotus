@@ -13,9 +13,14 @@
 #include "TCanvas.h"
 #include "TH2D.h"
 #include "TGraph.h"
+#include "TGraph2D.h"
+#include "TLegend.h"
 #include "TMultiGraph.h"
 #include "TF1.h"
+#include "TF2.h"
 #include "TFile.h"
+#include "TText.h"
+#include "TPaveText.h"
 
 #include "CircleFitClass.h"
 #include "Quiver/Quiver.h"
@@ -27,7 +32,7 @@ const double PI = 3.141592653589793;
 //Count the number of water atoms in the first timestep
 int countAtoms(ifstream &inFile);
 
-//Split a string into a string array of words
+//Split a string into a string vector of words
 vector<string> strSplit(string str);
 
 //Get index and coordinates from string array of words
@@ -45,38 +50,37 @@ double square(double x);
 //Arctanh
 double atanh(double x);
 
-//Guess boundary of water molecule by counting for a single row
-double guessRowBoundary(TH2D* hist,int j);
-
 //Guess boundary of water molecule by counting for a single column
-double guessColBoundary(TH2D* hist,int i);
+double guessBoundary(TH1D* hist,double cutoff);
 
 //Draw a TH1D horizontally, returning a TGraph which should probably be deleted
 TGraph *horizontalHist(TH1D* hist);
 
 //Find boundary points by tanh fitting for each row
-TGraph* findBoundaryPoints(TH2D* hist,char* aOrR,double& xBulkMax,double &xMonoEdge,int timestep);
+void findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,int frameStep);
+//void findBoundaryPoints(TH2D* hist,TGraph2D *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,int frameStep);
 
 //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points
-CircleFit fitCircle(TGraph* g,double xMax,int timestep);
+void fitCircle(TGraph* circlePointsGraph,CircleFit &circle,double xMax,int timestep);
+//void fitCircle(TGraph2D* circlePointsGraph,CircleFit circle,double xMax,int timestep);
+
+//Fit TH1D to tanh function, solve for x where f(x)=cutoff
+double solveTanhFit(TH1D* hist,double cutoff,TF1* tanhFit,int startBin,int frameStep);
 
 //Calculate MSD - mean squared displacement
 vector<double> calculateMSD(vector<double> xi,vector<double> yi,vector<double> zi,vector<double> x, vector<double> y,vector<double> z);
 
 //Count the number of atoms which have migrated from the bulk to the monolayer this timestep
-double bulkMonoExchange(vector<double>z,double zInterface,int stepsPerFrame);
+//double bulkMonoExchange(vector<double>z,double *monoLimits,int stepsPerFrame);
 
 //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius
-int monoFlux(vector<double> r,vector<double>z,double zInterface,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave);
+int monoFlux(vector<double> r,vector<double>z,double* monoLimits,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave,int &nMono);
 
 //Is a<b?
 bool isLess(int a,int b);
 
 //Is x in v?
 bool isIn(int x, vector<int>v);
-
-//Plot bulk and mono radii over time
-void plotRadii(int numSteps,double* bulkEdge,double* monoEdge,char* name);
 
 //Find the minimum value of a vector or double pointer
 double findMinimum(vector<double> v);
@@ -93,15 +97,75 @@ int lowestID(ifstream &inFile);
 //Check whether a file exists
 bool file_exists(const string& name);
 
+//round up to nearest multiple of a number
+int roundUp(int numToRound, int multiple);
+
+//Find z interface between monolayer and bulk
+void findMonoLimits(TH1D *hWaterDens,double *monoLimits);
+
+//Conversion factor - number density to water mass density
+const double convFact=18/.60221409;
+
 //Read each timestep and plot 3d scatter plot
 int main(int argc,char* argv[])
 {	
 	//Command line arguments: inLoc,outLoc
-	cout << "Received " << argc+1 << " command line arguments." << endl;
+	cout << "Received " << argc-1 << " command line arguments." << endl;
 	
 	char* inLoc=argv[1];
 	char* outLoc=argv[2];
+
+	//Whether to run whole analysis or only find monolayer
+	bool onlyFindInterface;
+	cout << "argc=" << argc << endl;
+	if(argc<4)
+		onlyFindInterface=false;
+	else 
+		onlyFindInterface=(strcmp(argv[3],"mono")==0);
+
+	/*
+	cout << "argv: " << endl;
+	for(int i=0;i<argc;i++)
+		cout << argv[i] << endl;
+	cout << endl;
+	*/
+
+	cout << "onlyFindInterface=" << onlyFindInterface << endl;
+	cout << endl;
 	
+	//z limits of the monolayer
+	double monoLimits[2];
+	//While reading files, we don't yet know where the monolayer will be defined for this frame, so we save it's coordinates if it's in a broad range, then eliminate extras later.
+	double potentialMonoLimits[2]={27,33};
+	int nMonoAtoms=0;
+	int nPotentialMonoAtoms=0;
+	vector<double> potentialMonoR;
+	vector<double> potentialMonoZ;
+
+	//Open monoLimits file
+	fstream interfaceFile;
+	if(!onlyFindInterface)
+	{
+		interfaceFile.open("../mono_limits.txt",ios::in);
+	}
+	else
+		interfaceFile.open("../mono_limits.txt",ios::out);
+
+
+	if (interfaceFile.good())
+		cout << "Successfully opened " << "mono_limits.txt" << endl;
+	else
+		cout << "Failed to open " << "mono_limits.txt" << endl;
+
+	if(!onlyFindInterface)
+	{
+		interfaceFile >> monoLimits[0] >> monoLimits[1];
+		cout << "monoLimits=" << monoLimits[0] << " " << monoLimits[1] << endl;
+	}
+	double monoWidth=monoLimits[1]-monoLimits[0];
+	cout << "monoWidth=" << monoWidth << endl;
+	cout << endl;
+
 	//File Number
 	string fileName(inLoc);
 	string halfName=fileName.substr(fileName.find("atom")).substr(4);
@@ -116,14 +180,60 @@ int main(int argc,char* argv[])
 	//Input Stream
 	ifstream inFile(inLoc);
 
+	//Substrate density input file
+	string dStr(argv[1]);
+	stringstream dSS;
+	dSS << dStr.substr(0,dStr.find("calculated.txt")) << "substrate_density_halfA.txt";
+	cout << "Opening " << dSS.str().data() << endl;
+	ifstream densFile(dSS.str().data());
+
+	//Check files
 	if (inFile.good())
 		cout << "Successfully opened " << inLoc << endl;
 	else
 		cout << "Failed to open " << inLoc << endl;
+
+	if (densFile.good())
+		cout << "Successfully opened " << "substrate_density_halfA.txt" << endl;
+	else
+		cout << "Failed to open " << "substrate_density_halfA.txt" << endl;
+
+	//Substrate density variables
+	int histDensBin;
+	string densLine;
+	double density;
+	//Read first line (header comment)
+	getline(densFile,densLine);
 	
+	//Split Header comment into vector of strings
+	vector<string> densHeader = strSplit(densLine);
+
+	//Count number of fields & allocate zVals array
+	int nDensBinsFile = densHeader.size()-1;
+	double *zVals = new double[nDensBinsFile];
+	
+	cout << "nDensBinsFile=" << nDensBinsFile << endl;
+	//Remove "z=" from the beginning of each label and convert to decimal
+	for(int i=0;i<nDensBinsFile;i++)
+	{
+		zVals[i]=atof(densHeader[i+1].substr(2).data()); //substr(2) means char 2 (counting from 0 - actually 3rd character) until the end
+	}
+	double dLoFile=zVals[0];
+	double dZDens=zVals[1]-zVals[0];
+	double dHiFile=zVals[nDensBinsFile-1]+dZDens;
+		
+	//Density histogram limits - dz for file & hist should be same, everything else can be different
+	double dLoHist=0;
+	double dHiHist=60;
+	int nDensBinsHist=(int) floor((dHiHist-dLoHist)/dZDens);
+	cout << "nDensBinsHist=" << nDensBinsHist << endl;
+
+	//Ignore blank line
+	getline(densFile,densLine);
+
 	//Output file streams
 	FILE* avgStepData = fopen("avgStepData.txt","w");
- 	fprintf(avgStepData,"%8.8s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s\n","#time","bulkEdge","monoEdge","contactAngle","dropletHeight","avgRadius","avgDipole","MSDx","MSDy","MSDz","MSDavg","frameFlux","dMe_dt");
+ 	fprintf(avgStepData,"%8.8s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s\n","#time","bulkEdge","monoEdge","contactAngle","dropletHeight","avgRadius","avgDipole","MSDx","MSDy","MSDz","MSDavg","frameFlux","dMe_dt","nMono");
 	fflush(avgStepData);
 	
 	FILE* instStepData = fopen("instStepData.txt","w");
@@ -133,17 +243,23 @@ int main(int argc,char* argv[])
 	//Variables
 	string line;
 	string input;
+
 	int atomNum=0;
 	int lineNum=1;
+
 	double coords[3];
 	double velocities[3];
 	double dipole;
+
 	int timestep; //Real step number for simulation
 	int stepNum=1; //Step number relative to this file starting with 1
 	int frameNum=0;
+	int frameStep; //First real timestep # of frame - used for naming, plots, etc.
+	bool frameNamed=false; //Whether this frame has been named yet
+
 	bool loopFlag1=true;
 	bool loopFlag2=true;
-	bool skipToEnd=true; //If true, skip first 485 steps
+	bool skipToEnd=false; //If true, skip first 485 steps
 	
 	//Find out some things about the file
 	cout << "Analyzing input file" << endl;
@@ -206,16 +322,27 @@ int main(int argc,char* argv[])
 	//Center of mass
 	double x0,y0;
 	bool centroidKnown;
+
+	//Radius of cylinder to use to calculate density(z) of water
+	//Use half of the radius of the droplet
+	int simPos=0; //When submitted by analyze.sh, whole path is included in argv[2]
+	if(string(argv[2]).length()>40)
+		simPos=44;
+	double rDensCyl=atoi(string(argv[2]).substr(simPos,2).data())/2; 
+	cout << "RDENSCYL=" << rDensCyl << endl;
 	
 	//Step variables
-	double xBulkMax;
-	double xBulkEdge=10; //Start with a small value for monoFlux()
-	double xMonoEdge;
+	double rBulkMax=rDensCyl*2;
+	double bulkEdge=rDensCyl*2;
+	double monoEdge;
+	double lastMonoEdge=0;
 	double dropletHeight,contactAngle;
 	double avgRadius,avgDipole;
 	vector<double> msd;
-	double exchange;
+	//double exchange;
 	double min;
+	int nMono;
+	int bin1,bin2;
 
 	//Flux for this timestep
 	int stepFlux = 0;
@@ -229,8 +356,8 @@ int main(int argc,char* argv[])
 	TH1D* rScaledLeave = new TH1D("rScaledLeave","rScaledLeave",30,0,1.5);
 	
 	double dz=1.5;
-	double zlo=28.5;
-	double zhi=160.5;
+	double zlo=25;
+	double zhi=160;
 	int nz=(int) round((zhi-zlo)/dz);
 	
 	//Check that dz, zlo, and zhi are compatible
@@ -242,9 +369,9 @@ int main(int argc,char* argv[])
 	
 	cout << "nz=" << nz << endl;
 	
-	double dA=500;
-	double alo=0;
-	double ahi=125500;
+	const double dA=500;
+	const double alo=0;
+	const double ahi=125500;
 	int nA=(int) round((ahi-alo)/dA);
 	
 	double dr=dz;
@@ -273,23 +400,21 @@ int main(int argc,char* argv[])
 	
 	cout << "nA=" << nA << endl;
 	
-	//Conversion factors
-	double gramsPerWaterMolecule=2.9914e-23;
-	double A3perCC=1.0e24;
-	double convFact=gramsPerWaterMolecule*A3perCC;
-
 	//Skip first 2 lines
 	for(int i=0;i<2;i++) inFile.ignore(256,'\n');
 	lineNum+=2;
 	
 	//Fix canvas height & scale width to preserve aspect ratio
-	int cH=1200;
-	int cW=(int) round(cH*(rhi-rlo)/(zhi-zlo));
+	//Added values are to account for window decorations which ROOT for some reason considers
+	//Height and width must be divisible by 16 to play nice with ffmpeg
+	int cH=1200+28;
+	int cW=(int) roundUp((int)floor(cH*(rhi-rlo)/(zhi-zlo)),16)+4;
+	cout << "cW=" << cW%16 << endl;
 	TCanvas *cD = new TCanvas("cD","cD",cW,cH); //Dipole
 	TCanvas *cA = new TCanvas("cA","cA",cW,cH); //2D density plot
 	TCanvas *cQ = new TCanvas("cQ","cQ",cW,cH); //Quiver
 	TCanvas *cVr = new TCanvas("cVr","cVr",cW,cH); //Plot v_r(z)
-	TCanvas *cVp = new TCanvas("cVp","cVp",cW,cH); //Plot v_p(z)
+	TCanvas *cDens = new TCanvas("cDens","cDens",cW,cH); //Plot density of substrate and water
 
 	TCanvas *cAll = new TCanvas("cAll","cAll",cW,cH); //All 4 plots together
 	cAll->Divide(2,2,0,0);
@@ -306,14 +431,16 @@ int main(int argc,char* argv[])
 		rVals[i]=sqrt(aVals[i]/PI);
 		pVals[i]=pow(((3*vVals[i])/(4*PI)),1.0/3);
 	}
-		
+
 	//Create Histograms
 	TH2D *hA = new TH2D("hA","hA",nA,rVals,nz,zlo,zhi);
+	TH1D *hMono = new TH1D("hMono","hMono",nA,rVals); //Only monolayer atoms - for calculating monoEdge
+	//TH1D *hMonoProj;
 	TH1D *hD = new TH1D("hD","hD",20,0,1);
 	TH1D *hVr = new TH1D("hVr","hVr",nz,zlo,zhi); //For tracking v_r(z)
-	TH1D *hVp = new TH1D("hVp","hVp",nz,0,100); //For tracking v_rho(z) (rho measured from (0,0)
 	TH1D *hZ = new TH1D("hZ","hZ",nz,zlo,zhi); //For counting # of atoms in each z bin
-	TH1D *hP = new TH1D("hP","hP",np,zlo,zhi); //For counting # of atoms in each p bin
+	TH1D *hWaterDens = new TH1D("hWaterDens","hWaterDens",nDensBinsHist,dLoHist,dHiHist);
+	TH1D *hSubstrDens = new TH1D("hSubstrDens","hSubstrDens",nDensBinsHist,dLoHist,dHiHist);
 
 	//misc plot settings
 	hA->SetStats(0);
@@ -339,35 +466,87 @@ int main(int argc,char* argv[])
 	hA->GetYaxis()->SetTitle("z (#AA)");
 	hA->GetYaxis()->CenterTitle();
 	
-	
 	hD->GetXaxis()->SetTitle("cos#theta (rad)");
 	hD->GetXaxis()->CenterTitle();
 	hD->GetYaxis()->SetTitle("Occurrence");
 	hD->GetYaxis()->CenterTitle();
 
-	//Z boundary between monolayer and bulk (boundary between first and second bins)
-	double zInterface = zlo+dz;
-	
-	
+	hWaterDens->GetXaxis()->SetTitle("z (#AA)");
+	hWaterDens->GetXaxis()->CenterTitle();
+	hWaterDens->GetYaxis()->SetTitle("#rho (g/cm^{3})");
+	hWaterDens->GetYaxis()->CenterTitle();
+
+	//Circle fit graph
+	TGraph *circlePointsGraph = new TGraph();
+	TGraph *badPointsGraph = new TGraph();
+	badPointsGraph->SetMarkerStyle(34);
+	badPointsGraph->SetMarkerSize(2);
+	badPointsGraph->SetMarkerColor(kRed);
+	//TGraph2D *circlePointsGraph = new TGraph2D();
+
+	//Bulk & Mono radius vertical lines
+	TLine *rBulkMaxLine = new TLine(0,zlo,0,zhi); //Max r for circle fitting
+	TLine *bulkEdgeLine = new TLine(0,zlo,0,zhi); //Bulk edge
+	TLine *monoEdgeLine = new TLine(0,zlo,0,zhi); //Mono edge
+	TLine *heightLine = new TLine(0,zlo,rhi,0); //Droplet height
+	TLine *monoHiLine = new TLine(0,zlo,rhi,0); //top of monolayer
+	TLine *monoLoLine= new TLine(0,zlo,rhi,0); //bottome of monolayer
+
+	//Line properties
+	rBulkMaxLine->SetLineColor(kOrange);
+	rBulkMaxLine->SetLineWidth(3);
+	bulkEdgeLine->SetLineWidth(3);
+	bulkEdgeLine->SetLineColor(kGreen);
+	monoEdgeLine->SetLineWidth(3);
+	monoEdgeLine->SetLineColor(kRed);
+	heightLine->SetLineWidth(3);
+	heightLine->SetLineColor(kOrange+3);
+	monoHiLine->SetLineWidth(3);
+	monoHiLine->SetLineColor(kBlue);
+	monoHiLine->SetLineStyle(9);
+	monoLoLine->SetLineWidth(3);
+	monoLoLine->SetLineColor(kBlue);
+	monoLoLine->SetLineStyle(2);
+
+	//2D Density Hist Legend
+	TLegend *hALegend = new TLegend(.65,.65,.85,.85);
+	hALegend->AddEntry(circlePointsGraph,"Droplet boundary","lp");
+	hALegend->AddEntry(rBulkMaxLine,"Max r for circle fitting points","l");
+	hALegend->AddEntry(bulkEdgeLine,"Bulk radius","l");
+	hALegend->AddEntry(monoEdgeLine,"Mono radius","l");
+	hALegend->AddEntry(heightLine,"Droplet height","l");
+	hALegend->AddEntry(monoHiLine,"Mono top","l");
+	hALegend->AddEntry(monoLoLine,"Mono bottom","l");
+	hALegend->AddEntry(badPointsGraph,"Discarded points","p");
+
+	//Text to show data
+	TPaveText *textBox = new TPaveText();
+	textBox->SetX1NDC(.65);
+	textBox->SetY1NDC(.5);
+	textBox->SetX2NDC(.85);
+	textBox->SetY2NDC(.625);
+
+	TText *cAText=textBox->AddText("Contact angle"); //Contact angle
+	TText *dHText=textBox->AddText("Droplet height"); //Droplet height
+	TText *bEText=textBox->AddText("Bulk edge"); //Bulk edge
+	TText *mEText=textBox->AddText("Mono edge"); //Mono edge
+
+	textBox->SetShadowColor(0);
+	textBox->SetTextSize(0.025);
+
+	//hA Zaxis limits
 	double colzMin=0.0;
 	double colzMax=1.5;
 
-	hA->SetMinimum(colzMin);
-	hA->SetMaximum(colzMax);
+	//Circle for fitting
+	CircleFit Circle(hA,"cut");
 
-	//Edge r coordinates
-	double bulkEdge[numFrames];
-	double monoEdge[numFrames];
-	
+	//Test for hWaterDens
+	int nWaterDens=0;
+	int nWatersBelowMono=0;
+
 	//Rate of change of monoEdge w.r.t. time.
 	double dMe_dt;
-	
-	//Set all values to zero
-	for(int i=0;i<numSteps;i++)
-	{
-		bulkEdge[i]=0;
-		monoEdge[i]=0;
-	}
 	
 	//Determine whether to track mono atoms
 	bool trackMonoAtoms=file_exists("../monoIDs.txt");
@@ -411,13 +590,17 @@ int main(int argc,char* argv[])
 	}
 	
 	//Create directories if they don't exist
+
 	system("mkdir -p img/hist"); 
 	system("mkdir -p img/mono");
 	system("mkdir -p img/quiver");
 	system("mkdir -p img/dipole");
+	system("mkdir -p img/densityHalfA");
 	system("mkdir -p img/vr");
 	system("mkdir -p img/vp");
 	system("mkdir -p img/all");
+ 	system("mkdir -p img/circles");
+	system("mkdir -p img/tanh");
 
 	//Skip to end if desired (step 486,timestep 970000)
 	if(skipToEnd)
@@ -447,6 +630,13 @@ int main(int argc,char* argv[])
 		
 		atomNum=0;
 
+		//Name frame
+		if(!frameNamed)
+		{
+			frameStep=timestep;
+			frameNamed=true;
+		}
+
 		//Read atom data
 		while(loopFlag2)
 		{
@@ -455,8 +645,6 @@ int main(int argc,char* argv[])
 			if(line=="") loopFlag2=false;
 			else
 			{
-				if(lineNum%1000==0)
-					cout << "Reading data for step " << stepNum << endl;
 				//Save data
 				strToData(coords,velocities,dipole,line);
 				x[atomNum]=coords[0];
@@ -531,7 +719,12 @@ int main(int argc,char* argv[])
 				monoGraph2->SetPoint(i,monoR,monoZ);
 			}
 		}
-			
+
+
+		cout << "convFact=" << convFact << endl;
+		cout << "dA=" << dA << endl;
+		cout << "dV=" << dV << endl;
+
 		//Fill Histograms
 		for(int i=0;i<numAtoms;i++)
 		{
@@ -540,17 +733,51 @@ int main(int argc,char* argv[])
 
 			vr[i]=(x[i]*vx[i]+y[i]*vy[i])/r[i]; // Chain rule
 
-			hA->Fill(r[i],z[i],convFact/(dV*stepsPerFrame));
+			hA->Fill(r[i],z[i],convFact/dV);
 			hD->Fill(dipole,1/numAtoms);
 			hVr->Fill(z[i],vr[i]);
-			hVp->Fill(p[i],vr[i]);
 			hZ->Fill(z[i]);
 			q->Fill(r[i],z[i],vr[i],vz[i]);
-			//cout << "Filling q: (" << vr[i] << "," << vz[i] << ") @ (" << r[i] << "," << z[i] << ")" << endl;
 
+			//Fill water density histogram
+			//water=18amu, convert units, divide by volume
+			if(r[i]<=rDensCyl)
+			{
+				hWaterDens->Fill(z[i],convFact/(dZDens*PI*rDensCyl*rDensCyl));
+				nWaterDens++;
+			}
+
+			//Fill monolayer histogram
+			if((monoLimits[0]<=z[i]) && (z[i]<=monoLimits[1]))
+			{
+				nPotentialMonoAtoms++;
+				potentialMonoR.push_back(r[i]);
+				potentialMonoZ.push_back(z[i]);
+			}
+			else if(z[i]<potentialMonoLimits[0])
+			{
+				cout << "MOLECULE BELOW POTENTIAL MONO THRESHOLD AT Z=" << z[i] << endl;
+				nWatersBelowMono++;
+			}
 		}
-//		cout << "min p = " << findMinimum(p) << endl;
-//		cout << "max p = " << findMaximum(p) << endl;
+		if(nWatersBelowMono>0)
+			cout << "Found " << nWatersBelowMono << " waters below monolayer in step " << timestep << endl;
+		nWatersBelowMono=0;
+
+		//Fill Density histogram
+		//Ignore timestep
+		densFile >> densLine;
+		for(int i=0;i<nDensBinsFile;i++)
+		{
+			densFile >> density;
+			histDensBin = (int) floor((zVals[i]-dLoHist)*nDensBinsHist/(dHiHist-dLoHist))+1;
+			//cout << "zVals[" << i << "]=" << zVals[i] << endl;
+			//cout << (zVals[i]-dLoFile)*nDensBinsHist/(dHiHist-dLoHist) << endl;
+			//cout << "Density " << zVals[i] << ": " << histDensBin << " = " << density << endl;
+			hSubstrDens->SetBinContent(histDensBin,density);
+		}
+		//Go to next line
+		densFile.ignore(256,'\n');
 
 		//INST CALCULATIONS
 
@@ -564,7 +791,7 @@ int main(int argc,char* argv[])
 		msd=calculateMSD(xi,yi,zi,x,y,z);
 		
 		//Update lists of where atoms joined and left the monolayer
-		stepFlux = monoFlux(r,z,zInterface,xBulkEdge,rScaledJoin,rScaledLeave);
+		stepFlux = monoFlux(r,z,monoLimits,bulkEdge,rScaledJoin,rScaledLeave,nMono);
 		
 		cout << endl;
 		cout << "Step Flux: " << stepFlux << endl;
@@ -576,52 +803,149 @@ int main(int argc,char* argv[])
 		//WRITE INST
 		fprintf(instStepData,"%08d %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15d\n",timestep,avgRadius,avgDipole,msd[0],msd[1],msd[2],msd[3],stepFlux);
 
-		//Calculations - Every frame (5 timesteps) or last step
+		//FRAME CALCULATIONS (5 timesteps or last step)
+
 		//The last frame may contain more timesteps than other frames (generally 6, up to 9).
 		//So if numSteps is not divisible by stepsPerFrame, then the following should not run for what would be the penultimate frame, and it should be combined with the remaining steps to form the final frame.
 	   //stepsPerFrame may need to be altered for the last timestep to correct some calculations.
 		if( ((stepNum%stepsPerFrame==0)&&!(!divisible&&(stepNum==penultimateFrame))) || (stepNum==numSteps&&!divisible) )
 		{
 			cout << "FRAME " << stepNum/stepsPerFrame << endl;
+			cout << "frameStep: " << frameStep << endl;
 			//stepsPerFrame needs to be altered on the last frame if it has extra steps
 			if(!divisible && stepNum==numSteps)
 				stepsPerFrame+=extraSteps;
 			cout << stepsPerFrame << " steps this frame." << endl;
+			cout << endl;
 			
-			//Title
+			//FRAME CALCULATIONS
+
+			//Scale by stepsPerFrame since this is a frame averege
+			hWaterDens->Scale(1.0/stepsPerFrame);
+			hA->Scale(1.0/stepsPerFrame);
+
+			//Find monolayer
+			findMonoLimits(hWaterDens,monoLimits);
+			monoWidth=monoLimits[1]-monoLimits[0];
+			cout << "monoWidth=" << monoWidth << endl;
+
+			//Write monolayer to file if appropriate
+			if(onlyFindInterface)
+			{
+				interfaceFile << monoLimits[0] << " " << monoLimits[1];
+				loopFlag1=false;
+			}
+
+			//Determine which atoms are really in the monolayer
+			for(int i=0;i<nPotentialMonoAtoms;i++)
+			{
+				if((monoLimits[0]<=potentialMonoZ[i]) && (z[i]<=potentialMonoR[1]))
+				{
+					hMono->Fill(potentialMonoR[i],convFact/(dA*monoWidth));
+					nMonoAtoms++;
+				}
+			}
+
+			//Scale in order to average over frame
+			hMono->Scale(1.0/stepsPerFrame);
+
+			//Report findings
+			cout << "Found " << nPotentialMonoAtoms << " potentially in monolayer" << endl;
+			cout << " Of them, " << nMonoAtoms << " are really in the monolayer." << endl;
+
+			//Reset potential monolayer variables
+			nMonoAtoms=0;
+			nPotentialMonoAtoms=0;
+			potentialMonoR.clear();
+			potentialMonoZ.clear();
+
+			cout << "Find Boundary" << endl;
+
+			//Do Tanh fitting, find monolayer radius
+			findBoundaryPoints(hA,circlePointsGraph,"a",monoLimits,hMono,rBulkMax,monoEdge,frameStep);
+			cout << "Mono edge: " << monoEdge << endl;
+
+			cout << "Fit Circle" << endl;
+			//Fit circle
+			cA->cd();
+			fitCircle(circlePointsGraph,Circle,rBulkMax,frameStep);
+
+			cout << "Find radii" << endl;
+
+			//Find bulk radius
+			bulkEdge=Circle.Intersect(monoLimits[1]);
+			cout << "Bulk edge: " << bulkEdge << endl;
+
+			//Find contact angle
+			cout << "Intersect with " << monoLimits[1] << endl;
+			contactAngle=Circle.ContactAngle();
+			
+			//Find droplet height by intersecting circle with y-axis
+			dropletHeight=Circle.Height();
+			
+			//Test number of molecules in hWaterDens
+			cout << "STEP " << timestep << ": " << nWaterDens << " molecules in hWaterDens" << endl;
+			nWaterDens=0;
+
+			//PLOT TILES
 			stringstream title;
-			title << "Radial Density (g/cc):  " << timestep;
+			title << string(argv[2]).substr(simPos) << ": "  << frameStep;
 			hA->SetTitle(title.str().data());
 
 			title.str("");
-			title << "Velocity Field: " << timestep;
+			title << "Velocity Field: " << frameStep;
 			q->SetTitle(title.str().data());
 
 			title.str("");
-			title << "Dipole Moment Distribution: " << timestep;
+			title << "Density: " << frameStep;
+			hWaterDens->SetTitle(title.str().data());
+
+			title.str("");
+			title << "Dipole Moment Distribution: " << frameStep;
 			hD->SetTitle(title.str().data());
 
 			title.str("");
-			title << "2D Radial Velocity: " << timestep;
+			title << "2D Radial Velocity: " << frameStep;
 			hVr->SetTitle(title.str().data());
 
-			title.str("");
-			title << "3D Radial Velocity: " << timestep;
-			hVp->SetTitle(title.str().data());
+			//FRAME PLOTS
 
 			//Draw dipole Histogram
 			cD->cd();
 			hD->Draw();
 			title.str("");
-			title << "img/dipole/step" << setw(8) << setfill('0') << timestep << ".png";
+			title << "img/dipole/step" << setw(8) << setfill('0') << frameStep << ".png";
 			cD->SaveAs(title.str().data());
 			
 			//Quiver
 			title.str("");
-			title << "img/quiver/step" << setw(8) << setfill('0') << timestep << ".png";
+			title << "img/quiver/step" << setw(8) << setfill('0') << frameStep << ".png";
 			q->Draw(cQ);
 			cout << "Saving quiver" << endl;
 			q->SaveAs(title.str().data());
+
+			//Density plot
+			title.str("");
+			title << "img/densityHalfA/step" << setw(8) << setfill('0') << frameStep << ".png";
+			cDens->cd();
+			//Drawing options
+			hWaterDens->SetLineColor(kBlue);
+			hSubstrDens->SetLineColor(kOrange+3); //Brown
+			hWaterDens->SetLineWidth(2);
+			hSubstrDens->SetLineWidth(2);
+			hWaterDens->Draw(); 
+			hSubstrDens->Draw("SAME"); //Same canvas
+			//Use OpenGL for antialiasing
+			gStyle->SetCanvasPreferGL(true);
+			//Axis limits
+			hWaterDens->GetYaxis()->SetRangeUser(0,6);
+			//Legend
+			TLegend *densLeg = new TLegend(.75,.75,.85,.85);
+			densLeg->AddEntry(hWaterDens,"Water");
+			densLeg->AddEntry(hSubstrDens,"Substrate");
+			densLeg->Draw();
+			//Save
+			cDens->SaveAs(title.str().data());
 
 			//2D Velocity Plot
 			//Scale values to create average
@@ -640,57 +964,77 @@ int main(int argc,char* argv[])
 			cVr->SetLogy();
 			g->Draw("AL");
 			cVr->Update();
-			cVp->cd();
-			//g->Draw("AL");
 			q->Draw(cVr);
 			title.str("");
-			title << "img/vr/step" << setw(8) << setfill('0') << timestep << ".png";
+			title << "img/vr/step" << setw(8) << setfill('0') << frameStep << ".png";
 			cVr->SaveAs(title.str().data());
 
-			//3D Velocity Plot
-			//Scale values to create average
-			for(int i=0;i<nz;i++)
-			{
-				sum=hVp->GetBinContent(i+1);
-				num=hP->GetBinContent(i+1); //NOT SURE HOW TO HANDLE THIS. hVp is kind of meaningless.
-				if(num!=0)
-					hVp->SetBinContent(i+1,abs(sum/num));
-			}
-			//Plot
-			cVp->cd();
-			TGraph *g1 = new TGraph(hVp);
-			//hVr->Draw("AL");
-			//g1->Draw("AL");
-			g1->SetLineWidth(2);
-			g1->GetXaxis()->SetTitle("#rho (#AA)");
-			//g1->GetXaxis()->CenterTitle();
-			g1->GetYaxis()->SetTitle("v_{r} (#AA/fs)");
-			//g1->GetYaxis()->CenterTitle();
-
-			title.str("");
-			title << "img/vp/step" << setw(8) << setfill('0') << timestep << ".png";
-			cVp->SaveAs(title.str().data());
-
-			//Draw density histogram
+			//Draw 2D density histogram
 			cA->cd();
+			hA->SetMinimum(colzMin);
+			hA->SetMaximum(colzMax);
 			hA->Draw("colz");
-			//Find boundary points
-			TGraph* b2 = findBoundaryPoints(hA,"a",xBulkMax,xMonoEdge,timestep);
-			b2->SetMarkerStyle(20);
-			b2->Draw("same L");
-			stringstream aName;
-			aName << "img/hist/abin" << setw(8) << setfill('0') << timestep << ".png";
+			//Draw circle
+			cout << "This is what the circle is like." << endl;
+			Circle.Print();
+			TEllipse *circleEllipse = Circle.Draw();
+			//Draw tangent line
+			TLine *tangentLine = Circle.DrawTangentLine();
+			//Add lines
+			bulkEdgeLine->SetX1(bulkEdge);
+			bulkEdgeLine->SetX2(bulkEdge);
+			bulkEdgeLine->Draw();
+			monoEdgeLine->SetX1(monoEdge);
+			monoEdgeLine->SetX2(monoEdge);
+			monoEdgeLine->Draw();
+			rBulkMaxLine->SetX1(rBulkMax);
+			rBulkMaxLine->SetX2(rBulkMax);
+			rBulkMaxLine->Draw();
+			heightLine->SetY1(dropletHeight);
+			heightLine->SetY2(dropletHeight);
+			heightLine->Draw();
+			monoHiLine->SetY1(monoLimits[1]);
+			monoHiLine->SetY2(monoLimits[1]);
+			monoHiLine->Draw();
+			monoLoLine->SetY1(monoLimits[0]);
+			monoLoLine->SetY2(monoLimits[0]);
+			monoLoLine->Draw();
+			//Draw circle points graph 
+			circlePointsGraph->SetMarkerStyle(20);
+			circlePointsGraph->Draw("same LP");
+			//Draw bad points
+			Circle.DrawBadPoints(badPointsGraph);
+			//badPointsGraph->Draw("same p");
+			//Add legend (once)
+			if(frameNum==0)
+			{
+				hALegend->AddEntry(tangentLine,"Tangent line","l");
+			}
+			hALegend->Draw();
+			//Add data text box
+			title.str("");
+			title << "Contact angle: " << contactAngle;
+			cAText->SetText(0,0,title.str().data());
+			title.str("");
+			title << "Droplet height: " << dropletHeight;
+			dHText->SetText(0,0,title.str().data());
+			title.str("");
+			title << "Bulk radius: " << bulkEdge;
+			bEText->SetText(0,0,title.str().data());
+			title.str("");
+			title << "Mono radius: " << monoEdge;
+			mEText->SetText(0,0,title.str().data());
+			textBox->Draw();
 
-			//Find interface & edge
-			cout << endl;
-			CircleFit Circle = fitCircle(b2,xBulkMax,timestep);
-			xBulkEdge=Circle.Intersect(zInterface);
-			cout << "Bulk edge: " << xBulkEdge << endl;
-			bulkEdge[frameNum]=xBulkEdge;
-			cout << "Mono edge: " << xMonoEdge << endl;
-			monoEdge[frameNum]=xMonoEdge;
+			//Name & Save
+			stringstream aName;
+			aName << "img/hist/abin" << setw(8) << setfill('0') << frameStep << ".png";
 			cA->SaveAs(aName.str().data());
-			 	
+
+			//Delete ellipse and tangent line
+			delete circleEllipse;
+			delete tangentLine;
+
 			//Draw mono atoms
 			if(trackMonoAtoms)
 			{
@@ -698,61 +1042,40 @@ int main(int argc,char* argv[])
 				monoGraph2->Draw("P");
 				
 				stringstream mName;
-				mName << "img/mono/monoHist" << setw(8) << setfill('0') << timestep << ".png";
+				mName << "img/mono/monoHist" << setw(8) << setfill('0') << frameStep << ".png";
 				cA->SaveAs(mName.str().data());
 			}
 		
-			//Draw all 4 together
+			//Draw all together
 			cAll->cd(1);
 			gPad->Clear();
 			cA->DrawClonePad();
+
 			cAll->cd(2);
 			gPad->Clear();
 			cVr->DrawClonePad();
+
 			cAll->cd(3);
-			gPad->Clear();
-			cVp->DrawClonePad();
-			cAll->cd(4);
 			gPad->Clear();
 			cQ->DrawClonePad();
 
-			//Delete vr graph
-			delete g;
-			delete g1;
-
 			title.str("");
-			title << "img/all/step" << setw(8) << setfill('0') << timestep << ".png";
-			cAll->SaveAs(title.str().data());
-			
-			//Find contact angle
-			cout << "Intersect with " << zInterface << endl;
-			contactAngle=Circle.ContactAngle();
-			
-			//Find droplet height by intersecting circle with y-axis
-			dropletHeight=Circle.Height();
-			
-			//Calculate exchange
-			exchange=bulkMonoExchange(z,zInterface,stepsPerFrame);
+			title << "img/all/step" << setw(8) << setfill('0') << frameStep << ".png";
 
-			//Find boundary
-	// 		int numBoundaryPoints=b1->GetN();
-	// 		double bPx[numBoundaryPoints],bPy[numBoundaryPoints];
-	// 		
-	// 		Check points:
-	// 		cout << endl << "Points from main() b1" << endl;
-	// 		for(int i=0;i<numBoundaryPoints;i++)
-	// 		{
-	// 			b1->GetPoint(i,bPx[i],bPy[i]);
-	// 			cout << "("<<bPx[i]<<","<<bPy[i]<<")"<<endl;
-	// 		}
-	// 	
+			//FOR SOME REASON, THE PROGRAM CRASHES HERE IF THE FILE IS SAVED
+			//cAll->SaveAs(title.str().data());
 
+			cout << "Reset histograms" << endl;
+			//Reset histograms
 			hA->Reset();
+			hMono->Reset();
 			hD->Reset();
 			q->Reset();
+			hWaterDens->Reset();
+			hSubstrDens->Reset();
 
-			//Calculate rate of change of monoEdge w.r.t. time (units #/step)
-			dMe_dt=(monoEdge[frameNum]-monoEdge[frameNum-1])/(stepsPerFrame);
+			//Calculate rate of change of monoEdge w.r.t. time (units A/step)
+			dMe_dt=(monoEdge-lastMonoEdge)/stepsPerFrame;
 			
 			cout << endl;
 			cout << "Frame Flux: " << frameFlux << endl;
@@ -760,20 +1083,22 @@ int main(int argc,char* argv[])
 			cout << endl;
 
 			//Save average data for frame to file
-			fprintf(avgStepData,"%08d %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15d %15.6f\n",timestep,xBulkEdge,xMonoEdge,contactAngle,dropletHeight,avgRadius,avgDipole,msd[0],msd[1],msd[2],msd[3],frameFlux,dMe_dt);
+			fprintf(avgStepData,"%08d %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15.6f %15d %15.6f %15d\n",frameStep,bulkEdge,monoEdge,contactAngle,dropletHeight,avgRadius,avgDipole,msd[0],msd[1],msd[2],msd[3],frameFlux,dMe_dt,nMono);
 			fflush(avgStepData);
+			cout << "Wrote step " << frameStep << " to avgStepData.txt" << endl;
 			
+			//Save monolayer radius
+			lastMonoEdge=monoEdge;
+
 			//Reset frame flux
 			frameFlux = 0;
-
 			frameNum++;
 			
-		}
-		
-		//Otherwise, fill exchange without expecting a result
-		else
-		{
-			bulkMonoExchange(z,zInterface,stepsPerFrame);
+			//Reset name for next frame
+			frameNamed = false;
+
+			//Only first frame
+			//loopFlag1=false;
 		}
 		
 		//Only first timestep
@@ -787,7 +1112,6 @@ int main(int argc,char* argv[])
 	inFile.close();
 	fclose(avgStepData);
 	fclose(instStepData);
-	
 	
 	//Join & Leave
 	double I;
@@ -811,7 +1135,7 @@ int main(int argc,char* argv[])
 	leaveJoinFile << "#r/R join leave exchange" << endl;
 	for(int i=0;i<rScaledJoin->GetXaxis()->GetNbins();i++)
 	{
-		leaveJoinFile << i*0.05 << " " << rScaledJoin->GetBinContent(i) << " " << rScaledLeave->GetBinContent(i) << " " << rExchange->GetBinContent(i) << endl;
+		leaveJoinFile << i*(rScaledJoin->GetBinCenter(2)-rScaledJoin->GetBinCenter(1)) << " " << rScaledJoin->GetBinContent(i+1) << " " << rScaledLeave->GetBinContent(i+1) << " " << rExchange->GetBinContent(i+1) << endl;
 	}
 	leaveJoinFile.close();
 	
@@ -822,14 +1146,12 @@ int main(int argc,char* argv[])
 	LeaveJoin->Close();
 	
 	delete cE,rScaledJoin,rScaledLeave,rExchange;
-	delete hA,q;
+	delete hA,q,hD;
+	delete hWaterDens,hSubstrDens;
+	delete [] zVals;
+	delete circlePointsGraph;
+	delete badPointsGraph;
 	
-	//Plot radii over time
-	plotRadii(numSteps,bulkEdge,monoEdge,"radii");
-// 	cout << "Bulk Mono:" << endl;
-// 	for(int i=0;i<numFrames;i++)
-// 		cout << bulkEdge[i] << " " << monoEdge[i] << endl;
-// 	plotRadii(numSteps,bulkEdge,monoEdge,"a");
 	cout << "Done!"<<endl;
 	return 0;
 }
@@ -876,13 +1198,16 @@ TGraph *horizontalHist(TH1D* hist)
 	g1->Draw("AL");
 
 	//Delete
-	//delete g;
+	delete g;
 	return g1;
 }
 
 //Find the edge of droplet by tanh fitting for each row given TH2D
-TGraph* findBoundaryPoints(TH2D* hist,char* aOrR,double& xBulkMax,double &xMonoEdge,int timestep)
+void findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,int frameStep)
 {
+	cout << endl;
+	cout << "FINDBOUNDARYPOINTS" << endl;
+
 	//Best guess for parameters
 	double guess;
 	
@@ -896,172 +1221,125 @@ TGraph* findBoundaryPoints(TH2D* hist,char* aOrR,double& xBulkMax,double &xMonoE
 	//Parameters: liquid density,interface width,center
 	double ld,w,c;
 	
-	//Check for valid results
-	double tmp;
+	//Temporary values returned from solveTanhFit before saving
+	double tmpx,tmpy;
 	
-	//Lists of boundary point coordinates
-	double xCoords[nx+ny];
-	double yCoords[nx+ny];
-	
-	//Number of rows containing the droplet
+	//Number of rows+columns containing the droplet
 	int n=0;
-	
+
+	//Reset points graph
+	circlePointsGraph->Set(0);
+	//circlePointsGraph->Set(nx+ny);
+
 	//Fitting tanh function
 	TF1* tanhFit = new TF1("tanhFit","[0]/2*(1-tanh((x-[2])/(2*[1])))",0,200);
 	
+	//Projections of hA
+	TH1D *px,*py;
+
+	//Number of first z bin of hA above the monolayer
+	py=hist->ProjectionY("py",1,1);
+	int nz=py->GetNbinsX();
+	double dz=py->GetBinWidth(1);
+	double zlo=py->GetBinLowEdge(1);
+	double zhi=py->GetBinLowEdge(nz)+dz;
+	cout << "ZLO: " << zlo << " ZHI: " << zhi << endl;
+	int firstBulkBin = (int) ceil((monoLimits[1]-zlo)*nz/(zhi-zlo))+1;
+	cout << "FirstBulkBin=" << firstBulkBin << " : " << py->GetBinLowEdge(firstBulkBin) << endl;
+
+	//Find monolayer edge
+	//Fit hMono with tanh, find where density=0.5
+	cout << "mono tanh fit" << endl;
+	tmpx=solveTanhFit(hMono,0.5,tanhFit,1,frameStep);
+	cout << "Mono Radius: " << tmpx << endl;
+	if(tmpx>0)
+	{
+		monoEdge=tmpx;
+	}
+	else
+	{
+		cout << "Mono Fit failed!!!" << endl;
+		monoEdge=0;
+	}
+	
+	//Row and column tanh fitting
+
+	cout << "Row fits" << endl;
 	//For each row
 	for(int j=1;j<=ny;j++)
 	{
-		//Set Parameters based on counting guess
-		guess=guessRowBoundary(hist,j);
-		tanhFit->SetParameters(1,10,guess);
-// 		cout<<"Row "<<j<<endl;
 		//Create projection
-		TH1D* px = hist->ProjectionX("px",j,j);
-		
-		//Create graph
-		TGraph* gR = new TGraph(px);
-		gR->Fit(tanhFit,"Q");
+		px = hist->ProjectionX("px",j,j);
 
-		//Get Parameters
-		ld=tanhFit->GetParameter(0);
-		w=tanhFit->GetParameter(1);
-		c=tanhFit->GetParameter(2);
-		
-// 		//Save
-// 		if(false)
-// 		{
-// 			stringstream cName,fName;
-// 			cName << aOrR << "Row" << "Step" << setw(3) << setfill('0') <<  stepNum << "_" << setw(3) << setfill('0') << j;
-// 			fName << "img/tanh/" << cName.str() << ".png";
-// 			TCanvas* cR = new TCanvas();
-// 			cR->cd();
-// 			gR->SetTitle(cName.str().data());
-// 			0SetMarkerStyle(20);
-// 			gR->SetMinimum(0.0);
-// 			gR->SetMaximum(1.5);
-// 			gR->Draw("APL");
-// 			cR->SaveAs(fName.str().data());
-// 			delete cR;
-// 		}
-		
-		delete px;
-		
-		//ld>0.5=>fit is valid and intersects 0.5=>row contains droplet
-		if(ld>0.5)
+		//Solve for x coordinate where tanhFit(x)=0.5
+		//Include all bins
+		tmpx=solveTanhFit(px,0.5,tanhFit,1,frameStep);
+		//cout << "Row " << j << ": tmpx=" << tmpx << endl;
+		if(tmpx>0)
 		{
-// 			cout << "Found" << endl;
-			//Solve for x coordinate where the tanhFit(x)=0.5
-			tmp=2*w*atanh(1-1/ld)+c;
-			if(tmp>0)
-			{
-				xCoords[n]=tmp;
-				yCoords[n]=hist->GetYaxis()->GetBinCenter(j);
-			
-				//Found another row containing droplet
-				n++;
-			}
-			
-		}
+			//Found another row containing droplet
+			tmpy=hist->GetYaxis()->GetBinCenter(j);
+			circlePointsGraph->SetPoint(n,tmpx,tmpy);
 
-		delete gR;
+			//Choose the value from the row above the monolayer to be the x coordinate after which to discard points for circle fitting to determine the bulk-monolayer interface
+			if(j==firstBulkBin)
+				rBulkMax=tmpx;
+			n++;
+
+		}
 	}
 	
-	//Choose the value from the second row to be the x coordinate after which to discard points for circle fitting to determine the bulk-monolayer interface
-	xBulkMax=xCoords[1];
-
-	//Choose the higher of the values from the first two rows to be the edge of the monolayer
-// 	xMonoEdge=max(xCoords[0],xCoords[1]);
-	xMonoEdge=xCoords[0]; //Use first row
-	
-	
-	tanhFit->SetParameters(1,10,50);
-	
+	cout << "column fits" << endl;
 	//For each column
 	for(int i=1;i<=nx;i++)
 	{
-		//Best guess based on counting
-		guess=guessColBoundary(hist,i);
-		tanhFit->SetParameters(1,10,guess);
-		
-// 		cout << "Col "<<i<<endl;
 		//Create projection
-		TH1D* py = hist->ProjectionY("py",i,i);
+		py = hist->ProjectionY("py",i,i);
 		
-		//Create graph
-		TGraph* gC = new TGraph(py);
-		gC->Fit(tanhFit,"Q");
-		
-		//Get Parameters
-		ld=tanhFit->GetParameter(0);
-		w=tanhFit->GetParameter(1);
-		c=tanhFit->GetParameter(2);
-		
-		//Assume the fit is okay until proven guilty
-		success=true;
-		if(abs(c)>1000) success=false;
-		
-		delete py;
-		
-// 		Save
-		
-//		if(timestep==6048000)
-//		{
-//			stringstream cName,fName;
-//			cName << aOrR << "Col" << "Step" << setw(3) << setfill('0') << timestep << "_" << setw(3) << setfill('0') << i;
-//			system("mkdir -p img/tanh");
-//			fName << "img/tanh/" << cName.str() << ".png";
-//			TCanvas* cC = new TCanvas();
-//			cC->cd();
-//			gC->SetTitle(cName.str().data());
-//			gC->SetMarkerStyle(20);
-//			gC->SetMinimum(0.0);
-//			gC->SetMaximum(1.5);
-//			gC->Draw("APL");
-//			cC->SaveAs(fName.str().data());
-//			delete cC;
-//		}
-		
-			
-		//ld>0.5=>fit is valid and intersects 0.5=>column contains droplet
-		//success => fit didn't blow up
-		if(success && ld>0.5)
+		//Solve for y coordinate where the tanhFit(y)=0.5
+		//Ignore first few bins in monolayer
+		tmpy=solveTanhFit(py,0.5,tanhFit,firstBulkBin+1,frameStep);
+		//cout << "Col " << i << ": tmpy=" << tmpy << endl;
+		if(tmpy>=0)
 		{
-// 			cout << "Found" << endl;
-			//Solve for x coordinate where the tanhFit(x)=0.5
-			tmp=2*w*atanh(1-1/ld)+c;
-			if(tmp>=0)
-			{
-				xCoords[n]=hist->GetXaxis()->GetBinCenter(i);
-				yCoords[n]=tmp;
-				//Found another column containing droplet
-				n++;
-			}
+			//Found another column containing droplet
+			tmpx=hist->GetXaxis()->GetBinCenter(i);
+			circlePointsGraph->SetPoint(n,tmpx,tmpy);
+			n++;
 		}
-
-		delete gC;
 	}
+	cout << n << " points on graph" << endl;
+
+	//Update graph properties
+	circlePointsGraph->Set(n);
+	circlePointsGraph->Sort();
+	circlePointsGraph->SetName(aOrR);
+	circlePointsGraph->SetTitle(aOrR);
+
+	//cout << endl << "circlePointsGraph:" << endl;
+	for(int i=0;i<n;i++)
+	{
+		//circlePointsGraph->GetPoint(i,tmpx,tmpy);
+		tmpx=circlePointsGraph->GetX()[i];
+		tmpy=circlePointsGraph->GetY()[i];
+		//cout << "    (" << tmpx << "," << tmpy << ")" << endl;
+	}
+
 	
+	TCanvas* c5 = new TCanvas();
+ 	c5->cd();
+	circlePointsGraph->Draw("APL");
+ 	c5->SaveAs("test.C");
+ 	delete c5;
+
 	delete tanhFit;
-	
-	//Overall 1D Graph of boundary points
-	TGraph* pointsGraph = new TGraph(n,xCoords,yCoords);
-	pointsGraph->SetName(aOrR);
-	pointsGraph->SetTitle(aOrR);
-	
-// 	TCanvas* c5 = new TCanvas();
-// 	c5->cd();
-	pointsGraph->Draw("same PL");
-// 	c5->SaveAs("test.png");
-// 	delete c5;
-	
-	return pointsGraph;
 }
 
 
 //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points and find the intersection of the circle with the substrate interface. The result is the bulk-monolayer interface
-CircleFit fitCircle(TGraph* g,double xMax,int timestep)
+void fitCircle(TGraph* g,CircleFit &circle,double xMax,int timestep)
 {
+	//g->Draw("SAME");
 	//Fit circle and intersect it with a constant c (Interface)
 	char* name1 = (char*) g->GetTitle();
 	stringstream nameStream;
@@ -1070,6 +1348,11 @@ CircleFit fitCircle(TGraph* g,double xMax,int timestep)
 	int n=g->GetN();
 	vector<double> x(n),y(n);
 	double xTest,yTest;
+
+	cout << "xMax=" << xMax << endl;
+
+	//Sort points
+	g->Sort();
 	
 // 	//Limits for circle fitting for first 50 timesteps
 // 	double lowLim=30;
@@ -1081,73 +1364,65 @@ CircleFit fitCircle(TGraph* g,double xMax,int timestep)
 	for(int i=0;i<n;i++)
 	{
 		//Test the point before including it
-		g->GetPoint(i,xTest,yTest);
+		//g->GetPoint(i,xTest,yTest);
+		xTest=g->GetX()[i];
+		yTest=g->GetY()[i];
 		
 		//Only use point if it is less than xMax
 		if(xTest<=xMax)
 		{
-// 			//For the first 50 timesteps, only use about the bottom half of the droplet
-// 			if(timestep%2000<50)
-// 			{
-// 				g->GetPoint(i,x[nValid],y[nValid]);
-// 				nValid++;
-// 			}
-// 			
-// 			else if( (lowLim<=yTest) && (yTest<highLim) )
-// 			{
-				g->GetPoint(i,x[nValid],y[nValid]);
-				nValid++;
-// 			}
+			x[nValid]=xTest;
+			y[nValid]=yTest;
+			//cout << x[nValid]<<" "<<y[nValid]<<endl;
+			nValid++;
 		}
-// 		cout << "("<<x[i]<<","<<y[i]<<")"<<endl;
+		//Otherwise, mark the point as badd
+		else
+			circle.AddBadPoint(xTest,yTest);
 	}
 	x.resize(nValid);
 	y.resize(nValid);
+
+	//cout << "x-mean = " << mean(x) << endl;
+	//cout << "y-mean = " << mean(y) << endl;
+
+	//TF2 *circleFitFunction = new TF2("circleFitFunction","(x-[0])*(x-[0])+(y-[1])*(y-[1])-[2]*[2]",0,120,25,100);
 	
-	CircleFit C(name2,x,y);
-// 	system("mkdir -p img/circles");
-	C.Draw();
-	C.Print();
+	//TF1 *circleFitFunction = new TF1("circleFitFunction","sqrt([0]*[0]-(x-[1])*(x-[1]))+[2]",0,120);
+	//circleFitFunction->GetXaxis()->SetRangeUser(0,xMax);
+	//circleFitFunction->GetYaxis()->SetRangeUser(30,60);
+	//circleFitFunction->SetParameters(-13,-134,2200);
 	
-	return C;
+	//cout << endl << "GRAPH JUST BEFORE FIT" << endl;
+	//for(int i=0;i<g->GetN();i++)
+	//	cout << g->GetX()[i] << " " << g->GetY()[i] << endl; //" " << g->GetZ()[i] << endl;
+
+	cout << endl;
+
+	//g->Fit("circleFitFunction","RW");
+
+	//double x0=circleFitFunction->GetParameter(0);
+	//double y0=circleFitFunction->GetParameter(1);
+	//double r=circleFitFunction->GetParameter(2);
+	//TEllipse *e = new TEllipse(x0,y0,r,r);
+	//e->SetLineWidth(2);
+	//e->SetFillStyle(0);
+	//e->Draw();
+
+	circle.Define(name2,x,y);
 	
+	//TCanvas *cCirc = new TCanvas();
+	//cCirc->cd();
+	//cout << "CURRENT CANVAS: " << gPad->GetCanvas()->GetName() << endl;
+	//g->Draw("AL");
+	//e->Draw();
+	//cCirc->SaveAs("circleFit.C");
+	//stringstream s;
+	//s << "img/circles/step" << timestep << ".png";
+	//cCirc->SaveAs(s.str().data());
+	circle.Print();
 }
 
-//Plot bulk and mono radii over time
-void plotRadii(int numSteps,double* bulkEdge,double* monoEdge,char* name)
-{
-	//Timestep array
-	double t[numSteps];
-	for(int i=0;i<numSteps;i++)
-		t[i]=i;
-	
-// 	TFile* file = new TFile("radii.root","new");
-	
-	TCanvas* cRadii = new TCanvas();
-	cRadii->cd();
-	
-	TGraph* gBulk = new TGraph(numSteps,t,bulkEdge);
-	TGraph* gMono = new TGraph(numSteps,t,bulkEdge);
-	
-// 	gBulk->Write("gBulk");
-// 	gMono->Write("gMono");
-	
-	TMultiGraph* gMulti = new TMultiGraph();
-	gMulti->Add(gBulk,"Bulk");
-	gMulti->Add(gMono,"Mono");
-	
-// 	gMulti->Write("gMulti");
-	
-	gMulti->SetTitle("Radii");
-	gMulti->Draw("APL");
-	
-// 	cRadii->Write("cRadii");
-	
-	stringstream fname;
-	fname << name << ".png";
-	
-	cRadii->SaveAs(fname.str().data());
-}
 
 //Count the number of water atoms in the first timestep
 int countAtoms(ifstream &inFile)
@@ -1183,18 +1458,26 @@ int countAtoms(ifstream &inFile)
     return numAtoms;
 }
 
-//Split a string into a string array of words
+//Split a string into a string vector of words
 vector<string> strSplit(string str)
 {
 	int len=str.length();
 	stringstream ss(str);
 	int numWords=1;
+	bool foundSpace=false;
 	
 	//Count number of words
 	for(int ch=0;ch<len;ch++)
+	{
 		if(isspace(str[ch]))
+			foundSpace=true;
+		if(!isspace(str[ch])&&foundSpace)
+		{	
 			numWords++;
-	
+			foundSpace=false;
+		}
+	}
+
 	//Allocate array
 	vector<string> arr(numWords);
 	
@@ -1294,74 +1577,155 @@ double guessRowBoundary(TH2D* hist,int j)
 }
 
 //Guess boundary of water molecule by counting for a single column
-double guessColBoundary(TH2D* hist,int i)
+double guessBoundary(TH1D* hist,double cutoff)
 {
 	//Guess - static in case none is found for a particular column - use last guess
 	static double guess=0;
 	
-	//Boundary is where density=0.5
-	const double cutoff=0.5;
-	
 	//Number of bins
-	int ny=hist->GetNbinsY();
+	int n=hist->GetNbinsX();
 
 	//Scan rows from top to bottom
-	for(int j=ny;j>0;j--)
+	for(int i=n;i>0;i--)
 	{
-		if(hist->GetBinContent(i,j)>=cutoff)
-			guess=hist->GetYaxis()->GetBinCenter(j);
+		if(hist->GetBinContent(i)>=cutoff)
+			guess=hist->GetBinCenter(i);
 	}
 
 	return guess;
 }
 
-//Find boundary of water molecule for a single column
-void guessColBoundary(TH2D* hist,double cutoff,vector<double> &xBounds,vector<double> &yBounds)
+//Fit TH1D to tanh function, solve for x where f(x)=cutoff
+//Only take bins after and including startBin
+double solveTanhFit(TH1D* hist,double cutoff,TF1* tanhFit,int startBin,int frameStep)
 {
-	//Was a boundary found for this column?
-	bool found;
+	double val;
+	double guess;
+	bool success;
+	int n=hist->GetNbinsX();
+	double *x = new double[n-startBin+1];
+	double *y = new double[n-startBin+1];
+	double startPoint=hist->GetBinCenter(startBin);
+	bool draw=false;
 
-	//Number of bins
-	int nx=hist->GetNbinsX();
-	int ny=hist->GetNbinsY();
-
-	//Scan columns from left to right
-	for(int i=1;i<=nx;i++)
+	//Row or col?
+	static int prevN=0;
+	static int fitNum=0;
+	bool rowCol=0; //Start with rows
+	static string names[2]={"row","col"};
+	if(n!=prevN) //Flip when number of bins changes 
 	{
-		found=false;
-
-		//Scan rows from top to bottom
-		for(int j=ny;j>0;j--)
-		{
-			if(hist->GetBinContent(i,j)>=cutoff)
-			{
-				yBounds[i-1] = hist->GetYaxis()->GetBinCenter(j);
-				
-				found=true;
-				break;
-			}
-		}
-
-		//Use zero if this row has no boundary
-		if(found==false)
-		{
-			yBounds[i-1]=0;
-		/*
-			if(i==1)
-			{
-				yBounds[i-1]=0;
-			}
-			else
-			{
-				yBounds[i-1]=yBounds[i-2];
-			}
-		*/
-		}
-		//X Bound is always predictable
-		xBounds[i-1] = hist->GetXaxis()->GetBinCenter(i);
+		fitNum=0;
+		rowCol=!rowCol;
 	}
-}
 
+	//cout << "solveTanhFit" << endl;
+	//cout << endl;
+	//cout << "n=" << n << endl;
+	//cout << "startBin=" << startBin << endl;
+	//cout << "startPoint=" << startPoint << endl;
+
+	//Best guess based on counting
+	guess=guessBoundary(hist,0.5);
+	tanhFit->SetParameters(1,10,guess);
+
+	//Add hist values to vector, including only those after and including startBin
+	for(int i=startBin;i<=n;i++)
+	{
+		x[i-startBin]=hist->GetBinCenter(i);
+		y[i-startBin]=hist->GetBinContent(i);
+		//cout << "Point " << i-startBin << ": (" << x[i-startBin] << "," << y[i-startBin] << ")" << endl;
+	}
+	//cout << "Points done!" << endl << endl;
+
+	//Create graph
+	TGraph* tanhPointsGraph = new TGraph(n-startBin,x,y);
+	tanhPointsGraph->Fit(tanhFit,"Q");
+	
+	//Get Parameters
+	double ld=tanhFit->GetParameter(0);
+	double w=tanhFit->GetParameter(1);
+	double c=tanhFit->GetParameter(2);
+	
+	//Assume the fit is okay until proven otherwise
+	success=true;
+	if(abs(c)>1000)
+	{
+		cout << "TanhFit failed for " << names[rowCol] << " " << fitNum << endl;
+		success=false;
+	}
+	
+	//ld>0.5=>fit is valid and intersects 0.5=>column contains droplet
+	//success => fit didn't blow up
+	if(success && ld>cutoff)
+	{
+		//Solve for x coordinate where the tanhFit(x)=cutoff
+		val=2*w*atanh(1-2*cutoff/ld)+c;
+
+		//If successful but too low, set val to lowest point
+		if(val<=startPoint)
+			val=startPoint-hist->GetBinWidth(startBin);
+	}
+	else
+	{
+		//Histogram doesn't contain bulk water
+		val=-1;
+	}
+
+	//if(frameStep==8810000)
+	draw=true;
+	//else
+	//	draw=false;
+
+	//Save image
+	if(draw)
+	{
+		//Canvas
+		TCanvas *cTanh = new TCanvas();
+
+		//Title
+		stringstream title;
+		title << "img/tanh/step" << frameStep << "_" << names[rowCol] << setw(3) << setfill('0') << fitNum << ".png";
+		hist->SetTitle(title.str().data());
+
+		//Draw hist
+		hist->GetXaxis()->SetRangeUser(0,120);
+		hist->GetYaxis()->SetRangeUser(0,2);
+		hist->Draw();
+
+		//startLine
+		TLine *startLine = new TLine(startPoint,0,startPoint,1);
+		startLine->SetLineWidth(3);
+		startLine->SetLineColor(kGreen);
+		startLine->Draw();
+
+		//Draw graph
+		tanhPointsGraph->SetMarkerStyle(20);
+		tanhPointsGraph->Draw("same plc");
+		
+		//Draw solution
+		TLine *solLine= new TLine(val,0,val,1);
+		solLine->SetLineWidth(3);
+		solLine->SetLineColor(kOrange);
+		solLine->Draw();
+
+		//Save
+		cTanh->SaveAs(title.str().data());
+
+		delete cTanh;
+		delete startLine;
+	}
+	
+	//Update variables
+	fitNum++;
+	prevN=n;
+
+	delete [] x;
+	delete [] y;
+
+	delete tanhPointsGraph;
+	return val;
+}
 
 //Calculate MSD - mean squared displacement
 vector<double> calculateMSD(vector<double> xi,vector<double> yi,vector<double> zi,vector<double> x, vector<double> y,vector<double> z)
@@ -1389,48 +1753,8 @@ vector<double> calculateMSD(vector<double> xi,vector<double> yi,vector<double> z
 	return msd;
 }
 
-//Count the number of atoms which have migrated from the bulk to the monolayer this timestep
-double bulkMonoExchange(vector<double>z,double zInterface,int stepsPerFrame)
-{
-	//Average several timesteps
-	static int stepCounter=0;
-	stepCounter++;
-	
-	//Number of atoms in the simulation
-	int numAtoms=z.size();
-	
-	//Number of atoms which have moved from the bulk to the monolayer this timestep
-	static double exchange=0;
-	//Final result to return
-	double result;
-	//Number of atoms which were previously in the monolayer
-	static int prevCount=0;
-	//Number of atoms which are currently in the monolayer
-	int currCount=0;
-	
-	//Count atoms below the bulk-mono threshold
-	for(int i=0;i<numAtoms;i++)
-	{
-		if(z[i]<zInterface)
-			currCount++;
-	}
-	
-	//The number which have moved to the monolayer is the difference between the number this timestep and last timestep divided by the time passed (units #/ps)
-	exchange=(currCount-prevCount)/(2*stepsPerFrame);
-	
-	//Save current count for next time
-	prevCount=currCount;
-	
-	if(stepCounter%stepsPerFrame==0)
-	{
-		result=exchange;
-		exchange=0;
-		return result;
-	}
-}
-
 //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius to the vector rScaledJoin
-int monoFlux(vector<double> r,vector<double> z,double zInterface,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave)
+int monoFlux(vector<double> r,vector<double> z,double* monoLimits,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave,int &nMono)
 {
 	//Number of atoms in the simulation
 	int numAtoms=z.size();
@@ -1446,13 +1770,12 @@ int monoFlux(vector<double> r,vector<double> z,double zInterface,double baseRadi
 	//Count how many molecules should be in the monolayer based on the flux.
 	static int expected = 0;
 
-	cout << "Z values" << endl;
 	//Save ids of atoms below the bulk-mono threshold
 	for(int i=0;i<numAtoms;i++)
 	{
-		if(i%(numAtoms/20)==0)
-			cout << "#" << i << ": " << z[i] << endl;
-		if(z[i]<zInterface)
+		//if(i%(numAtoms/20)==0)
+		//	cout << "#" << i << ": " << z[i] << endl;
+		if((monoLimits[0]<=z[i]) && (z[i]<=monoLimits[1]))
 			monoList.push_back(i);
 	}
 
@@ -1460,6 +1783,10 @@ int monoFlux(vector<double> r,vector<double> z,double zInterface,double baseRadi
 	int numMonoAtoms=monoList.size();
 	//Number of atoms in the monolayer last step
 	int numPrevMonoAtoms=prevMonoList.size();
+
+	//Save number of molecules in monolayer
+	nMono = numMonoAtoms;
+
 
 	cout << endl;
 	cout << "Prev monolayer: " << numPrevMonoAtoms << endl;
@@ -1587,3 +1914,60 @@ bool file_exists(const string& name) {
   struct stat buffer;   
   return (stat (name.c_str(), &buffer) == 0); 
 }
+
+//Round up to a multiple
+int roundUp(int numToRound, int multiple)
+{
+	    if (multiple == 0)
+			        return numToRound;
+
+		    int remainder = numToRound % multiple;
+			    if (remainder == 0)
+					        return numToRound;
+
+				    return numToRound + multiple - remainder;
+}
+
+//Find z limits on monolayer
+void findMonoLimits(TH1D *hWaterDens,double *monoLimits)
+{
+	int n = hWaterDens->GetNbinsX();
+	bool foundPeak=false;
+	bool foundDip=false;
+	double dens=0;
+
+	for(int i=1;i<=n;i++)
+	{
+		dens=hWaterDens->GetBinContent(i);
+
+		//Find first peak above 1 - this is the beginning of the monolayer
+		if(!foundPeak&&dens>1)
+		{
+			foundPeak=true;
+			//cout << "Beginning monolayer at " << hWaterDens->GetBinLowEdge(i) << endl;
+			monoLimits[0]=hWaterDens->GetBinLowEdge(i);
+		}
+
+		//if(foundPeak)
+		//	cout << "dens=" << dens << " at " << hWaterDens->GetBinLowEdge(i) << endl;
+
+		//if(foundPeak&&dens>1)
+		//	cout << "Still in monolayer at " << hWaterDens->GetBinLowEdge(i) << endl;
+
+		//Find first drop below 1 after peak - this is the end of the monolayer
+		if(foundPeak&&dens<=1)
+		{
+			foundDip=true;
+			//cout << "Monolayer ends at " << hWaterDens->GetBinLowEdge(i) << endl;
+			monoLimits[1]=hWaterDens->GetBinLowEdge(i);
+			break;
+		}
+	}
+
+	if(foundDip)
+		cout << "Found monolayer limits: " << monoLimits[0] << " " << monoLimits[1] << endl;
+	else
+		cout << "FAILED to locate monolayer." << endl;
+
+}
+

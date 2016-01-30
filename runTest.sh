@@ -3,10 +3,10 @@
 #Run quiverTest for 50A/atom1
 #Execute from analysis/root
 echo "Compiling . . ."
-g++ `root-config --glibs --cflags` polarScatter.cpp CircleFitClass.cpp Quiver/Quiver.cpp -o polarScatter.out
+./compilePS.sh
 
 echo "Executing!"
-./polarScatter.out /home/oge1/lammps/sapphire/analysis/results/50A/atom1/calculated.txt 50A/atom1 
+./polarScatter.out /home/oge1/lammps/sapphire/analysis/results/40A/atom2/calculated.txt 40A/atom2 $1
 
 #cd ../results/50A
 
