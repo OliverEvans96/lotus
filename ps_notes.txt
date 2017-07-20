@@ -1,0 +1,154 @@
+//Deleted stuff, old ideas, but still good to save
+
+-----------
+
+//Make monolayer projection (Selemon's help)
+/*
+TCanvas *firstBin = new TCanvas("firstBin","Two definitions of the monolayer",1280,1024);
+firstBin->Divide(2,1);
+firstBin->cd(1);
+hMono->Draw();
+firstBin->cd(2);
+bin1=hA->GetYaxis()->FindBin(monoLimits[0]);
+bin2=hA->GetYaxis()->FindBin(monoLimits[1]);
+cout << "BINS " << bin1 << " " << bin2 << endl;
+hMonoProj=(TH1D*) hA->ProjectionX("hMonoProj",bin1,bin2);
+hMonoProj->Scale(1.0/(bin2-bin1));
+//hMonoProj->SetMinimum(0);
+//hMonoProj->SetMaximum(4);
+hMonoProj->Draw();
+
+firstBin->SaveAs("firstBin.png");
+delete firstBin;
+*/
+
+------------
+		
+// 		Save
+		
+//		if(timestep==6048000)
+//		{
+//			stringstream cName,fName;
+//			cName << aOrR << "Col" << "Step" << setw(3) << setfill('0') << timestep << "_" << setw(3) << setfill('0') << i;
+//			system("mkdir -p img/tanh");
+//			fName << "img/tanh/" << cName.str() << ".png";
+//			TCanvas* cC = new TCanvas();
+//			cC->cd();
+//			gC->SetTitle(cName.str().data());
+//			gC->SetMarkerStyle(20);
+//			gC->SetMinimum(0.0);
+//			gC->SetMaximum(1.5);
+//			gC->Draw("APL");
+//			cC->SaveAs(fName.str().data());
+//			delete cC;
+//		}
+	
+------------
+
+/*
+//Count the number of atoms which have migrated from the bulk to the monolayer this timestep
+double bulkMonoExchange(vector<double>z,double *monoLimits,int stepsPerFrame)
+{
+	//Average several timesteps
+	static int stepCounter=0;
+	stepCounter++;
+	
+	//Number of atoms in the simulation
+	int numAtoms=z.size();
+	
+	//Number of atoms which have moved from the bulk to the monolayer this timestep
+	static double exchange=0;
+	//Final result to return
+	double result;
+	//Number of atoms which were previously in the monolayer
+	static int prevCount=0;
+	//Number of atoms which are currently in the monolayer
+	int currCount=0;
+	
+	//Count atoms below the bulk-mono threshold
+	for(int i=0;i<numAtoms;i++)
+	{
+		if(z[i]<monoLimits)
+			currCount++;
+	}
+	
+	//The number which have moved to the monolayer is the difference between the number this timestep and last timestep divided by the time passed (units #/ps)
+	exchange=(currCount-prevCount)/(2*stepsPerFrame);
+	
+	//Save current count for next time
+	prevCount=currCount;
+	
+	if(stepCounter%stepsPerFrame==0)
+	{
+		result=exchange;
+		exchange=0;
+		return result;
+	}
+}
+*/
+
+------------
+
+//Plot bulk and mono radii over time
+void plotRadii(int numSteps,double* bulkEdge,double* monoEdge,char* name)
+{
+	//Timestep array
+	double t[numSteps];
+	for(int i=0;i<numSteps;i++)
+		t[i]=i;
+	
+// 	TFile* file = new TFile("radii.root","new");
+	
+	TCanvas* cRadii = new TCanvas();
+	cRadii->cd();
+	
+	TGraph* gBulk = new TGraph(numSteps,t,bulkEdge);
+	TGraph* gMono = new TGraph(numSteps,t,bulkEdge);
+	
+// 	gBulk->Write("gBulk");
+// 	gMono->Write("gMono");
+	
+	TMultiGraph* gMulti = new TMultiGraph();
+	gMulti->Add(gBulk,"Bulk");
+	gMulti->Add(gMono,"Mono");
+	
+// 	gMulti->Write("gMulti");
+	
+	gMulti->SetTitle("Radii");
+	gMulti->Draw("APL");
+	
+// 	cRadii->Write("cRadii");
+	
+	stringstream fname;
+	fname << name << ".png";
+	
+	cRadii->SaveAs(fname.str().data());
+}
+
+------------
+
+	/*
+	stringstream title;
+	title << "tanhFit" << setw(5) << setfill('0') << fitNum;
+	string fitFile = "img/tanh/"+title.str()+".png";
+	fitNum++;
+
+	TCanvas* cC = new TCanvas();
+	cC->cd();
+	gC->SetTitle(title.str().data());
+	gC->SetMarkerStyle(20);
+	//gC->SetMinimum(0.0);
+	//gC->SetMaximum(7);
+	gC->Draw("APL");
+	cC->SaveAs(fitFile.data());
+	delete cC;
+	*/
+
+	/*
+	TCanvas *cProj = new TCanvas();
+	hist->Draw();
+	cProj->SaveAs("fitProj.png");
+	delete cProj;
+	*/
+	
+------------

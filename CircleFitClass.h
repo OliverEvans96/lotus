@@ -22,21 +22,22 @@ using namespace std;
 class CircleFit
 {
 public:
-	CircleFit(TH2D *givenHist,char *givenAlgorithm);
-	CircleFit(char* filename,TH2D *givenHist,char *givenAlgorithm);
+	CircleFit(TH2D *givenHist);
+	CircleFit(char* filename,TH2D *givenHist);
 	CircleFit(char* name,vector<double> xCoords,vector<double> yCoords);
 	~CircleFit();
 	
 	void Define(char* name,vector<double> xCoords,vector<double> yCoords);
+	double GetChi2s();
 	void GetSize();
 	void Fill(char* filename);
 	void GuessFit();
 	void Fit();
-	void CalculateWeights();
-	void DiscardByAdjLength();
+	double LinearResidual(const double *X);
 	double SumOfSquares(const double *X);
 	double Intersect(double c);
 	double ContactAngle();
+	double LinearContactAngle();
 	double Height();
 	void DrawBadPoints(TGraph *givenBadPointsGraph);
 	void AddBadPoint(double xp,double yp);
@@ -68,16 +69,16 @@ private:
 	//Histogram variables
 	TH2D *hist; //Associated histogram
 	int xbin,ybin; //Bin containing point
-	double dens; //Density of bin containing point
-	vector<double> w; //Weight of point
 
 	//For analyzing density distribution
 	TH1D *densHist;
 	ofstream dataOut;
 
+	//Whether to mirror points about y-axis
+	//bool mirror;
+
 	//Fitting variables
-	TMinuitMinimizer minimizer;
-	string algorithm;
+	TMinuitMinimizer minimizer, linMin;
 	double A,B,C,D,E;
 	double sumsq;
 	double width;
@@ -85,13 +86,13 @@ private:
 	double step[3]; //Step size vector
 	double init[3]; //Initial values
 	double tmpx,tmpy,tmpr;
-	
-	//For discarding points by length
-	vector<double> adjLength;
+	double chi2s; //Error in circle fitting
 
-	//For marking discarded points
-	TGraph *badPointsGraph;
-	int nBadPoints;
+	// Linear fit variables
+	double cutoff;
+	vector<double> xLinFit, yLinFit;
+	double m_lin, b_lin;
+
 	
 	//Functions
 	double sum(vector<double> v);

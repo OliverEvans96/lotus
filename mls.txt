@@ -1,0 +1,6 @@
+A=n*sum(mult(x,x))-square(sum(x));
+B=n*sum(mult(x,y))-sum(x)*sum(y);
+C=n*sum(mult(y,y))-square(sum(y));
+D=0.5*(n*sum(mult(x,mult(y,y)))-sum(x)*sum(mult(y,y))+n*sum(mult(x,mult(x,x)))-sum(x)*sum    (mult(x,x)));
+E=0.5*(n*sum(mult(y,mult(x,x)))-sum(y)*sum(mult(x,x))+n*sum(mult(y,mult(y,y)))-sum(y)*sum    (mult(y,y)));
+
