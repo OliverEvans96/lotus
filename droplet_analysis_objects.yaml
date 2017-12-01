@@ -172,6 +172,38 @@ struct AtomArray:
     - dipoleArray
 
 
+#######################
+# Variables over Time #
+#######################
+
+struct StepVariables:
+  variables:
+    - monoEdge
+    - bulkEdge
+    - contactAngle
+    - dropletHeight
+    - avgRadius
+    - avgDipole
+    - MSD
+    - frameFlux
+    - dMe_dt
+    - nMono
+    - chi2
+
+struct FrameVariables:
+  variables:
+    - monoEdge
+    - bulkEdge
+    - contactAngle
+    - dropletHeight
+    - avgRadius
+    - avgDipole
+    - MSD
+    - frameFlux
+    - dMe_dt
+    - nMono
+    - chi2
+
 ################
 # Time Keepers #
 ################
@@ -273,9 +305,3 @@ class monolayerTracker:
     - monoIDs
     - monoR
     - monoZ
-
-
-
-
-
- 
