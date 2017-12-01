@@ -1,0 +1,281 @@
+# Object YAML Template:
+<type> <name>:
+  parent: <parent> (optional)
+  variables:
+    - var1
+    - var2
+    - ...
+  functions:
+    - f1
+    - g1
+    - ...
+    
+    
+#########################
+# High Level Parameters #
+#########################
+
+class CommandLineParser:
+  variables:
+    - inLoc
+    - outLoc
+  functions:
+    - parse
+
+# Flags to determine which pieces of analysis to run
+struct Options:
+  variables:
+    - skipToEnd
+    - trackMonoAtoms
+    - saveImages
+    - plotHist (2D Cylindrical histogram of water)
+    - plotDipole
+    - plotVr
+    - plotDensity (substrate + water)
+    - plotAllTogether (combined in one canvas)
+    - debugOutput (print statements)
+
+# Variables to modify analysis, but not choose which pieces to run
+struct AnalysisParameters:
+  variables:
+    - rDensCyl
+    - rBulkMax
+    - binVolume
+
+struct physicalConstants:
+  variables:
+    - molecularWeightH20
+    - avogadro
+
+
+#################
+# Visualization #
+#################
+
+class Figure:
+  variables:
+    - canvas
+    - outFile
+    - title
+
+  functions:
+    - draw
+    - save
+
+class HistFigure:
+  parent: Figure
+  variables:
+    - bulkEdgeLine
+    - monoEdgeLine
+    - heightLine
+    - monoHiLine
+    - monoLoLine
+    - textBox
+    - legend
+    - cAText
+    - dHText
+    - bEText
+    - mEText
+  functions:
+    - drawText
+    - drawAnnotations
+
+class DensFigure:
+  parent: Figure
+  variables:
+    - monoHiLineDens
+    - monoLoLineDens
+  functions:
+    - drawAnnotations
+
+class TanhFigure:
+  parent: Figure
+  variables:
+    - ldTanhLine
+    - solTanhLine
+    - x0TanhLine
+    - x0guessTanhLine
+    - lowGuessTanhLine
+    - hiGuessTanhLine
+    - lowBinTanhLine
+    - legend
+    - textBox
+    - tanhTexts
+    - tanhLines
+  functions:
+    - setStyle
+    - fillLegend
+    - fillTextBox
+
+# Other figures - not important now.
+
+
+####################
+# Single-atom data #
+####################
+
+class Position:
+  variables:
+    - x
+    - y
+    - z
+    - r (cylindrical radius)
+    - p (spherical radius)
+  functions:
+    - calculateNonCartesian
+
+class Velocity:
+  variables:
+    - vx
+    - vy
+    - vz
+    - vr
+    - vp
+  functions:
+    - calculateNonCartesian
+
+struct Atom:
+  variables:
+    - position
+    - velocity
+    - dipole
+
+
+###################
+# Multi-atom data #
+###################
+
+class PositionArray:
+  variables:
+    - x
+    - y
+    - z
+    - r (cylindrical radius)
+    - p (spherical radius)
+  functions:
+    - calculateNonCartesian
+
+class VelocityArray:
+  variables:
+    - vx
+    - vy
+    - vz
+    - vr
+    - vp
+  functions:
+    - calculateNonCartesian
+
+struct AtomArray:
+  variables:
+    - positionArray
+    - velocityArray
+    - dipoleArray
+
+
+################
+# Time Keepers #
+################
+
+struct Timestep:
+  variables:
+    - time
+    - stepNum
+    - stepVariables
+
+struct Frame:
+  variables:
+    - time
+    - frameNum
+    - frameStep
+    - frameNamed
+
+struct LastFrame:
+  parent: Frame
+  variables:
+    - penultimateFrame
+    - extraSteps
+    - divisible
+
+
+###########
+# Readers #
+###########
+
+class LineReader:
+  variables:
+    - line
+    - input
+    - atomNum
+    - lineNum
+    - atom
+  functions:
+    - readLine
+
+class TimestepReader:
+  variables:
+    - lineReader
+    - numSteps
+    - timestep
+  functions:
+    - readTimestep
+
+class FrameReader:
+  variables:
+    - timestepReader
+    - stepsPerFrame
+    - frame
+  functions:
+    - readFrame
+
+
+######################
+# Droplet Components #
+######################
+
+class Monolayer:
+  variables:
+    - radius
+    - height
+    - atomArray
+  functions:
+    - calculateRadius
+
+class CircularBulk:
+  variables:
+    - height
+    - radius
+    - volume
+    - contactAngle
+    - circle
+  functions:
+    - calculateHeight
+    - calculateRadius
+    - calculateContactAngle
+
+class SphericalBulk:
+  parent: CircularBulk
+  functions:
+    - calculateVolume
+
+class CylindricalBulk:
+  parent: CircularBulk
+  functions:
+    - calculateVolume
+
+##################
+# Misc. Analysis #
+##################
+
+class monolayerTracker:
+  variables:
+    - numMonoIDs
+    - id
+    - monoIDs
+    - monoR
+    - monoZ
+
+
+
+
+
+ 

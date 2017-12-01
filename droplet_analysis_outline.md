@@ -1,0 +1,216 @@
+# Init
+- Open files
+  - Locate monolayer
+  - Open input file (calculated.txt)
+  - Open substrate density file
+  - Open COM file
+
+- Init variables
+  - Density
+    - n bins
+    - vals array
+    - lo/hi limits
+    - spacing
+    
+  - File Reading
+    - line
+    - input
+    - atomNum
+    - lineNum
+  - Single Atom
+    - coords[3]
+    - velocities[3]
+    - dipole
+  - All atoms
+    - Coordinates
+      - Cartesian
+        - x
+        - y
+        - z
+      - Cylindrical
+        - r
+        - p
+    - Velocities
+      - vx
+      - vy
+      - vz
+      - vr
+    - Other
+      - cosT (dipole)
+    - Initial positions
+      - xi
+      - yi
+      - zi
+      - Init file
+        - initWritten
+        - initIn
+  - Time
+    - Steps
+      - timestep (fs)
+      - stepNum (2 ps)
+      - numSteps
+    - Frames
+      - numFrames
+      - frameNum (10 ps)
+      - frameStep
+      - frameNamed
+      - stepsPerFrame
+      - Last frame
+        - penultimateFrame
+        - extraSteps
+        - divisble
+  - atoms
+    - numAtoms
+    - firstID
+  - Options
+    - loopFlag1
+    - loopFlag2
+    - skipToEnd
+    - trackMonoAtoms
+  - Center of Mass
+    - x0
+    - y0
+    - z0
+    - Read from file
+      - centroidKnown
+      - simPos (position in pathname)
+  - Sim Parameters 
+    - rDensCyl
+    - rBulkMax
+  - Frame Variables
+    - Outputs
+      - bulkEdge
+      - tmpBulkEdge
+      - monoEdge
+      - lastMonoEdge
+      - dropletHeight
+      - contactAngle
+      - msd
+      - nMono
+      - flux
+    - min (min z value of atom in each timestep)
+    - bin1, bin2
+    - Bulk-mono exchange
+      - rScaledJoin
+      - rScaledLeave
+  - Histogram Parameters
+    - dz, zlo, zhi, nz
+    - dA, alo, ahi, nA
+    - dr, rlo, rhi, nr
+    - dV, vlo, vhi, nV
+    - dp, plo, phi, np
+  - Canvas Paramters
+    - cH, cW 
+
+  - Canvases
+    - cD (dipole)
+    - cA (2D density plot)
+    - cQ (Quiver)
+    - cVr  (plot v_r(z))
+    - cDens (substrate & water density)
+    - cAll (all together)
+
+  - Equal-area bin variables
+    - aVals
+    - vVals
+    - rVals
+    - pVals
+  - Histograms
+    - hA
+    - hMono
+    - hD
+    - hVr
+    - hZ (for counting # of atoms in each z bin)
+    - hWaterDens
+    - hSubstrDens
+  - Other
+    - Quiver
+    - circlePointsGraph
+  - Lines
+    - Hist
+      - bulkEdgeLine
+      - monoEdgeLine
+      - heightLine
+      - monoHiLine
+      - monoLoLine
+      - monoHiLineDens
+      - monoLoLineDens
+    - Tanh annotations
+      - ldTanhLine
+      - solTanhLine
+      - x0 TanhLine
+      - x0guessTanhLine
+      - lowGuessTanhLine
+      - hiGuessTanhLine
+      - lowBInTanhLine
+  - Legend
+    - hALegend
+    - tanhLegend
+  - Text
+    - Hist
+      - textBox 
+      - cAText (contact angle)
+      - dHText (droplet height)
+      - bEText (bulk edge)
+      - mEText (mono edge)
+    - Tanh
+      - tanhTextBox
+      - tanhTexts
+  - FieldViz
+  - Axis Limits
+    - colzMin
+    - colzMax
+  - Circle Fit
+    - Circle
+    - chi2s
+  - Monolayer atom tracking
+    - numMonoIDs
+    - id
+    - monoIDs
+    - monoR, monoZ
+  - Velocity Plot
+    - sum, num
+    - monoGraph1 (outline)
+    - monoGraph 2 (fill)
+
+- Open output streams
+  - avg
+  - (don't need inst)
+  
+- Time loop
+  - Read Data
+    - Header
+    - Body
+  - Read COM
+  - Find zmin
+  - Track mono atoms
+  - Fill histograms
+  - Check for out of place atoms
+  - inst calculations
+    - avgRadius
+    - avgDipole
+    - MSDavg
+    - stepFlux
+  - Frame calculations
+    - Normalize histograms by number of steps per frame
+    - Locate droplet boundary
+      - Circle boundary
+      - Monolayer radius
+    - Fit circle
+    - Calculate circle variables
+      - contact angle
+      - height
+      - base radius
+      
+    - Plots
+      - Set titles
+      - Draw plot
+      - Save image
+      
+    - Plot Velocity Field (LIC)
+    
+    - Reset frame variables
+
+ - Close files
+ - Create plots that span time (leavejoin)
+ - Deallocate memory

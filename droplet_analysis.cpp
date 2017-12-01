@@ -1041,7 +1041,7 @@ int main(int argc,char* argv[])
             cout << "STEP " << timestep << ": " << nWaterDens << " molecules in hWaterDens" << endl;
             nWaterDens=0;
 
-            //PLOT TILES
+            //PLOT TITLES
             stringstream title;
             title << string(argv[2]).substr(simPos) << ": "  << frameStep;
             hA->SetTitle(title.str().data());
