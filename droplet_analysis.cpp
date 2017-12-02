@@ -24,7 +24,7 @@
 
 #include "CircleFitClass.h"
 #include "Quiver/Quiver.h"
-// #include "../src/FieldViz/FieldViz.h"
+#include "../src/FieldViz/FieldViz.h"
 
 using namespace std;
 
