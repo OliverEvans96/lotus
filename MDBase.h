@@ -2,7 +2,35 @@
 #define MDBASE_H
 
 #include <iostream>
+#include <iostream>
+#include <iomanip>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <cmath>
+#include <string>
+#include <sstream>
+#include <sys/stat.h>
+#include <algorithm>
+#include "TCanvas.h"
+#include "TH2D.h"
+#include "TGraph.h"
+#include "TGraph2D.h"
+#include "TLegend.h"
+#include "TMultiGraph.h"
+#include "TF1.h"
+#include "TF2.h"
+#include "TFile.h"
+#include "TText.h"
+#include "TPaveText.h"
+
+#include "CircleFitClass.h"
+#include "Quiver/Quiver.h"
+#include "../src/FieldViz/FieldViz.h"
+
 using namespace std;
+
+const double PI = 3.141592653589793;
 
 ///////////////////////////
 // High level parameters //
@@ -12,7 +40,7 @@ struct CommandLineParser
 {
   string inLoc, outLoc;
   void parse();
-}
+};
 
 struct Options
 {
@@ -25,14 +53,14 @@ struct Options
   bool plotDensity;
   bool plotAllTogether;
   bool debugOutput; // Enable debuguging print statments
-}
+};
 
 struct AnalysisParameters
 {
   double rDensCyl; // Maximum cylinder to use for radial binning
   double rBulkMax; // ??
   double binVolume; // Constant volume for all cylindrical bins
-}
+};
 
 ///////////////////
 // Visualization //
@@ -46,7 +74,7 @@ struct Figure
 
   void draw();
   void save();
-}
+};
 
 struct HistFigure : Figure
 {
@@ -64,7 +92,7 @@ struct HistFigure : Figure
 
   void drawText();
   void drawAnnotations();
-}
+};
 
 
 class DensFigure : Figure
@@ -73,7 +101,7 @@ class DensFigure : Figure
   TLine* monoLoLineDens;
 
   void drawAnnotations();
-}
+};
 
 class TanhFigure : Figure
 {
@@ -92,7 +120,7 @@ class TanhFigure : Figure
   void setStyle();
   void fillLegend();
   void fillTextBox();
-}
+};
 
 
 //////////////////////
@@ -103,19 +131,19 @@ struct Position
 {
   double x, y, z, r, p;
   void calculateNonCartesian();
-}
+};
 
 struct Velocity
 {
   double vx, vy, vz, vr, vp;
   void calculateNonCartesian();
-}
+};
 
 struct Atom
 {
   Velocity velocity;
   Position position;
-}
+};
 
 /////////////////////
 // Multi-atom data //
@@ -125,19 +153,19 @@ struct PositionArray
 {
   double* x, y, z, r, p;
   void calculateNonCartesian();
-}
+};
 
 struct VelocityArray
 {
   double* vx, vy, vz, vr, vp;
   void calculateNonCartesian();
-}
+};
 
 struct AtomArray
 {
   VelocityArray velocity;
   PositionArray position;
-}
+};
 
 
 /////////////////////////
@@ -157,7 +185,7 @@ struct StepVariables
   double dMe_dt;
   double nMono;
   double chi2;
-}
+};
 
 struct FrameVariables
 {
@@ -172,7 +200,7 @@ struct FrameVariables
   double dMe_dt;
   double nMono;
   double chi2;
-}
+};
 
 
 //////////////////
@@ -184,7 +212,7 @@ struct Timestep
   int time; // 1 fs
   int stepNum; // 2 ps
   StepVariables stepVariables;
-}
+};
 
 struct Frame
 {
@@ -192,14 +220,14 @@ struct Frame
   int frameNum; // 10 ps
   int frameStep; // ??
   bool frameNamed; // ??
-}
+};
 
 struct LastFrame // ??
 {
   int penultimateFrame;
   int extraSteps;
   bool divisible;
-}
+};
 
 /////////////
 // Readers //
@@ -214,7 +242,7 @@ struct LineReader
   Atom atom;
 
   void readLine();
-}
+};
 
 struct TimestepReader
 {
@@ -223,14 +251,14 @@ struct TimestepReader
   int numSteps;
 
   void readTimestep();
-}
+};
 
 struct FrameReader
 {
   TimestepReader timestepReader;
   Frame frame;
   int stepsPerFrame;
-}
+};
 
 
 ////////////////////////
@@ -244,7 +272,7 @@ struct Monolayer
   AtomArray atoms;
 
   void calculateRadius();
-}
+};
 
 struct CircularBulk
 {
@@ -257,17 +285,17 @@ struct CircularBulk
   void calculateHeight();
   void calculateRadius();
   void calculateContactAngle();
-}
+};
 
 struct SphericalBulk : CircularBulk
 {
   void calculateColume();
-}
+};
 
 struct CylindricalBulk : CircularBulk
 {
   void calculateColume();
-}
+};
 
 
 ////////////////////
@@ -280,6 +308,6 @@ struct monolayerTracker
   int* id; // IDs of atoms 
   int* monoIDs; // ??
   AtomArray monoAtoms;
-}
+};
 
 #endif

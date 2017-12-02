@@ -33,24 +33,6 @@ const double PI = 3.141592653589793;
 //Count the number of water atoms in the first timestep
 int countAtoms(ifstream &inFile);
 
-//Split a string into a string vector of words
-vector<string> strSplit(string str);
-
-//Get index and coordinates from string array of words
-void strToData(double *coords,double *velocities,double& dipole,string line);
-
-//Choose the highest value from a vector
-double max(vector<double> v);
-
-//Find the mean of a double vector
-double mean(vector<double> v);
-
-//Square
-double square(double x);
-
-//Arctanh
-double atanh(double x);
-
 //Given a TH1D and a two bin numbers, draw a line between the points and solve for where y=yc (y_cutoff)
 double solveLinear(TH1D *hist,int bin1,int bin2,double yc);
 
@@ -79,29 +61,8 @@ vector<double> calculateMSD(vector<double> xi,vector<double> yi,vector<double> z
 //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius
 int monoFlux(vector<double> r,vector<double>z,double* monoLimits,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave,int &nMono);
 
-//Is a<b?
-bool isLess(int a,int b);
-
-//Is x in v?
-bool isIn(int x, vector<int>v);
-
-//Find the minimum value of a vector or double pointer
-double findMinimum(vector<double> v);
-
-//Find the maximum value of a vector or double pointer
-double findMaximum(vector<double> v);
-
-//Count the number of timesteps
-int countSteps(ifstream &inFile);
-
 //Find the lowest atom ID for a water molecule in this simulation
 int lowestID(ifstream &inFile);
-
-//Check whether a file exists
-bool file_exists(const string& name);
-
-//round up to nearest multiple of a number
-int roundUp(int numToRound, int multiple);
 
 //Find z interface between monolayer and bulk
 void findMonoLimits(TH1D *hWaterDens,double *monoLimits);
@@ -1660,100 +1621,6 @@ int countAtoms(ifstream &inFile)
 
     return numAtoms;
 }
-
-//Split a string into a string vector of words
-vector<string> strSplit(string str)
-{
-    int len=str.length();
-    stringstream ss(str);
-    int numWords=1;
-    bool foundSpace=false;
-
-    //Count number of words
-    for(int ch=0;ch<len;ch++)
-    {
-        if(isspace(str[ch]))
-            foundSpace=true;
-        if(!isspace(str[ch])&&foundSpace)
-        {
-            numWords++;
-            foundSpace=false;
-        }
-    }
-
-    //Allocate array
-    vector<string> arr(numWords);
-
-    //Read string into array
-    for(int i=0;i<len;i++)
-    ss >> arr[i];
-
-    return arr;
-}
-
-//Get index and coordinates from string array of words
-void strToData(double *coords,double *velocities,double &dipole,string line)
-{
-    string str;
-
-    int index;
-    //Split string into array of words
-    vector<string> strArr=strSplit(line);
-
-    //Get index
-    str=strArr[0];
-    index=atoi(str.data());
-
-    //Save values
-    //string -> cstring -> double
-    for(int i=0;i<3;i++)
-    {
-        //Get coordinates from the second, third, and fourth elements in the array
-        str=strArr[1+i];
-        *coords++=atof(str.data());
-
-        //Get velocities from the sixth, seventh, and eighth elements in the array
-        str=strArr[5+i];
-        *velocities++=atof(str.data());
-    }
-
-    //Save dipole moment cos(theta)
-    dipole=atof(strArr[10].data());
-}
-
-//Find the mean of a double vector
-double mean(vector<double> v)
-{
-    double m=0;
-    for(vector<double>::iterator it = v.begin(); it != v.end(); ++it)
-        m+=*it;
-    m/=v.size();
-
-    return m;
-}
-
-//Choose the highest value in a vector
-double max(vector<double> v)
-{
-    int n=v.size();
-    double max=v[0];
-
-    for(int i=0;i<n;i++)
-    {
-        if(v[i]>max)
-            max=v[i];
-    }
-
-    return max;
-
-}
-
-//Square
-inline double square(double x) {return x*x;}
-
-//Arctanh
-inline double atanh(double x) {return log((1+x)/(1-x))/2;}
-
 //Guess boundary of water molecule by counting for a single row
 double guessRowBoundary(TH2D* hist,int j)
 {
@@ -2197,41 +2064,6 @@ int monoFlux(vector<double> r,vector<double> z,double* monoLimits,double baseRad
 
     return flux;
 }
-
-bool isLess(int a,int b) { return (a<b); }
-
-//Check whether x is in v
-bool isIn(int x, vector<int>v)
-{
-    return binary_search(v.begin(),v.end(),x,isLess);
-}
-
-double findMinimum(vector<double> v)
-{
-    double min=v[0];
-    for(int i=0;i<v.size();i++)
-    {
-        if(v[i]<min)
-        {
-            min=v[i];
-        }
-    }
-    return min;
-}
-
-double findMaximum(vector<double> v)
-{
-    double max=v[0];
-    for(int i=0;i<v.size();i++)
-    {
-        if(v[i]>max)
-        {
-            max=v[i];
-        }
-    }
-    return max;
-}
-
 //Count the number of timesteps
 int countSteps(ifstream &inFile)
 {
@@ -2271,25 +2103,6 @@ int lowestID(ifstream &inFile)
     inFile.seekg(0,ios::beg);
 
     return id;
-}
-
-//Test whether file exists
-bool file_exists(const string& name) {
-  struct stat buffer;
-  return (stat (name.c_str(), &buffer) == 0);
-}
-
-//Round up to a multiple
-int roundUp(int numToRound, int multiple)
-{
-        if (multiple == 0)
-                    return numToRound;
-
-            int remainder = numToRound % multiple;
-                if (remainder == 0)
-                            return numToRound;
-
-                    return numToRound + multiple - remainder;
 }
 
 //Find z limits on monolayer
