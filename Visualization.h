@@ -1,11 +1,16 @@
 #ifndef VISUALIZATION_H
 #define VISUALIZATION_H
 
+#include "Utils.h"
+#include "Quiver/Quiver.h"
+#include "../src/FieldViz/FieldViz.h"
+
 using namespace std;
 
 ///////////////////
 // Visualization //
 ///////////////////
+
 
 struct Figure
 {
@@ -63,6 +68,7 @@ class TanhFigure : Figure
   void fillTextBox();
 };
 
-
+//Draw a TH1D horizontally, returning a TGraph which should probably be deleted
+TGraph *horizontalHist(TH1D* hist);
 
 #endif

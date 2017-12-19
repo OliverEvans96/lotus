@@ -1,17 +1,7 @@
 #ifndef DROPLET_ANALYSIS_UTILS_H
 #define DROPLET_ANALYSIS_UTILS_H
 
-#include <vector>
-#include <iostream>
-#include <iomanip>
-#include <cstdio>
-#include <cstdlib>
-#include <fstream>
-#include <cmath>
-#include <string>
-#include <sstream>
-#include <sys/stat.h>
-#include <algorithm>
+#include "Utils.h"
 
 //Split a string into a string vector of words
 vector<string> strSplit(string str);
@@ -48,5 +38,8 @@ double findMinimum(vector<double> v);
 
 //Find the maximum value of a vector or double pointer
 double findMaximum(vector<double> v);
+
+//Given a TH1D and a two bin numbers, draw a line between the points and solve for where y=yc (y_cutoff)
+double solveLinear(TH1D *hist,int bin1,int bin2,double yc);
 
 #endif

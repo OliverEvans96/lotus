@@ -1,6 +1,8 @@
 #ifndef READERS_H
 #define READERS_H
 
+#include "Utils.h"
+
 using namespace std;
 
 /////////////

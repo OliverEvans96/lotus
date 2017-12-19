@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "Utils.h"
 
 //Split a string into a string vector of words
 vector<string> strSplit(string str)
@@ -130,4 +130,22 @@ double findMaximum(vector<double> v)
         }
     }
   return max;
+}
+
+//Given a TH1D and a two bin numbers, draw a line between the points and solve for where y=yc (y-0.5)
+double solveLinear(TH1D *hist,int bin1,int bin2,double yc)
+{
+  //Find x & y values at bins
+  double x1=hist->GetBinCenter(bin1);
+  double x2=hist->GetBinCenter(bin2);
+  double y1=hist->GetBinContent(bin1);
+  double y2=hist->GetBinContent(bin2);
+
+  //Equation of line
+  double m = (y2-y1)/(x2-x1);
+  double b = y1-m*x1;
+
+  //Solve
+  double xc = (yc-b)/m;
+  return xc;
 }
