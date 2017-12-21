@@ -1,0 +1,12 @@
+# Options for droplet analysis
+skipToEnd 0
+trackMonoAtoms 0
+saveImages 1
+plotHist 0
+plotDipole 0
+plotVr 0
+plotDensity 0
+plotAllTogether 0
+debugOutput 1
+onlyFindInterface 0
+

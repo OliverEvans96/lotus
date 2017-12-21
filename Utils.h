@@ -1,7 +1,26 @@
 #ifndef DROPLET_ANALYSIS_UTILS_H
 #define DROPLET_ANALYSIS_UTILS_H
 
-#include "Utils.h"
+#include <string>
+#include <vector>
+#include <fstream>
+#include <sstream>
+
+#include "TCanvas.h"
+#include "TH2D.h"
+#include "TGraph.h"
+#include "TGraph2D.h"
+#include "TLegend.h"
+#include "TMultiGraph.h"
+#include "TF1.h"
+#include "TF2.h"
+#include "TFile.h"
+#include "TText.h"
+#include "TPaveText.h"
+
+using namespace std;
+
+const double PI = 3.141592653589793;
 
 //Split a string into a string vector of words
 vector<string> strSplit(string str);
