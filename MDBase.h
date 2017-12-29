@@ -5,7 +5,6 @@
 
 using namespace std;
 
-const double PI = 3.141592653589793;
 //Conversion factor - number density to water mass density
 const double convFact=18/.60221409;
 

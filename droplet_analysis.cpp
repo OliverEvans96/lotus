@@ -29,8 +29,21 @@ using namespace std;
 //Read each timestep and plot 3d scatter plot
 int main(int argc,char* argv[])
 {
-  CommandLineParser commandLineParser(arc, argv);
+  CommandLineParser commandLineParser(argc, argv);
+  InputStream inFile(commandLineParser.inLoc);
+  Timestep timestep;
+  AtomArray atomArray;
+  FrameReader frameReader(&inputStream, &atomArray, &timestep);
+  FrameWriter frameWriter();
 
+  Monolayer monolayer();
+
+  //Substrate density input file
+  string dStr(argv[1]);
+  stringstream dSS;
+  dSS << dStr.substr(0,dStr.find("calculated.txt")) << "substrate_density_halfA.txt";
+  InputStream densFile(dSS.str().data());
+  InputStream centerFile("center_of_mass.txt");
 
   /////////////////////////////////////////////////
   // REPLACE WITH BETTER MONOLAYER CALCULATION   //
@@ -44,27 +57,18 @@ int main(int argc,char* argv[])
   // NOT SURE WHAT TO DO ABOUT THIS QUITE YET                       //
   ////////////////////////////////////////////////////////////////////
   // File Number                                                    //
-  string fileName(inLoc);                                           //
-  string halfName=fileName.substr(fileName.find("atom")).substr(4); //
-  string fileNumberStr=halfName.substr(0,halfName.find("/"));       //
-  stringstream fileNumberSS;                                        //
-  fileNumberSS << fileNumberStr;                                    //
-  int fileNumber;                                                   //
-  fileNumberSS >> fileNumber;                                       //
-  cout << "Reading file number " << fileNumber << endl;             //
-  cout << "Open Stream" << endl;                                    //
-  //Input Stream                                                    //
-  ifstream inFile(inLoc);                                           //
+  // string fileName(inLoc);                                           //
+  // string halfName=fileName.substr(fileName.find("atom")).substr(4); //
+  // string fileNumberStr=halfName.substr(0,halfName.find("/"));       //
+  // stringstream fileNumberSS;                                        //
+  // fileNumberSS << fileNumberStr;                                    //
+  // int fileNumber;                                                   //
+  // fileNumberSS >> fileNumber;                                       //
+  // cout << "Reading file number " << fileNumber << endl;             //
+  // cout << "Open Stream" << endl;                                    //
+  // //Input Stream                                                    //
+  // ifstream inFile(inLoc);                                           //
   ////////////////////////////////////////////////////////////////////
-
-  //Substrate density input file
-  string dStr(argv[1]);
-  stringstream dSS;
-  dSS << dStr.substr(0,dStr.find("calculated.txt")) << "substrate_density_halfA.txt";
-
-  InputStream inFile(inLoc);
-  InputStream densFile(dSS.str().data());
-  InputStream centerFile("center_of_mass.txt");
 
 
   ////////////////////////////////////////////////////////////////////////
@@ -107,38 +111,14 @@ int main(int argc,char* argv[])
                                                                         //
   ////////////////////////////////////////////////////////////////////////
 
-  FrameWriter frameWriter();
-
-  //Variables
-  string line;
-  string input;
-
-  int atomNum=0;
-  int lineNum=1;
-
-  double coords[3];
-  double velocities[3];
-  double dipole;
-
-  int timestep; //Real step number for simulation
-  int stepNum=1; //Step number relative to this file starting with 1
-  int frameNum=0;
-  int frameStep; //First real timestep # of frame - used for naming, plots, etc.
-  bool frameNamed=false; //Whether this frame has been named yet
-
-  bool loopFlag1=true;
-  bool loopFlag2=true;
-  bool skipToEnd=false; //If true, skip first 485 steps
-
-  //Find out some things about the file
-  cout << endl;
-  cout << "Analyzing input file" << endl;
-  ifstream testFile(inLoc);
-  int numSteps=countSteps(testFile);
-  int numAtoms=countAtoms(testFile);
-  int firstID=lowestID(testFile);
-  testFile.close();
-
+  // Replace with InputStream /////////
+  ifstream testFile(inLoc);          //
+  int numSteps=countSteps(testFile); //
+  int numAtoms=countAtoms(testFile); //
+  int firstID=lowestID(testFile);    //
+  testFile.close();                  //
+  /////////////////////////////////////
+  
   //Number of timesteps to average together to make a frame
   int stepsPerFrame=5;
 
@@ -156,25 +136,6 @@ int main(int argc,char* argv[])
   //Number of frames (collections of timesteps)
   //If not divisible, then the last frame will have more than the rest
   int numFrames=(int) floor(numSteps/stepsPerFrame);
-
-  //Coordinates
-  vector<double> x(numAtoms);
-  vector<double> y(numAtoms);
-  vector<double> z(numAtoms);
-  vector<double> r(numAtoms);
-  vector<double> p(numAtoms);
-
-  vector<double> vx(numAtoms);
-  vector<double> vy(numAtoms);
-  vector<double> vz(numAtoms);
-  vector<double> vr(numAtoms);
-
-  vector<double> cosT(numAtoms);
-
-  //Initial positions
-  vector<double> xi(numAtoms);
-  vector<double> yi(numAtoms);
-  vector<double> zi(numAtoms);
 
   //Read from file
   bool initWritten=file_exists("../init.txt");
@@ -201,24 +162,27 @@ int main(int argc,char* argv[])
   double rDensCyl=atoi(string(argv[2]).substr(simPos,2).data())/2;
   cout << "RDENSCYL=" << rDensCyl << endl;
 
-  //Step variables
-  double rBulkMax=rDensCyl*2;
-  double bulkEdge=rDensCyl*2;
-  double tmpBulkEdge; //throwaway
-  double monoEdge;
-  double lastMonoEdge=0;
-  double dropletHeight,contactAngle;
-  double avgRadius,avgDipole;
-  vector<double> msd;
-  //double exchange;
-  double min;
-  int nMono;
-  int bin1,bin2;
-
-  //Flux for this timestep
-  int stepFlux = 0;
-  //Average flux for frame
-  int frameFlux = 0;
+  // Replace with FrameVariable ///////
+  //Step variables                   //
+  double rBulkMax=rDensCyl*2;        //
+  double bulkEdge=rDensCyl*2;        //
+  double tmpBulkEdge; //throwaway    //
+  double monoEdge;                   //
+  double lastMonoEdge=0;             //
+  double dropletHeight,contactAngle; //
+  double avgRadius,avgDipole;        //
+  vector<double> msd;                //
+  //double exchange;                 //
+  double min;                        //
+  int nMono;                         //
+  int bin1,bin2;                     //
+                                     //
+  //Flux for this timestep           //
+  int stepFlux = 0;                  //
+  //Average flux for frame           //
+  int frameFlux = 0;                 //
+                                     //
+  /////////////////////////////////////
 
   //Hist of where atoms join the monolayer
   TH1D* rScaledJoin = new TH1D("rScaledJoin","rScaledJoin",30,0,1.5);
@@ -226,50 +190,54 @@ int main(int argc,char* argv[])
   //Hist of where atoms leave the monolayer
   TH1D* rScaledLeave = new TH1D("rScaledLeave","rScaledLeave",30,0,1.5);
 
-  double dz=1.5;
-  double zlo=10;
-  double zhi=142; //142 for 60A, 121 for others
-  int nz=(int) round((zhi-zlo)/dz);
 
-  //Check that dz, zlo, and zhi are compatible
-  if( !(fmod((zhi-zlo),dz)==0) )
-  {
-    cout << "(zhi-zlo) is not divisible by dz" << endl;
-    return 1;
-  }
-
-  cout << "nz=" << nz << endl;
-
-  const double dA=500;
-  const double alo=0;
-  const double ahi=125500;
-  int nA=(int) round((ahi-alo)/dA);
-
-  double dr=dz;
-  double rlo=sqrt(alo/PI);
-  double rhi=sqrt(ahi/PI);
-  int nr=(int) round((rhi-rlo)/dr);
-
-  double vlo=0;
-  double vhi=1e7;
-  int nV=(int) round((vhi-vlo)/dA);
-
-  double dp=dr;
-  double plo=pow((3*vlo/(4*PI)),(1.0/3));
-  double phi=pow((3*vhi/(4*PI)),(1.0/3));
-  int  np=(int) round((phi-plo)/dp);
-
-  //Bin volume
-  double dV=dA*dz;
-
-  //Check that dA, alo, and ahi are compatible
-  if( !(fmod((ahi-alo),dA)==0) )
-  {
-    cout << "(Ahi-Alo) is not divisible by dA" << endl;
-    return 1;
-  }
-
-  cout << "nA=" << nA << endl;
+  // Replace with Grid object ////////////////////////////////
+  double dz=1.5;                                            //
+  double zlo=10;                                            //
+  double zhi=142; //142 for 60A, 121 for others             //
+  int nz=(int) round((zhi-zlo)/dz);                         //
+                                                            //
+  //Check that dz, zlo, and zhi are compatible              //
+  if( !(fmod((zhi-zlo),dz)==0) )                            //
+  {                                                         //
+    cout << "(zhi-zlo) is not divisible by dz" << endl;     //
+    return 1;                                               //
+  }                                                         //
+                                                            //
+  cout << "nz=" << nz << endl;                              //
+                                                            //
+  const double dA=500;                                      //
+  const double alo=0;                                       //
+  const double ahi=125500;                                  //
+  int nA=(int) round((ahi-alo)/dA);                         //
+                                                            //
+  double dr=dz;                                             //
+  double rlo=sqrt(alo/PI);                                  //
+  double rhi=sqrt(ahi/PI);                                  //
+  int nr=(int) round((rhi-rlo)/dr);                         //
+                                                            //
+  double vlo=0;                                             //
+  double vhi=1e7;                                           //
+  int nV=(int) round((vhi-vlo)/dA);                         //
+                                                            //
+  double dp=dr;                                             //
+  double plo=pow((3*vlo/(4*PI)),(1.0/3));                   //
+  double phi=pow((3*vhi/(4*PI)),(1.0/3));                   //
+  int  np=(int) round((phi-plo)/dp);                        //
+                                                            //
+  //Bin volume                                              //
+  double dV=dA*dz;                                          //
+                                                            //
+  //Check that dA, alo, and ahi are compatible              //
+  if( !(fmod((ahi-alo),dA)==0) )                            //
+  {                                                         //
+    cout << "(Ahi-Alo) is not divisible by dA" << endl;     //
+    return 1;                                               //
+  }                                                         //
+                                                            //
+  cout << "nA=" << nA << endl;                              //
+                                                            //
+  ////////////////////////////////////////////////////////////
 
   //Skip first 2 lines
   for(int i=0;i<2;i++) inFile.ignore(256,'\n');
@@ -577,6 +545,8 @@ int main(int argc,char* argv[])
   // TIME LOOP //
   ///////////////
 
+  while(timestep.time <= numSteps) {
+
   //For each timestep
   while( (stepNum<=numSteps) && (loopFlag1) && (!inFile.eof()))
   {
@@ -648,9 +618,9 @@ int main(int argc,char* argv[])
     //Ignore timestep
     centerFile.ignore(256,' ');
     //Get center of mass
-    centerFile >> x0 >> y0 >> z0;
+    centerFile.stream >> x0 >> y0 >> z0;
     //Go to next line
-    centerFile.ignore(256,'\n');
+    centerFile.stream.ignore(256,'\n');
 
     //Use droplet xy center and substrate z center
     x0=mean(x);
@@ -755,10 +725,10 @@ int main(int argc,char* argv[])
 
     //Fill Density histogram
     //Ignore timestep
-    densFile >> densLine;
+    densFile.stream >> densLine;
     for(int i=0;i<nDensBinsFile;i++)
     {
-      densFile >> density;
+      densFile.stream >> density;
       histDensBin = (int) floor((zVals[i]-dLoHist)*nDensBinsHist/(dHiHist-dLoHist))+1;
       //cout << "zVals[" << i << "]=" << zVals[i] << endl;
       //cout << (zVals[i]-dLoFile)*nDensBinsHist/(dHiHist-dLoHist) << endl;
@@ -766,7 +736,7 @@ int main(int argc,char* argv[])
       hSubstrDens->SetBinContent(histDensBin,density);
     }
     //Go to next line
-    densFile.ignore(256,'\n');
+    densFile.stream.ignore(256,'\n');
 
     //INST CALCULATIONS
 

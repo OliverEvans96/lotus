@@ -53,26 +53,27 @@ class LineReader {
 class TimestepReader {
   LineReader lineReader;
   HeaderReader headerReader;
-  Timestep timestep;
+  Timestep* timestepPtr;
   AtomArray* atomArrayPtr;
   InputStream* inputStreamPtr;
   int atomNum;
   int lineNum;
 
  public:
-  void setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr);
+  void setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr);
   void resetAtomCounter();
   void readTimestep();
 };
 
 class FrameReader {
-  FrameReader(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr);
-  void setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr);
+  FrameReader(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* timestepPtr);
+  void setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr);
 
   TimestepReader timestepReader;
-  Frame frame;
   InputStream* inputStreamPtr;
   AtomArray* atomArrayPtr;
+  Timestep* timestepPtr;
+  Frame frame;
 
  public:
   int stepsPerFrame;

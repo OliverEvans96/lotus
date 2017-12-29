@@ -1,5 +1,5 @@
-#ifndef CIRCLEFITCLASS_H
-#define CIRCLEFITCLASS_H
+#ifndef CIRCLEFIT_H
+#define CIRCLEFIT_H
 
 #include <iostream>
 #include <iomanip>

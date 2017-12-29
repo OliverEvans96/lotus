@@ -1,6 +1,12 @@
 #ifndef VISUALIZATION_H
 #define VISUALIZATION_H
 
+#include "TLine.h"
+#include "TText.h"
+#include "TPaveText.h"
+#include "TLegend.h"
+#include "TH1D.h"
+
 #include "Utils.h"
 #include "Quiver/Quiver.h"
 #include "../src/FieldViz/FieldViz.h"
@@ -29,7 +35,7 @@ struct HistFigure : Figure
   TLine* heightLine;
   TLine* monoHiLine;
   TLine* monoLoLine;
-  TTextBox* textBox;
+  TPaveText* textBox;
   TLegend* legend;
   TText* cAText;
   TText* dHText;
@@ -59,13 +65,13 @@ class TanhFigure : Figure
   TLine* hiGuessTanhLine;
   TLine* lowBinTanhLine;
   TLegend* legend;
-  TTextBox* textBox;
+  TPaveText* textBox;
   TText* tanhTexts;
   TText* tanhLines;
 
   void setStyle();
   void fillLegend();
-  void fillTextBox();
+  void fillPaveText();
 };
 
 //Draw a TH1D horizontally, returning a TGraph which should probably be deleted

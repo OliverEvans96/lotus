@@ -2,7 +2,7 @@
 #define DROPLET_H
 
 #include "Utils.h"
-#include "CircleFitClass.h"
+#include "CircleFit.h"
 
 using namespace std;
 
@@ -12,6 +12,7 @@ using namespace std;
 
 struct Monolayer
 {
+  Monolayer();
   double radius;
   double height;
   AtomArray atoms;
@@ -32,7 +33,7 @@ struct CircularBulk
   double radius;
   double volume;
   double contactAngle;
-  CircleFitClass circle;
+  CircleFit circle;
 
   void calculateHeight();
   void calculateRadius();
@@ -55,12 +56,12 @@ struct CircularBulk
 
 struct SphericalBulk : CircularBulk
 {
-  void calculateColume();
+  void calculateVolume();
 };
 
 struct CylindricalBulk : CircularBulk
 {
-  void calculateColume();
+  void calculateVolume();
 };
 
 ////////////////////

@@ -134,10 +134,11 @@ void LineReader::readLine() {
   // READ THE LINE AND STORE DATA IN atom
 }
 
-void TimestepReader::setContext(InputStream* _inputStreamPtr, AtomArray* atomArrayPtr) {
+void TimestepReader::setContext(InputStream* _inputStreamPtr, AtomArray* atomArrayPtr, Timestep* _timestepPtr) {
   inputStreamPtr = _inputStreamPtr;
   lineReader.setContext(inputStreamPtr, &atomNum, &lineNum);
-  headerReader.setContext(inputStreamPtr, &timestep, &lineNum);
+  headerReader.setContext(inputStreamPtr, timestepPtr, &lineNum);
+  timestepPtr = _timestepPtr;
 }
 
 void TimestepReader::resetAtomCounter() {
@@ -147,7 +148,7 @@ void TimestepReader::resetAtomCounter() {
 void TimestepReader::readTimestep() {
   resetAtomCounter();
 
-  cout << "Step # " << timestep.time << endl;
+  cout << "Step # " << timestepPtr->time << endl;
   headerReader.readHeader();
   for(int i=0; i<atomArrayPtr->numAtoms; i++) {
     lineReader.readLine();
@@ -156,15 +157,16 @@ void TimestepReader::readTimestep() {
 }
 
 
-FrameReader::FrameReader(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr) {
-  setContext(_inputStreamPtr, _atomArrayPtr);
+FrameReader::FrameReader(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr) {
+  setContext(_inputStreamPtr, _atomArrayPtr, _timestepPtr);
 }
 
-void FrameReader::setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr) {
+void FrameReader::setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr) {
   inputStreamPtr = _inputStreamPtr;
   atomArrayPtr = _atomArrayPtr;
+  timestepPtr = _timestepPtr;
 
-  timestepReader.setContext(inputStreamPtr, atomArrayPtr);
+  timestepReader.setContext(inputStreamPtr, atomArrayPtr, timestepPtr);
 }
 
 void FrameReader::setStepsPerFrame(int _stepsPerFrame) {

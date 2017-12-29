@@ -13,7 +13,7 @@ using namespace std;
 struct FrameWriter
 {
   FILE* avgStepData, instStepData;
-  void openStreams()
+  void openStreams();
 };
 
 #endif
