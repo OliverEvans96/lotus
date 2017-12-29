@@ -31,19 +31,16 @@ int main(int argc,char* argv[])
 {
   CommandLineParser commandLineParser(argc, argv);
   InputStream inFile(commandLineParser.inLoc);
-  Timestep timestep;
-  AtomArray atomArray;
-  FrameReader frameReader(&inputStream, &atomArray, &timestep);
   FrameWriter frameWriter();
 
   Monolayer monolayer();
 
-  //Substrate density input file
-  string dStr(argv[1]);
-  stringstream dSS;
-  dSS << dStr.substr(0,dStr.find("calculated.txt")) << "substrate_density_halfA.txt";
-  InputStream densFile(dSS.str().data());
-  InputStream centerFile("center_of_mass.txt");
+  //   //Substrate density input file
+  //   string dStr(argv[1]);
+  //   stringstream dSS;
+  //   dSS << dStr.substr(0,dStr.find("calculated.txt")) << "substrate_density_halfA.txt";
+  //   InputStream densFile(dSS.str().data());
+  //   InputStream centerFile("center_of_mass.txt");
 
   /////////////////////////////////////////////////
   // REPLACE WITH BETTER MONOLAYER CALCULATION   //
@@ -71,46 +68,51 @@ int main(int argc,char* argv[])
   ////////////////////////////////////////////////////////////////////
 
 
+  /*
+  /////////////////////////////////////////////////////////////////////
+  // Substrate Density //                                            //
+  //Substrate density variables                                      //
+  // int histDensBin;                                                //
+  // string densLine;                                                //
+  // double density;                                                 //
+  // //Read first line (header comment)                              //
+  // getline(densFile,densLine);                                     //
+  //                                                                 //
+  // //Split Header comment into vector of strings                   //
+  // vector<string> densHeader = strSplit(densLine);                 //
+  //                                                                 //
+  // //Count number of fields & allocate zVals array                 //
+  // int nDensBinsFile = densHeader.size()-1;                        //
+  // double *zVals = new double[nDensBinsFile];                      //
+  //                                                                 //
+  // cout << "nDensBinsFile=" << nDensBinsFile << endl;              //
+  // //Remove "z=" from the beginning of each label                  //
+  // //and convert to decimal                                        //
+  // for(int i=0;i<nDensBinsFile;i++)                                //
+  //   {                                                             //
+  //     zVals[i]=atof(densHeader[i+1].substr(2).data());            //
+  //   //substr(2) means char 2                                      //
+  //   //(counting from 0 - actually 3rd character)                  //
+  //   // until the end                                              //
+  //   }                                                             //
+  double dLoFile=zVals[0];                                           //
+  double dZDens=zVals[1]-zVals[0];                                   //
+  double dHiFile=zVals[nDensBinsFile-1]+dZDens;                      //
+                                                                     //
+  //Density histogram limits - dz for file & hist should be same,    //
+  // everything else can be different                                //
+  double dLoHist=0;                                                  //
+  double dHiHist=60;                                                 //
+  int nDensBinsHist=(int) floor((dHiHist-dLoHist)/dZDens);           //
+  cout << "nDensBinsHist=" << nDensBinsHist << endl;                 //
+                                                                     //
+  //Ignore blank line                                                //
+  getline(densFile,densLine);                                        //
+                                                                     //
   ////////////////////////////////////////////////////////////////////////
-  // Substrate Density //                                               //
-  //Substrate density variables                                         //
-  int histDensBin;                                                      //
-  string densLine;                                                      //
-  double density;                                                       //
-  //Read first line (header comment)                                    //
-  getline(densFile,densLine);                                           //
-                                                                        //
-  //Split Header comment into vector of strings                         //
-  vector<string> densHeader = strSplit(densLine);                       //
-                                                                        //
-  //Count number of fields & allocate zVals array                       //
-  int nDensBinsFile = densHeader.size()-1;                              //
-  double *zVals = new double[nDensBinsFile];                            //
-                                                                        //
-  cout << "nDensBinsFile=" << nDensBinsFile << endl;                    //
-  //Remove "z=" from the beginning of each label and convert to decimal //
-  for(int i=0;i<nDensBinsFile;i++)                                      //
-    {                                                                   //
-      zVals[i]=atof(densHeader[i+1].substr(2).data());                  //
-    //substr(2) means char 2 (counting from 0 - actually 3rd character) //
-    // until the end                                                    //
-    }                                                                   //
-  double dLoFile=zVals[0];                                              //
-  double dZDens=zVals[1]-zVals[0];                                      //
-  double dHiFile=zVals[nDensBinsFile-1]+dZDens;                         //
-                                                                        //
-  //Density histogram limits - dz for file & hist should be same,       //
-  // everything else can be different                                   //
-  double dLoHist=0;                                                     //
-  double dHiHist=60;                                                    //
-  int nDensBinsHist=(int) floor((dHiHist-dLoHist)/dZDens);              //
-  cout << "nDensBinsHist=" << nDensBinsHist << endl;                    //
-                                                                        //
-  //Ignore blank line                                                   //
-  getline(densFile,densLine);                                           //
-                                                                        //
-  ////////////////////////////////////////////////////////////////////////
+  */
 
+  /*
   // Replace with InputStream /////////
   ifstream testFile(inLoc);          //
   int numSteps=countSteps(testFile); //
@@ -118,13 +120,25 @@ int main(int argc,char* argv[])
   int firstID=lowestID(testFile);    //
   testFile.close();                  //
   /////////////////////////////////////
-  
+  */
+
+  Timestep timestep;
+  AtomArray atomArray;
+  SimData simData(commandLineParser);
+  FrameReader frameReader(commandLineParser, &atomArray, &simData);
+
+  // Replace with FrameReader & LastFrame ////
   //Number of timesteps to average together to make a frame
-  int stepsPerFrame=5;
+  simData.setStepsPerFrame(5);
+  //int stepsPerFrame=5;
 
   //Is the number of steps divisible by the number of steps per frame?
+  lastFrame.extraSteps = numSteps % stepsPerFrame;
+  lastFrame.divisible = (extraSteps == 0);
+  lastFrame.penultimateFrame = numSteps - extraSteps;
   bool extraSteps = numSteps%stepsPerFrame;
   bool divisible = (extraSteps==0);
+
 
   //End of the penultimate frame (or middle of last frame if not divisible)
   int penultimateFrame = numSteps-extraSteps;
@@ -1180,27 +1194,6 @@ vector<double> calculateMSD(vector<double> xi,vector<double> yi,vector<double> z
   return msd;
 }
 
-//Count the number of timesteps
-int countSteps(ifstream &inFile)
-{
-  string line;
-  int numSteps=0;
-  int lineNum=0;
-
-  //Count number of timesteps
-  while(getline(inFile,line))
-  {
-    if(line.find("TIMESTEP")!=string::npos)
-      numSteps++;
-  }
-
-  //Unset eof flag (if set) & return to beginning of file
-  inFile.clear();
-  inFile.seekg(0,ios::beg);
-
-  cout << "Counted " << numSteps << " timesteps." << endl;
-  return numSteps;
-}
 
 //Find the lowest atom ID for a water molecule in this simulation
 int lowestID(ifstream &inFile)

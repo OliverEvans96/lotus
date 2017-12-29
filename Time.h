@@ -67,7 +67,8 @@ struct LastFrame
   int penultimateFrame;
   int extraSteps;
   bool divisible;
-};
 
+  void setSteps(int numSteps, int stepsPerFrame);
+};
 
 #endif

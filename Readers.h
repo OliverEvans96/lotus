@@ -10,6 +10,7 @@ using namespace std;
 struct InputStream {
   InputStream(char* _filename);
   ~InputStream();
+  void open();
   void verifyStream();
 
  public:
@@ -56,28 +57,32 @@ class TimestepReader {
   Timestep* timestepPtr;
   AtomArray* atomArrayPtr;
   InputStream* inputStreamPtr;
+  SimData* simDataPtr;
   int atomNum;
   int lineNum;
 
  public:
-  void setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr);
+  void setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr);
   void resetAtomCounter();
   void readTimestep();
 };
 
 class FrameReader {
-  FrameReader(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* timestepPtr);
-  void setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr);
+  FrameReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
+  void setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
 
+
+  CommandLineParser commandLineParser;
   TimestepReader timestepReader;
-  InputStream* inputStreamPtr;
   AtomArray* atomArrayPtr;
   Timestep* timestepPtr;
+  SimData* simDataPtr;
+  InputStream inputStream;
   Frame frame;
 
  public:
   int stepsPerFrame;
-  void setStepsPerFrame(int _stepsPerFrame);
+  void openStream();
   void readFrame();
 };
 

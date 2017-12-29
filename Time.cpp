@@ -22,3 +22,9 @@ Timestep::Timestep(time, fs_per_step)
 Frame::Frame()
 
 LastFrame::LastFrame ()
+
+LastFrame::setSteps(int numSteps, int stepsPerFrame) {
+  extraSteps = numSteps % stepsPerFrame;
+  divisible = (extraSteps == 0);
+  penultimateFrame = numSteps - extraSteps;
+}

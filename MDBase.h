@@ -2,12 +2,32 @@
 #define MDBASE_H
 
 #include "Utils.h"
+#include "Readers.h"
+#include "Parameters.h"
+#include "Time.h"
 
 using namespace std;
+
 
 //Conversion factor - number density to water mass density
 const double convFact=18/.60221409;
 
+// Source of truth for general MD variables.
+// Variables are set here, and this object (or a pointer)
+// is passed around and read elsewhere.
+struct SimData {
+  int numAtoms;
+  int numSteps;
+  int stepsPerFrame;
+  InputStream inputStream;
+  LastFrame lastFrame;
+
+  SimData(CommandLineParser commandLineParser);
+  int countAtoms(ifstream &inFile);
+  int countSteps(ifstream &inFile);
+
+  void setStepsPerFrame(int stepsPerFrame);
+};
 
 //Count the number of water atoms in the first timestep
 int countAtoms(ifstream &inFile);

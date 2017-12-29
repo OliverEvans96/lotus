@@ -19,11 +19,14 @@ InputStream::~InputStream() {
   stream.close();
 }
 
-InputStream::InputStream(char* _filename) {
+InputStream::open(char* _filename) {
   filename = _filename;
-
   stream.open(filename);
   verifyStream();
+}
+
+InputStream::InputStream(char* _filename) {
+  open(filename);
 }
 
 
@@ -134,11 +137,12 @@ void LineReader::readLine() {
   // READ THE LINE AND STORE DATA IN atom
 }
 
-void TimestepReader::setContext(InputStream* _inputStreamPtr, AtomArray* atomArrayPtr, Timestep* _timestepPtr) {
+void TimestepReader::setContext(InputStream* _inputStreamPtr, AtomArray* atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr) {
   inputStreamPtr = _inputStreamPtr;
   lineReader.setContext(inputStreamPtr, &atomNum, &lineNum);
   headerReader.setContext(inputStreamPtr, timestepPtr, &lineNum);
   timestepPtr = _timestepPtr;
+  simDataPTr = _simDataPtr;
 }
 
 void TimestepReader::resetAtomCounter() {
@@ -156,21 +160,25 @@ void TimestepReader::readTimestep() {
   }
 }
 
-
-FrameReader::FrameReader(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr) {
-  setContext(_inputStreamPtr, _atomArrayPtr, _timestepPtr);
+void FrameReader::openStream(CommandLineParser commandLineParser) {
+  inputStream.open(commandLineParser.inLoc);
 }
 
-void FrameReader::setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr) {
-  inputStreamPtr = _inputStreamPtr;
+void FrameReader::setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr) {
   atomArrayPtr = _atomArrayPtr;
   timestepPtr = _timestepPtr;
+  simDataPtr = _simDataPtr;
+  commandLineParser = _commandLineParser
 
-  timestepReader.setContext(inputStreamPtr, atomArrayPtr, timestepPtr);
+  stepsPerFrame = simDataPtr->stepsPerFrame;
+  openStream(commandLineParser.inLoc);
+
+  timestepReader.setContext(&inputStream, atomArrayPtr, timestepPtr, simDataPtr);
 }
 
-void FrameReader::setStepsPerFrame(int _stepsPerFrame) {
-  stepsPerFrame = _stepsPerFrame;
+FrameReader::FrameReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr) {
+  openStream(commandLineParser);
+  setContext(_inputStreamPtr, _atomArrayPtr, _timestepPtr);
 }
 
 void FrameReader::readFrame() {
