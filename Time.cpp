@@ -13,18 +13,26 @@ FrameVariables::FrameVariables()
 // Time Keepers //
 //////////////////
 
-Timestep::Timestep(time, fs_per_step)
-{
-  this->time = time;
-  this->fs_per_step = fs_per_step
-    }
+Timestep::Timestep() {
+  time = 0;
+  stepNum = 0;
+}
 
-Frame::Frame()
+Frame::Frame() {
+  time = 0;
+  frameNum = 0;
+  frameStep = 0;
+}
 
-LastFrame::LastFrame ()
+LastFrame::LastFrame()
 
 LastFrame::setSteps(int numSteps, int stepsPerFrame) {
   extraSteps = numSteps % stepsPerFrame;
   divisible = (extraSteps == 0);
   penultimateFrame = numSteps - extraSteps;
+
+  cout << "extraSteps: " << extraSteps << endl;
+  cout << "divisible: " << divisible << endl;
+  cout << "penultimateFrame: " << penultimateFrame << endl;
+
 }

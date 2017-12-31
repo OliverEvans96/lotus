@@ -130,26 +130,6 @@ int main(int argc,char* argv[])
   // Replace with FrameReader & LastFrame ////
   //Number of timesteps to average together to make a frame
   simData.setStepsPerFrame(5);
-  //int stepsPerFrame=5;
-
-  //Is the number of steps divisible by the number of steps per frame?
-  lastFrame.extraSteps = numSteps % stepsPerFrame;
-  lastFrame.divisible = (extraSteps == 0);
-  lastFrame.penultimateFrame = numSteps - extraSteps;
-  bool extraSteps = numSteps%stepsPerFrame;
-  bool divisible = (extraSteps==0);
-
-
-  //End of the penultimate frame (or middle of last frame if not divisible)
-  int penultimateFrame = numSteps-extraSteps;
-
-  cout << "extraSteps: " << extraSteps << endl;
-  cout << "divisible: " << divisible << endl;
-  cout << "penultimateFrame: " << penultimateFrame << endl;
-
-  //Number of frames (collections of timesteps)
-  //If not divisible, then the last frame will have more than the rest
-  int numFrames=(int) floor(numSteps/stepsPerFrame);
 
   //Read from file
   bool initWritten=file_exists("../init.txt");
@@ -559,53 +539,9 @@ int main(int argc,char* argv[])
   // TIME LOOP //
   ///////////////
 
-  while(timestep.time <= numSteps) {
-
-  //For each timestep
-  while( (stepNum<=numSteps) && (loopFlag1) && (!inFile.eof()))
-  {
-    //Read the header
-    inFile >> line >> timestep;
-    inFile.ignore();
-    lineNum++;
-
-    cout << endl;
-    cout << "Step # " << stepNum << endl;
-    cout << "Timestep " << timestep << " @ line " << lineNum-1 << endl;
-
-    loopFlag2=true;
-
+  while(frameReader.frame.frameNum <= simData.numFrames) {
+    frameReader.readFrame();
     atomNum=0;
-
-    //Name frame
-    if(!frameNamed)
-    {
-      frameStep=timestep;
-      frameNamed=true;
-    }
-
-    //Read atom data
-    while(loopFlag2)
-    {
-      getline(inFile,line);
-      lineNum++;
-      if(line=="") loopFlag2=false;
-      else
-      {
-        //Save data
-        strToData(coords,velocities,dipole,line);
-        x[atomNum]=coords[0];
-        y[atomNum]=coords[1];
-        z[atomNum]=coords[2];
-
-        vx[atomNum]=velocities[0];
-        vy[atomNum]=velocities[1];
-        vz[atomNum]=velocities[2];
-
-        cosT[atomNum]=dipole;
-        atomNum++;
-      }
-    }
 
     //Save first timestep
     if( (!initWritten) && (stepNum==1) )

@@ -4,32 +4,6 @@
 // Readers //
 /////////////
 
-void InputStream::verifyStream() {
-  //Check files
-  if (stream.good())
-    cout << "Successfully opened " << filename << endl;
-  else
-    {
-      cout << "Failed to open " << filename << endl;
-      exit(1);
-    }
-}
-
-InputStream::~InputStream() {
-  stream.close();
-}
-
-InputStream::open(char* _filename) {
-  filename = _filename;
-  stream.open(filename);
-  verifyStream();
-}
-
-InputStream::InputStream(char* _filename) {
-  open(filename);
-}
-
-
 void HeaderReader::setContext(InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* lineNumPtr) {
   inputStreamPtr = _inputStreamPtr;
   timestepPtr = _timestepPtr;
@@ -142,7 +116,7 @@ void TimestepReader::setContext(InputStream* _inputStreamPtr, AtomArray* atomArr
   lineReader.setContext(inputStreamPtr, &atomNum, &lineNum);
   headerReader.setContext(inputStreamPtr, timestepPtr, &lineNum);
   timestepPtr = _timestepPtr;
-  simDataPTr = _simDataPtr;
+  simDataPtr = _simDataPtr;
 }
 
 void TimestepReader::resetAtomCounter() {
@@ -152,37 +126,48 @@ void TimestepReader::resetAtomCounter() {
 void TimestepReader::readTimestep() {
   resetAtomCounter();
 
-  cout << "Step # " << timestepPtr->time << endl;
   headerReader.readHeader();
+  cout << "Step # " << timestepPtr->time << endl;
+
   for(int i=0; i<atomArrayPtr->numAtoms; i++) {
     lineReader.readLine();
     atomArrayPtr->setAtom(i, lineReader.atom);
   }
+
+  timestepPtr->stepNum++;
 }
 
 void FrameReader::openStream(CommandLineParser commandLineParser) {
   inputStream.open(commandLineParser.inLoc);
 }
 
-void FrameReader::setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr) {
+void FrameReader::setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
   atomArrayPtr = _atomArrayPtr;
-  timestepPtr = _timestepPtr;
   simDataPtr = _simDataPtr;
-  commandLineParser = _commandLineParser
 
   stepsPerFrame = simDataPtr->stepsPerFrame;
-  openStream(commandLineParser.inLoc);
+  openStream(commandLineParser);
 
   timestepReader.setContext(&inputStream, atomArrayPtr, timestepPtr, simDataPtr);
 }
 
-FrameReader::FrameReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr) {
-  openStream(commandLineParser);
-  setContext(_inputStreamPtr, _atomArrayPtr, _timestepPtr);
+FrameReader::FrameReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+  setContext(commandLineParser, _atomArrayPtr, _simDataPtr);
+}
+
+void FrameReader::updateFrame() {
+  frame.frameStep = timestepPtr->stepNum;
+  frame.time = timestepPtr->time;
 }
 
 void FrameReader::readFrame() {
-  for(int n; n<stepsPerFrame; n++) {
+  // Read first timestep separately to set frame variables
+  // to those of the first timestep in the frame.
+  timestepReader.readTimestep();
+  updateFrame();
+
+  // Then read the rest
+  for(int n; n<stepsPerFrame-1; n++) {
     timestepReader.readTimestep();
   }
 }

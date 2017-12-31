@@ -1,5 +1,32 @@
 #include "Utils.h"
 
+void InputStream::verifyStream() {
+  //Check files
+  if (stream.good())
+    cout << "Successfully opened " << filename << endl;
+  else
+    {
+      cout << "Failed to open " << filename << endl;
+      exit(1);
+    }
+}
+
+InputStream::~InputStream() {
+  stream.close();
+}
+
+void InputStream::open(string _filename) {
+  filename = _filename;
+  stream.open(filename);
+  verifyStream();
+}
+
+InputStream::InputStream() {};
+InputStream::InputStream(string _filename) {
+  open(filename);
+}
+
+
 //Split a string into a string vector of words
 vector<string> strSplit(string str)
 {

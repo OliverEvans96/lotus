@@ -2,22 +2,11 @@
 #define READERS_H
 
 #include "Utils.h"
+#include "MDBase.h"
 #include "Atoms.h"
 #include "Time.h"
 
 using namespace std;
-
-struct InputStream {
-  InputStream(char* _filename);
-  ~InputStream();
-  void open();
-  void verifyStream();
-
- public:
-  char* filename;
-  ifstream stream;
-};
-
 
 /////////////
 // Readers //
@@ -47,7 +36,7 @@ class LineReader {
 
  public:
   Atom atom;
-  void setContext(InputStream* _inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr);
+  void setContext(InputStream *_inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr);
   void readLine();
 };
 
@@ -72,7 +61,6 @@ class FrameReader {
   void setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
 
 
-  CommandLineParser commandLineParser;
   TimestepReader timestepReader;
   AtomArray* atomArrayPtr;
   Timestep* timestepPtr;
@@ -82,7 +70,8 @@ class FrameReader {
 
  public:
   int stepsPerFrame;
-  void openStream();
+  void openStream(CommandLineParser _commandLineParser);
+  void updateFrame();
   void readFrame();
 };
 

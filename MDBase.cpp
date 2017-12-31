@@ -57,7 +57,7 @@ int SimData::countSteps(ifstream &inFile)
 }
 
 SimData::SimData(CommandLineParser commandLineParser) {
-  inputStream.open(commandLineParser.inPath);
+  inputStream.open(commandLineParser.inLoc);
   numAtoms = countAtoms(inputStream.stream);
   numSteps = countSteps(inputStream.stream);
 }
@@ -65,4 +65,8 @@ SimData::SimData(CommandLineParser commandLineParser) {
 void SimData::setStepsPerFrame(int _stepsPerFrame) {
   stepsPerFrame = _stepsPerFrame;
   lastFrame.setSteps(numSteps, stepsPerFrame);
+
+  //Number of frames (collections of timesteps)
+  //If not divisible, then the last frame will have more than the rest
+  numFrames = (int) floor(numSteps/stepsPerFrame);
 }

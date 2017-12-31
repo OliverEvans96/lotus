@@ -46,7 +46,6 @@ struct Timestep
 {
   int time; // 1 fs
   int stepNum; // 2 ps (index)
-  int fs_per_step;
   StepVariables stepVariables;
 
   void incrementTimestep();
@@ -54,10 +53,9 @@ struct Timestep
 
 struct Frame
 {
-  int time; // 1 fs
+  int time; // 1 fs (time of 1st timestep in frame)
   int frameNum; // 10 ps
-  int frameStep; // stepNum of first timestep in frame
-  bool frameNamed; // Whether 
+  int frameStep; // stepNum (index of first timestep in frame)
 };
 
 // Deal separately with last frame if numSteps is not

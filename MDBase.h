@@ -2,12 +2,10 @@
 #define MDBASE_H
 
 #include "Utils.h"
-#include "Readers.h"
 #include "Parameters.h"
 #include "Time.h"
 
 using namespace std;
-
 
 //Conversion factor - number density to water mass density
 const double convFact=18/.60221409;
@@ -18,6 +16,7 @@ const double convFact=18/.60221409;
 struct SimData {
   int numAtoms;
   int numSteps;
+  int numFrames;
   int stepsPerFrame;
   InputStream inputStream;
   LastFrame lastFrame;

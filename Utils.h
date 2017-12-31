@@ -22,6 +22,19 @@ using namespace std;
 
 const double PI = 3.141592653589793;
 
+struct InputStream {
+  InputStream();
+  InputStream(string _filename);
+  ~InputStream();
+  void open(string _filename);
+  void verifyStream();
+
+public:
+  string filename;
+  ifstream stream;
+};
+
+
 //Split a string into a string vector of words
 vector<string> strSplit(string str);
 
