@@ -7,55 +7,128 @@
 //Options::Options(char* optionsFile) {
 //}
 
-void Options::readOptions(string optionsFile) {
-  // Format:
-  // optionName bool
+// Read a YAML file into a map of string vectors.
+// Does not support nested YAML mappings.
+StrVecMap Options::parseYaml(const char* filename) {
+    FILE *config_file;
+    yaml_parser_t parser;
+    yaml_document_t document;
+    yaml_node_t *node, *node1, *key, *value;
+    yaml_node_item_t *item;
+    yaml_node_pair_t *pair;
+    string str;
+    vector<string> vec;
+    StrVecMap yamlMap;
 
-  ifstream optionsStream(optionsFile);
-  string firstLine, option;
-  bool flag;
+    config_file = fopen(filename, "rb");
 
-  // Ignore first line
-  getline(optionsStream, firstLine);
+    yaml_parser_initialize(&parser);
+    yaml_parser_set_input_file(&parser, config_file);
+    yaml_parser_load(&parser, &document);
 
-  while(!optionsStream.eof()) {
-    optionsStream >> option >> flag;
-    optionsStream.ignore(256, '\n');
+    node = yaml_document_get_root_node(&document);
+    assert(node->type == YAMLMAPPING_NODE);
 
-    if(option=="skipToEnd") {
-      skipToEnd = flag;
+    // Mapping
+    for(pair=node->data.mapping.pairs.start; pair<node->data.mapping.pairs.top; pair++) {
+        key = yaml_document_get_node(&document, pair->key);
+        value = yaml_document_get_node(&document, pair->value);
+        // Scalar
+        if(value->type == YAML_SCALAR_NODE) {
+            vec.push_back((char*)value->data.scalar.value);
+        }
+        // Sequence
+        else if(value->type == YAML_SEQUENCE_NODE) {
+            for(item=value->data.sequence.items.start;
+                    item<value->data.sequence.items.top; item++) {
+                node1 = yaml_document_get_node(&document, *item);
+                vec.push_back((char*)node1->data.scalar.value);
+            }
+        }
+        yamlMap[(char*)key->data.scalar.value] = vec;
+        vec.clear();
     }
-    else if(option=="trackMonoAtoms") {
-      trackMonoAtoms = flag;
+
+    yaml_document_delete(&document);
+    yaml_parser_delete(&parser);
+    fclose(config_file);
+
+    return yamlMap;
+}
+
+void Options::printYamlMap(StrVecMap yamlMap) {
+    string key, val;
+    vector<string> vec;
+    StrVecMap::iterator map_it;
+    vector<string>::iterator vec_it;
+
+    for(map_it=yamlMap.begin(); map_it != yamlMap.end(); map_it++) {
+        key = map_it -> first;
+        vec = map_it -> second;
+        printf("%s: [", key.data());
+        for(vec_it=vec.begin(); vec_it != vec.end(); vec_it++) {
+           val = *vec_it;
+           printf("\"%s\", ", val.data());
+        }
+        printf("]\n");
     }
-    else if(option=="saveImages") {
-      saveImages = flag;
-    }
-    else if(option=="plotHist") {
-      plotHist = flag;
-    }
-    else if(option=="plotDipole") {
-      plotDipole = flag;
-    }
-    else if(option=="plotVr") {
-      plotVr = flag;
-    }
-    else if(option=="plotDensity") {
-      plotDensity = flag;
-    }
-    else if(option=="plotAllTogether") {
-      plotAllTogether = flag;
-    }
-    else if(option=="debugOutput") {
-      debugOutput = flag;
-    }
-    else if(option=="onlyFindInterface") {
-      onlyFindInterface = flag;
-    }
+}
+
+// Convert strings to appropriate types
+void Options::fromString(string optionString, bool &option) {
+  stringstream ss;
+  ss.str(optionString);
+  ss >> boolalpha >> option;
+}
+void Options::fromString(string optionString, int &option) {
+  option = atoi(optionString.data());
+}
+void Options::fromString(string optionString, double &option) {
+  option = atof(optionString.data());
+}
+void Options::fromString(string optionString, string &option) {
+  option = optionString.data();
+}
+
+// Parse scalar option
+template <typename T>
+void Options::parseOption(string optionName, T &option) {
+  string optionString;
+  optionString = yamlMap[optionName][0];
+}
+
+// Parse vector option
+template <typename T>
+void Options::parseOption(string optionName, vector<T> &optionVec) {
+  vector<string> strVec;
+  vector<string>::iterator it;
+  T option;
+
+  strVec = yamlMap[optionName];
+  for(it=strVec.begin(); it<strVec.end(); it++) {
+    fromString(*it, option);
+    optionVec.push_back(option);
   }
 }
 
-void Options::print() {
+void Options::readConfig(string configFile) {
+  yamlMap = parseYaml(configFile);
+
+  parseOption("skipToEnd", skipToEnd);
+  parseOption("trackMonoAtoms", trackMonoAtoms);
+  parseOption("saveImages", saveImages);
+  parseOption("plotHist", plotHist);
+  parseOption("plotDipole", plotDipole);
+  parseOption("plotVr", plotVr);
+  parseOption("plotDensity", plotDensity);
+  parseOption("plotAllTogether", plotAllTogether);
+  parseOption("debugOutput", debugOutput);
+  parseOption("onlyFineInterface", onlyFineInterface);
+  parseOption("liquidTypes", liquidTypes);
+  parseOption("solidTypes", solidTypes);
+}
+
+void Options::printOptions() {
   cout << "Options:" << endl;
   cout << "skipToEnd = " << skipToEnd << endl;
   cout << "trackMonoAtoms = " << trackMonoAtoms << endl;

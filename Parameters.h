@@ -2,8 +2,11 @@
 #define PARAMETERS_H
 
 #include "Utils.h"
+#include <yaml.h>
 
 using namespace std;
+
+typedef map<string, vector<string> > StrVecMap;
 
 ///////////////////////////
 // High level parameters //
@@ -11,6 +14,8 @@ using namespace std;
 
 struct Options
 {
+  StrVecMap yamlMap;
+
   bool skipToEnd; // Jump to last frame
   bool trackMonoAtoms; // Follow a few atoms that end up in the monolayer
   bool saveImages; // Produce images or not
@@ -21,6 +26,8 @@ struct Options
   bool plotAllTogether;
   bool debugOutput; // Enable debuguging print statments
   bool onlyFindInterface; // Locate monolayer in first frame and exit
+
+  vector<int> liquidTypes, solidTypes;
 
   void readOptions(string optionsFile);
   void print();
