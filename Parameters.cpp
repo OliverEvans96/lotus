@@ -56,6 +56,13 @@ StrVecMap Options::parseYaml(const char* filename) {
     return yamlMap;
 }
 
+// Determine whether key is present in map
+bool Options::mapHasKey(StrVecMap yamlMap, string key) {
+  map<string, vector<string> >::iterator it;
+  it = yamlMap.find(key);
+  return (it != yamlMap.end())
+}
+
 void Options::printYamlMap(StrVecMap yamlMap) {
     string key, val;
     vector<string> vec;
@@ -90,16 +97,17 @@ void Options::fromString(string optionString, string &option) {
   option = optionString.data();
 }
 
-// Parse scalar option
+// Parse scalar option, assuming key is present
 template <typename T>
-void Options::parseOption(string optionName, T &option) {
+void Options::unsafeParseOption(string optionName, T &option) {
   string optionString;
   optionString = yamlMap[optionName][0];
+  fromString(optionName, option);
 }
 
-// Parse vector option
+// Parse vector option, assuming key is present
 template <typename T>
-void Options::parseOption(string optionName, vector<T> &optionVec) {
+void Options::unsafeParseOption(string optionName, vector<T> &optionVec) {
   vector<string> strVec;
   vector<string>::iterator it;
   T option;
@@ -111,21 +119,48 @@ void Options::parseOption(string optionName, vector<T> &optionVec) {
   }
 }
 
+// Safely parse option, falling back on default value
+template <typename T>
+void Options::parseDefaultOption(string optionName, T &option, T &defaultValue) {
+  if(mapHasKey(yamlMap, optionName)) {
+    unsafeParseOption(optionName, option);
+  }
+  else {
+    option = defaultValue;
+  }
+}
+// Safely parse option, throwing exception if unspecified.
+template <typename T>
+void Options::parseRequiredOption(string optionName, T &option) {
+  stringstream err;
+
+  if(mapHasKey(yamlMap, optionName)) {
+    unsafeParseOption(optionName, option);
+  }
+  else {
+    err << "'" << optionName << "' is required in YAML config (" << optionsFile << ").";
+    throw ss.str().data();
+  }
+}
+
 void Options::readConfig(string configFile) {
   yamlMap = parseYaml(configFile);
 
-  parseOption("skipToEnd", skipToEnd);
-  parseOption("trackMonoAtoms", trackMonoAtoms);
-  parseOption("saveImages", saveImages);
-  parseOption("plotHist", plotHist);
-  parseOption("plotDipole", plotDipole);
-  parseOption("plotVr", plotVr);
-  parseOption("plotDensity", plotDensity);
-  parseOption("plotAllTogether", plotAllTogether);
-  parseOption("debugOutput", debugOutput);
-  parseOption("onlyFineInterface", onlyFineInterface);
-  parseOption("liquidTypes", liquidTypes);
-  parseOption("solidTypes", solidTypes);
+  parseRequiredOption("liquidTypes", liquidTypes);
+  parseRequiredOption("solidTypes", solidTypes);
+  parseRequiredOption("inLoc", inLoc);
+  parseRequiredOption("outLoc", outLoc);
+
+  parseDefaultOption("skipToEnd", skipToEnd, false);
+  parseDefaultOption("trackMonoAtoms", trackMonoAtoms, false);
+  parseDefaultOption("saveImages", saveImages, false);
+  parseDefaultOption("plotHist", plotHist, false);
+  parseDefaultOption("plotDipole", plotDipole, false);
+  parseDefaultOption("plotVr", plotVr, false);
+  parseDefaultOption("plotDensity", plotDensity, false);
+  parseDefaultOption("plotAllTogether", plotAllTogether, false);
+  parseDefaultOption("debugOutput", debugOutput, false);
+  parseDefaultOption("onlyFindInterface", onlyFindInterface, false);
 }
 
 void Options::printOptions() {
@@ -158,15 +193,11 @@ CommandLineParser::CommandLineParser(int argc, char* argv[]) {
 }
 
 void CommandLineParser::parseArgs(int argc, char* argv[]) {
-  inLoc = argv[1];
-  outLoc = argv[2];
-  optionsFile = argv[3];
+  optionsFile = argv[1];
 }
 
 void CommandLineParser::print() {
   cout << "Command Line Arguments: " << endl;
-  cout << "inLoc = " << inLoc << endl;
-  cout << "outLoc = " << outLoc << endl;
   cout << "optionsFile = " << optionsFile << endl;
   options.print();
 }

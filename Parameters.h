@@ -29,6 +29,18 @@ struct Options
 
   vector<int> liquidTypes, solidTypes;
 
+  StrVecMap parseYaml(const char* filename);
+  bool mapHasKey(StrVecMap yamlMap, string key);
+  void printYamlMap(StrVecMap yamlMap);
+  void fromString(string optionString, bool &option);
+
+  template <typename T>
+  void unsafeParseOption(string optionName, T &option);
+  template <typename T>
+  void parseDefaultOption(string optionName, T &option, T &defaultValue);
+  template <typename T>
+  void parseRequiredOption(string optionName, T &option);
+  void readConfig(string configFile);
   void readOptions(string optionsFile);
   void print();
 };
