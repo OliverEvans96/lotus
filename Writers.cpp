@@ -5,17 +5,36 @@
 // Writers //
 /////////////
 
-FrameWriter::openStreams() {
-  //Output file streams
-  FILE* avgStepData = fopen("avgStepData.txt","w");
-  fprintf(avgStepData,"%8.8s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s\n","#time","bulkEdge","monoEdge","contactAngle","dropletHeight","avgRadius","avgDipole","MSDx","MSDy","MSDz","MSDavg","frameFlux","dMe_dt","nMono","chi2s");
-  fflush(avgStepData);
-
-  FILE* instStepData = fopen("instStepData.txt","w");
-  fprintf(instStepData,"%8.8s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s %15.15s \n","#time","avgRadius","avgDipole","MSDx","MSDy","MSDz","MSDavg","stepFlux");
-  fflush(instStepData);
-}
-
 FrameWriter::FrameWriter() {
-  openStreams();
 }
+
+FrameWriter::setOutputDir(string path) {
+  outputDir = path;
+}
+
+FrameWriter::openStream(string streamName, fmt="%15.6f") {
+  stringstream pathStream;
+  FILE* file;
+
+  pathStream << outputDir << "/" << streamName << ".txt";
+  file = fopen(pathStream.str(), "w");
+  streams[streamName] = file;
+}
+
+FrameWriter::closeStream(string streamName) {
+  close(streams[streamName]);
+}
+
+template <typename T>
+FrameWriter::write(string streamName, T data) {
+  fprintf(streams[streamName], fmts[streamName], data);
+}
+
+template <typename T>
+FrameWriter::write(string streamName, vector<T> data, string fmt) {
+  typename vector<T>::iterator it;
+  for(it=data.begin(); it<data.end(); it++) {
+    fprintf(streams[streamName], fmts[streamName], *it);
+  }
+}
+

@@ -28,11 +28,32 @@ struct SimData {
   void setStepsPerFrame(int stepsPerFrame);
 };
 
+
+struct Grid {
+  double zlo, zhi, rhi, vhi;
+  double dz, dv;
+  int nz, nv, nr;
+
+  double* rVals;
+
+  double zhi_preround, vhi_preround, rhi_preround;
+
+  Grid();
+  ~Grid();
+
+  void setBounds(double _zlo, double _zhi, double _rhi);
+  void setSpacing(double _dz, double _dv);
+
+  void calculateVolumeLimits();
+  void allocateBins();
+  void calculateBins();
+  void init();
+  void deallocateBins();
+};
+
 //Count the number of water atoms in the first timestep
 int countAtoms(ifstream &inFile);
 
-
-//void findBoundaryPoints(TH2D* hist,TGraph2D *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,int frameStep);
 
 //double fitCircle(TGraph2D* circlePointsGraph,CircleFit circle,double xMax,int timestep);
 

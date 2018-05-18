@@ -4,11 +4,10 @@
 // Droplet Components //
 ////////////////////////
 
-Monolayer::Monolayer()
-
+Monolayer::Monolayer() {};
 
 //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius to the vector rScaledJoin
-Monolayer::monoFlux(vector<double> r,vector<double> z,double* monoLimits,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave,int &nMono)
+int Monolayer::monoFlux(vector<double> r,vector<double> z,double* monoLimits,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave,int &nMono)
 {
     //Number of atoms in the simulation
     int numAtoms=z.size();
@@ -89,7 +88,7 @@ Monolayer::monoFlux(vector<double> r,vector<double> z,double* monoLimits,double 
 }
 
 //Find z limits on monolayer
-void findMonoLimits(TH1D *hWaterDens,double *monoLimits)
+void Monolayer::findMonoLimits(TH1D *hWaterDens,double *monoLimits)
 {
     int n = hWaterDens->GetNbinsX();
     bool foundPeak=false;
@@ -131,10 +130,10 @@ void findMonoLimits(TH1D *hWaterDens,double *monoLimits)
 
 }
 
-CircularBulk::CircularBulk()
+CircularBulk::CircularBulk() {};
 
 //Guess boundary of water molecule by counting for a single row
-CircularBulk::guessRowBoundary(TH2D* hist,int j)
+double CircularBulk::guessRowBoundary(TH2D* hist,int j)
 {
   //Guess - static in case none is found for a particular row - use last guess
   static double guess=0;
@@ -157,7 +156,7 @@ CircularBulk::guessRowBoundary(TH2D* hist,int j)
   return guess;
 }
 //Find the edge of droplet by tanh fitting for each row given TH2D
-CircularBulk::findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,double &bulkEdge,int frameStep,TLegend* tanhLegend,TLine** tanhLines,TText **tanhTexts,TPaveText *tanhTextBox)
+void CircularBulk::findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,double &bulkEdge,int frameStep,TLegend* tanhLegend,TLine** tanhLines,TText **tanhTexts,TPaveText *tanhTextBox)
 {
     cout << endl;
     cout << "FINDBOUNDARYPOINTS" << endl;
@@ -315,7 +314,7 @@ CircularBulk::findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR
 }
 
 //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points and find the intersection of the circle with the substrate interface. The result is the bulk-monolayer interface
-CircularBulk::fitCircle(TGraph* g,CircleFit &circle,double xMax,int timestep)
+double CircularBulk::fitCircle(TGraph* g,CircleFit &circle,double xMax,int timestep)
 {
     //g->Draw("SAME");
     //Fit circle and intersect it with a constant c (Interface)
@@ -407,7 +406,7 @@ CircularBulk::fitCircle(TGraph* g,CircleFit &circle,double xMax,int timestep)
 }
 
 //Guess boundary location and width of water molecule for a single row or column
-CircularBulk::guessTanhFit(TH1D* hist,double* fitBounds,double &ld,double &width,double &boundary,double &xlo,double &xhi)
+void CircularBulk::guessTanhFit(TH1D* hist,double* fitBounds,double &ld,double &width,double &boundary,double &xlo,double &xhi)
 {
     //f(x)=ld/2*(1-tanh(4*(x-x0)/w))
     //x=xlo=boundary+width/2 => yc=ld/2*(1-tanh(2))
@@ -475,7 +474,7 @@ CircularBulk::guessTanhFit(TH1D* hist,double* fitBounds,double &ld,double &width
 //Fit TH1D to tanh function, solve for x where f(x)=0.5
 //Only take bins after and including startBin
 //fitType should be "row", "col", or "mono"
-CircularBulk::solveTanhFit(TH1D* hist,TF1* tanhFit,double* fitBounds,int startBin,int frameStep,double bulkEdge,char *fitType,double pos,TLegend* tanhLegend,TLine** tanhLines,TText **tanhTexts,TPaveText *tanhTextBox)
+double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, int startBin, int frameStep, double bulkEdge, string fitType, double pos, TLegend* tanhLegend, TLine** tanhLines, TText **tanhTexts, TPaveText *tanhTextBox)
 {
     double val;
     int n=hist->GetNbinsX();
@@ -494,7 +493,7 @@ CircularBulk::solveTanhFit(TH1D* hist,TF1* tanhFit,double* fitBounds,int startBi
 
     //Row or col?
     static int fitNum=0;
-    static char *prevFitType=fitType;
+    static string prevFitType=fitType;
     //Reset counter when changing types
     if(fitType!=prevFitType)
         fitNum=0;
@@ -702,13 +701,11 @@ CircularBulk::solveTanhFit(TH1D* hist,TF1* tanhFit,double* fitBounds,int startBi
     return val;
 }
 
+SphericalBulk::SphericalBulk() {};
 
+CylindricalBulk::CylindricalBulk() {};
 
-SphericalBulk::SphericalBulk()
-CylindricalBulk::CylindricalBulk()
 
 ////////////////////
 // Misc. Analysis //
 ////////////////////
-
-monolayerTracker::monolayerTracker()

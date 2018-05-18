@@ -12,6 +12,9 @@ using namespace std;
 
 struct FrameWriter
 {
+  string outputDir;
+  map<string, FILE*> streams;
+  map<string, string> fmts;
   FILE* avgStepData, instStepData;
   void openStreams();
 };

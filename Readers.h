@@ -1,6 +1,8 @@
 #ifndef READERS_H
 #define READERS_H
 
+#include <cstdio>
+
 #include "Utils.h"
 #include "MDBase.h"
 #include "Atoms.h"
@@ -47,16 +49,18 @@ class TimestepReader {
   AtomArray* atomArrayPtr;
   InputStream* inputStreamPtr;
   SimData* simDataPtr;
+
+ public:
   int atomNum;
   int lineNum;
 
- public:
   void setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr);
   void resetAtomCounter();
   void readTimestep();
 };
 
 class FrameReader {
+ public:
   FrameReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
   void setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
 
@@ -68,11 +72,31 @@ class FrameReader {
   InputStream inputStream;
   Frame frame;
 
- public:
   int stepsPerFrame;
   void openStream(CommandLineParser _commandLineParser);
   void updateFrame();
   void readFrame();
+};
+
+class InitialTimestepReader {
+ public:
+  InitialTimestepReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
+  void setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
+  string initLoc;
+  TimestepReader timestepReader;
+  AtomArray* atomArrayPtr;
+  Timestep* timestepPtr;
+  InputStream inputStream;
+  Timestep emptyTimestep;
+  SimData* simDataPtr;
+  Atom atom;
+
+  bool fileExists();
+  void openStream(CommandLineParser _commandLineParser);
+  void readFromFile();
+  void readFromStream();
+  void writeToFile();
+  void readInitialTimestep();
 };
 
 #endif

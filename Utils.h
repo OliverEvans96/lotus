@@ -5,6 +5,9 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <cstdio>
+#include <map>
+#include <stringstream>
 
 #include "TCanvas.h"
 #include "TH2D.h"
@@ -30,8 +33,10 @@ struct InputStream {
   void verifyStream();
 
 public:
+  int lineNum;
   string filename;
   ifstream stream;
+  void skipLines(int numLines);
 };
 
 
@@ -46,6 +51,7 @@ double max(vector<double> v);
 
 //Find the mean of a double vector
 double mean(vector<double> v);
+double mean(double *v, int n);
 
 //Square
 double square(double x);

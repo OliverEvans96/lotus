@@ -172,3 +172,67 @@ void FrameReader::readFrame() {
   }
 }
 
+void InitialTimestepReader::openStream(CommandLineParser commandLineParser) {
+  inputStream.open(initLoc);
+}
+
+void InitialTimestepReader::setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+  atomArrayPtr = _atomArrayPtr;
+  simDataPtr = _simDataPtr;
+
+  initLoc = "../init.txt";
+
+  openStream(commandLineParser);
+
+  timestepReader.setContext(&inputStream, atomArrayPtr, &emptyTimestep, simDataPtr);
+}
+
+InitialTimestepReader::InitialTimestepReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+  setContext(commandLineParser, _atomArrayPtr, _simDataPtr);
+}
+
+void InitialTimestepReader::readFromFile() {
+  for(int i=0; i<simDataPtr->numAtoms; i++) {
+    inputStream.stream >> atom.x >> atom.y >> atom.z;
+    atomArrayPtr->setAtom(i, atom);
+  }
+}
+
+void InitialTimestepReader::readFromStream() {
+  // Read first timestep from input file
+  // (same file other timesteps will be read from)
+  // This will be called if the initial timestep file
+  // doesn't exist.
+  timestepReader.readTimestep();
+}
+
+bool InitialTimestepReader::fileExists() {
+  // Return true if file exists, false otherwise.
+  ifstream testStream(initLoc);
+  return testStream.is_open();
+}
+
+void InitialTimestepReader::writeToFile() {
+  FILE* outFile = fopen(initLoc.data(), "w");
+
+  for(int i=0; i<simDataPtr->numAtoms; i++) {
+    atomArrayPtr->getAtom(i, atom);
+    fprintf(outFile, "%10.5f %10.5f %10.5f", atom.x, atom.y, atom.z);
+    fflush(outFile);
+  }
+}
+
+void InitialTimestepReader::readInitialTimestep() {
+  // Read first timestep if the file `initLoc` doesn't exist,
+  // then write to that file.
+  // If it does exist, read from the file
+  if(fileExists()) {
+    readFromFile();
+  }
+
+  else {
+    readFromStream();
+    writeToFile();
+  }
+}
+

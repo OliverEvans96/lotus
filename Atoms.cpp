@@ -57,4 +57,19 @@ void AtomArray::setAtom(int i, Atom atom) {
   cosTheta[i] = atom.cosTheta;
 }
 
+void AtomArray::getAtom(int i, Atom atom) {
+  atom.x = x[i];
+  atom.y = y[i];
+  atom.z = z[i];
+  atom.r = r[i];
+  atom.p = p[i];
+
+  atom.vx = vx[i];
+  atom.vy = vy[i];
+  atom.vz = vz[i];
+  atom.vr = vr[i];
+  atom.vp = vp[i];
+
+  atom.cosTheta = cosTheta[i];
+}
 

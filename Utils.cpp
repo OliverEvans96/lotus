@@ -16,6 +16,7 @@ InputStream::~InputStream() {
 }
 
 void InputStream::open(string _filename) {
+  lineNum = 0;
   filename = _filename;
   stream.open(filename);
   verifyStream();
@@ -23,9 +24,19 @@ void InputStream::open(string _filename) {
 
 InputStream::InputStream() {};
 InputStream::InputStream(string _filename) {
-  open(filename);
+  open(_filename);
 }
 
+void InputStream::skipLines(int numLines) {
+  // Ignore lines from the file (at most 256 characters)
+  int maxChars = 256;
+  for(int i=0; i<numLines; i++) {
+    stream.ignore(maxChars, '\n');
+  }
+
+  // Increment line number counter accordingly
+  lineNum += numLines;
+}
 
 //Split a string into a string vector of words
 vector<string> strSplit(string str)
@@ -111,6 +122,14 @@ double mean(vector<double> v)
   m/=v.size();
 
   return m;
+}
+
+double mean(double *v, int n) {
+  int m = 0;
+  for(int i=0; i<n; i++) {
+    m += v[i];
+  }
+  return m/n;
 }
 
 //Square
