@@ -6,10 +6,9 @@
 #include "CircleFitClass.h"
 
 //Constructors
-CircleFit::CircleFit(TH2D *givenHist)
+CircleFit::CircleFit()
 {
     intersected=false;
-    hist=givenHist;
     dataOut.open("CircleData.txt");
     dataOut << "x | y " << endl;
 }
@@ -63,6 +62,11 @@ CircleFit::~CircleFit()
     dataOut.close();
     delete cCircDens;
 }
+
+CircleFit::setHist(TH2D *givenHist) {
+  hist = givenHist;
+}
+
 
 //Give name & points - same as constructor
 void CircleFit::Define(char* givenName,vector<double> xCoords,vector<double> yCoords)

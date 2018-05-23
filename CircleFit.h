@@ -22,11 +22,11 @@ using namespace std;
 class CircleFit
 {
 public:
-	CircleFit(TH2D *givenHist);
+  CircleFit();
 	CircleFit(char* filename,TH2D *givenHist);
 	CircleFit(char* name,vector<double> xCoords,vector<double> yCoords);
 	~CircleFit();
-	
+
 	void Define(char* name,vector<double> xCoords,vector<double> yCoords);
 	double GetChi2s();
 	void GetSize();

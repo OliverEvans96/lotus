@@ -130,7 +130,8 @@ void Monolayer::findMonoLimits(TH1D *hWaterDens,double *monoLimits)
 
 }
 
-CircularBulk::CircularBulk() {};
+CircularBulk::CircularBulk() {
+}
 
 //Guess boundary of water molecule by counting for a single row
 double CircularBulk::guessRowBoundary(TH2D* hist,int j)

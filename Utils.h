@@ -7,7 +7,7 @@
 #include <sstream>
 #include <cstdio>
 #include <map>
-#include <stringstream>
+#include <sstream>
 
 #include "TCanvas.h"
 #include "TH2D.h"

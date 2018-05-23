@@ -30,7 +30,7 @@ struct Monolayer
 
 struct CircularBulk
 {
-  CircularBulk(TH2D* hWater);
+  CircularBulk();
 
   double height;
   double radius;
