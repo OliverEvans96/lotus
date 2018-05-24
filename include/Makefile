@@ -12,39 +12,34 @@
 # Flags #
 #########
 
-# Project directories
-BASE=.
-ROOT=$(BASE)/root
-TEST=$(BASE)/test
-BIN=$(BASE)/bin
-LIB=$(BASE)/lib
-
-YAML_PREFIX=$(BASE)
-YAML_INC=$(YAML_PREFIX)/include
-YAML_INC=$(YAML_PREFIX)/lib
 
 # C++ Compiler
-CC=g++
+CXX=g++
 # Root flags
-RF=`root-config --glibs --cflags` #-lMathMore -lMinuit
+ROOTFLAGS=`root-config --glibs --cflags` #-lMathMore -lMinuit
+CFLAGS=$(ROOTFLAGS) -lyaml
 
-CFLAGS=$(RF) -lyaml
+# Project directories
+BASE=..
+INC=.
+SRC=$(BASE)/src/cpp
+BIN=$(BASE)/bin
+LIB=$(BASE)/lib
+YAML=$(BASE)/libyaml
+TEST=$(BASE)/test
 
-CLARGS=some/path/inFile.txt some/path/outFile.txt $(ROOT)/droplet_analysis_options.txt
-
-###############
-# EXECUTABLES #
-###############
-
-$(BIN)/droplet_analysis.out: $(LIB)/droplet_analysis.o $(LIB)/Utils.o $(LIB)/MDBase.o $(LIB)/Droplet.o $(LIB)/Parameters.o $(LIB)/Atoms.o $(LIB)/Readers.o
-	$(CC) -o $@ $^ $(CFLAGS)
-
+# All C++ source, header, and object files
+cpp_src=$(wildcard $(SRC)/*.cpp)
+cpp_hdr=$(cpp_src:$(SRC)/%.cpp=$(INC)/%.h)
+cpp_obj=$(cpp_src:$(SRC)/%.cpp=$(INC)/%.o)
 
 #############
 # UTILITIES #
 #############
 
-all: $(LIB)/Utils.o $(LIB)/MDBase.o $(LIB)/Parameters.o $(LIB)/Atoms.o $(LIB)/Readers.o $(LIB)/Droplet.o
+.PHONY: all clean run echo
+
+all: $(BIN)/droplet_analysis.out
 
 clean:
 	rm $(LIB)/*.o -f
@@ -53,51 +48,55 @@ clean:
 run: $(BIN)/droplet_analysis.out
 	$(BIN)/droplet_analysis.out
 
+echo:
+	echo $(cpp_obj)
+
+#############
+# LIBRARIES #
+#############
+
+$(cpp_obj): %.o: $(SRC)/%.cpp $(INC)/%.h
+	$(CXX) -o $@ -c $< $(CFLAGS)
+
+Parameters.o: $(LIB)/libyaml.so
+
+###################
+# Compile libYAML #
+###################
+
+$(LIB)/libyaml.so:
+	cd $(YAML) && ./bootstrap
+	cd $(YAML) && ./configure --prefix=$(PWD)/..
+	cd $(YAML) && make
+	cd $(YAML) && make install
+
+###############
+# EXECUTABLES #
+###############
+
+$(BIN)/droplet_analysis.out: $(cpp_obj)
+	$(CXX) -o $@ $^ $(CFLAGS)
+
 #########
 # TESTS #
 #########
+
+CLARGS=some/path/inFile.txt some/path/outFile.txt $(ROOT)/droplet_analysis_options.txt
 
 test: $(TEST)/test_root.out $(TEST)/test_parameters.out
 	$(TEST)/test_root.out
 	$(TEST)/test_parameters.out $(CLARGS)
 
 $(TEST)/test_inputstream.out: $(ROOT)/test_inputstream.cpp $(ROOT)/Utils.cpp
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CXX) -o $@ $^ $(CFLAGS)
 
 $(TEST)/test_root.out: $(ROOT)/test_root.cpp
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CXX) -o $@ $^ $(CFLAGS)
 
 $(TEST)/test_parameters.out: $(LIB)/test_parameters.o $(LIB)/Parameters.o $(LIB)/Utils.o
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CXX) -o $@ $^ $(CFLAGS)
 
 $(LIB)/test_parameters.o: $(ROOT)/test_parameters.cpp
-	$(CC) -o $@ -c $< $(CFLAGS)
+	$(CXX) -o $@ -c $< $(CFLAGS)
 
 
-#############
-# LIBRARIES #
-#############
-
-$(LIB)/Utils.o: $(ROOT)/Utils.cpp $(ROOT)/Utils.h
-	$(CC) -o $@ -c $< $(CFLAGS)
-
-$(LIB)/MDBase.o: $(ROOT)/MDBase.cpp $(ROOT)/MDBase.h
-	$(CC) -o $@ -c $< $(CFLAGS)
-
-$(LIB)/Parameters.o: $(ROOT)/Parameters.cpp $(ROOT)/Parameters.h
-	$(CC) -o $@ -c $< $(CFLAGS)
-
-$(LIB)/Atoms.o: $(ROOT)/Atoms.cpp $(ROOT)/Atoms.h
-	$(CC) -o $@ -c $< $(CFLAGS)
-
-$(LIB)/Readers.o: $(ROOT)/Readers.cpp $(ROOT)/Readers.h
-	$(CC) -o $@ -c $< $(CFLAGS)
-
-$(LIB)/Time.o: $(ROOT)/Time.cpp $(ROOT)/Time.h
-	$(CC) -o $@ -c $< $(CFLAGS)
-
-$(LIB)/Droplet.o: $(ROOT)/Droplet.cpp $(ROOT)/Droplet.h
-	$(CC) -o $@ -c $< $(CFLAGS)
-
-$(LIB)/droplet_analysis.o: $(ROOT)/droplet_analysis.cpp
-	$(CC) -o $@ -c $< $(CFLAGS)
