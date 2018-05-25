@@ -1,0 +1,10 @@
+inLoc: /some/path
+outLoc: /another/one
+solidTypes:
+    - 1
+    - 2
+    - 3
+liquidTypes:
+    - 4
+    - 5
+

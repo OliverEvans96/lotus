@@ -12,38 +12,45 @@
 # Flags #
 #########
 
-
-# C++ Compiler
-CXX=g++
-# Root flags
-ROOTFLAGS=`root-config --glibs --cflags` #-lMathMore -lMinuit
-CFLAGS=$(ROOTFLAGS) -lyaml
-
 # Project directories
 BASE=..
 INC=.
 SRC=$(BASE)/src/cpp
 BIN=$(BASE)/bin
-LIB=$(BASE)/lib
+LIB=$(PWD)/../lib
 YAML=$(BASE)/libyaml
-TEST=$(BASE)/test
+TEST=$(BASE)/test/src
+
+# C++ Compiler
+CXX=g++
+# Root flags
+ROOTFLAGS=`root-config --glibs --cflags` #-lMathMore -lMinuit
+# Specify rpath for custom shared library path
+CFLAGS=$(ROOTFLAGS) -I$(INC) -L$(LIB) -lyaml -Wl,-rpath=$(LIB)
 
 # All C++ source, header, and object files
 cpp_src=$(wildcard $(SRC)/*.cpp)
 cpp_hdr=$(cpp_src:$(SRC)/%.cpp=$(INC)/%.h)
 cpp_obj=$(cpp_src:$(SRC)/%.cpp=$(INC)/%.o)
 
+# Tests
+test_src=$(wildcard ../src/test/*)
+test_bin=$(test_src:$(TEST)/%.cpp=%)
+
 #############
 # UTILITIES #
 #############
 
-.PHONY: all clean run echo
+.PHONY: all clean cleanall run echo $(test_bin)
 
 all: $(BIN)/droplet_analysis.out
 
 clean:
 	rm $(LIB)/*.o -f
-	rm $(TEST)/*.out -f
+	rm $(INC)/*.o -f
+
+cleanall: clean
+	rm $(LIB)/* -rf
 
 run: $(BIN)/droplet_analysis.out
 	$(BIN)/droplet_analysis.out
@@ -81,11 +88,9 @@ $(BIN)/droplet_analysis.out: $(cpp_obj)
 # TESTS #
 #########
 
-CLARGS=some/path/inFile.txt some/path/outFile.txt $(ROOT)/droplet_analysis_options.txt
-
-test: $(TEST)/test_root.out $(TEST)/test_parameters.out
-	$(TEST)/test_root.out
-	$(TEST)/test_parameters.out $(CLARGS)
+test_parameters: $(TEST)/test_parameters.cpp Parameters.o
+	$(CXX) -o $(BIN)/$@ $^ $(CFLAGS)
+	$(BIN)/$@ $(TEST)/../run/test_config.yaml
 
 $(TEST)/test_inputstream.out: $(ROOT)/test_inputstream.cpp $(ROOT)/Utils.cpp
 	$(CXX) -o $@ $^ $(CFLAGS)
@@ -98,5 +103,7 @@ $(TEST)/test_parameters.out: $(LIB)/test_parameters.o $(LIB)/Parameters.o $(LIB)
 
 $(LIB)/test_parameters.o: $(ROOT)/test_parameters.cpp
 	$(CXX) -o $@ -c $< $(CFLAGS)
+
+# $(test_bin): %: $(TEST)/%.cpp
 
 

@@ -3,6 +3,7 @@
 
 #include "Utils.h"
 #include <yaml.h>
+#include <stdexcept>
 
 using namespace std;
 
@@ -15,6 +16,7 @@ typedef map<string, vector<string> > StrVecMap;
 struct Options
 {
   StrVecMap yamlMap;
+  char* configPath;
 
   bool skipToEnd; // Jump to last frame
   bool trackMonoAtoms; // Follow a few atoms that end up in the monolayer
@@ -26,23 +28,34 @@ struct Options
   bool plotAllTogether;
   bool debugOutput; // Enable debuguging print statments
   bool onlyFindInterface; // Locate monolayer in first frame and exit
+  string inLoc;
+  string outLoc;
 
   vector<int> liquidTypes, solidTypes;
 
-  StrVecMap parseYaml(const char* filename);
+  StrVecMap parseYaml(char* configPath);
   bool mapHasKey(StrVecMap yamlMap, string key);
   void printYamlMap(StrVecMap yamlMap);
   void fromString(string optionString, bool &option);
+  void fromString(string optionString, int &option);
+  void fromString(string optionString, double &option);
+  void fromString(string optionString, string &option);
 
   template <typename T>
   void unsafeParseOption(string optionName, T &option);
   template <typename T>
-  void parseDefaultOption(string optionName, T &option, T &defaultValue);
+  void unsafeParseOption(string optionName, vector<T> &optionVec);
+  template <typename T>
+  void parseDefaultOption(string optionName, T &option, T defaultValue);
   template <typename T>
   void parseRequiredOption(string optionName, T &option);
-  void readConfig(string configFile);
-  void readOptions(string optionsFile);
-  void print();
+  void readConfig(char* configPath);
+
+  template <typename T>
+  void printOption(string optionName, T option);
+  template <typename T>
+  void printOption(string optionName, vector<T> option);
+  void printOptions();
 };
 
 struct AnalysisParameters
@@ -55,7 +68,7 @@ struct AnalysisParameters
 struct CommandLineParser
 {
   CommandLineParser(int argc, char* argv[]);
-  string inLoc, outLoc, optionsFile;
+  char *configPath;
   Options options;
 
   void parseArgs(int argc, char* argv[]);

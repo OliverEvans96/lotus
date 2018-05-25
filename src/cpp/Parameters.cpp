@@ -4,13 +4,13 @@
 // High level parameters //
 ///////////////////////////
 
-//Options::Options(char* optionsFile) {
+//Options::Options(char* configPath) {
 //}
 
 // Read a YAML file into a map of string vectors.
 // Does not support nested YAML mappings.
-StrVecMap Options::parseYaml(const char* filename) {
-    FILE *config_file;
+StrVecMap Options::parseYaml(char* configPath) {
+    FILE *configFile;
     yaml_parser_t parser;
     yaml_document_t document;
     yaml_node_t *node, *node1, *key, *value;
@@ -20,14 +20,14 @@ StrVecMap Options::parseYaml(const char* filename) {
     vector<string> vec;
     StrVecMap yamlMap;
 
-    config_file = fopen(filename, "rb");
+    configFile = fopen(configPath, "rb");
 
     yaml_parser_initialize(&parser);
-    yaml_parser_set_input_file(&parser, config_file);
+    yaml_parser_set_input_file(&parser, configFile);
     yaml_parser_load(&parser, &document);
 
     node = yaml_document_get_root_node(&document);
-    assert(node->type == YAMLMAPPING_NODE);
+    assert(node->type == YAML_MAPPING_NODE);
 
     // Mapping
     for(pair=node->data.mapping.pairs.start; pair<node->data.mapping.pairs.top; pair++) {
@@ -51,7 +51,7 @@ StrVecMap Options::parseYaml(const char* filename) {
 
     yaml_document_delete(&document);
     yaml_parser_delete(&parser);
-    fclose(config_file);
+    fclose(configFile);
 
     return yamlMap;
 }
@@ -60,7 +60,7 @@ StrVecMap Options::parseYaml(const char* filename) {
 bool Options::mapHasKey(StrVecMap yamlMap, string key) {
   map<string, vector<string> >::iterator it;
   it = yamlMap.find(key);
-  return (it != yamlMap.end())
+  return (it != yamlMap.end());
 }
 
 void Options::printYamlMap(StrVecMap yamlMap) {
@@ -102,7 +102,7 @@ template <typename T>
 void Options::unsafeParseOption(string optionName, T &option) {
   string optionString;
   optionString = yamlMap[optionName][0];
-  fromString(optionName, option);
+  fromString(optionString, option);
 }
 
 // Parse vector option, assuming key is present
@@ -121,7 +121,7 @@ void Options::unsafeParseOption(string optionName, vector<T> &optionVec) {
 
 // Safely parse option, falling back on default value
 template <typename T>
-void Options::parseDefaultOption(string optionName, T &option, T &defaultValue) {
+void Options::parseDefaultOption(string optionName, T &option, T defaultValue) {
   if(mapHasKey(yamlMap, optionName)) {
     unsafeParseOption(optionName, option);
   }
@@ -129,22 +129,21 @@ void Options::parseDefaultOption(string optionName, T &option, T &defaultValue) 
     option = defaultValue;
   }
 }
-// Safely parse option, throwing exception if unspecified.
+// Safely parse option, terminating if unspecified.
 template <typename T>
 void Options::parseRequiredOption(string optionName, T &option) {
-  stringstream err;
-
   if(mapHasKey(yamlMap, optionName)) {
     unsafeParseOption(optionName, option);
   }
   else {
-    err << "'" << optionName << "' is required in YAML config (" << optionsFile << ").";
-    throw ss.str().data();
+    cout << "'" << optionName << "' is required in YAML config (" << configPath << ")." << endl;
+    exit(1);
   }
 }
 
-void Options::readConfig(string configFile) {
-  yamlMap = parseYaml(configFile);
+void Options::readConfig(char* _configPath) {
+  configPath = _configPath;
+  yamlMap = parseYaml(configPath);
 
   parseRequiredOption("liquidTypes", liquidTypes);
   parseRequiredOption("solidTypes", solidTypes);
@@ -163,85 +162,56 @@ void Options::readConfig(string configFile) {
   parseDefaultOption("onlyFindInterface", onlyFindInterface, false);
 }
 
+template <typename T>
+void Options::printOption(string optionName, T option) {
+  cout << optionName << ": " << option << endl;
+}
+
+template <typename T>
+void Options::printOption(string optionName, vector<T> optionVec) {
+  typename vector<T>::iterator it;
+  it = optionVec.begin();
+  cout << optionName << ": [";
+  for(int i=0; i<optionVec.size()-1; i++) {
+    cout << *it++ << ", ";
+  }
+  cout << *it << "]" << endl;
+}
+
 void Options::printOptions() {
-  cout << "Options:" << endl;
-  cout << "skipToEnd = " << skipToEnd << endl;
-  cout << "trackMonoAtoms = " << trackMonoAtoms << endl;
-  cout << "saveImages = " << saveImages << endl;
-  cout << "plotHist = " << plotHist << endl;
-  cout << "plotDipole = " << plotDipole << endl;
-  cout << "plotVr = " << plotVr << endl;
-  cout << "plotDensity = " << plotDensity << endl;
-  cout << "plotAllTogether = " << plotAllTogether << endl;
-  cout << "debugOutput = " << debugOutput << endl;
-  cout << "onlyFindInterface = " << onlyFindInterface << endl;
+  printOption("liquidTypes", liquidTypes);
+  printOption("solidTypes", solidTypes);
+  printOption("inLoc", inLoc);
+  printOption("outLoc", outLoc);
+  printOption("skipToEnd", skipToEnd);
+  printOption("trackMonoAtoms", trackMonoAtoms);
+  printOption("saveImages", saveImages);
+  printOption("plotHist", plotHist);
+  printOption("plotDipole", plotDipole);
+  printOption("plotVr", plotVr);
+  printOption("plotDensity", plotDensity);
+  printOption("plotAllTogether", plotAllTogether);
+  printOption("debugOutput", debugOutput);
+  printOption("onlyFindInterface", onlyFindInterface);
 }
 
 CommandLineParser::CommandLineParser(int argc, char* argv[]) {
-  //Command line arguments: inLoc,outLoc
-
-  /*
-    cout << "argv: " << endl;
-    for(int i=0;i<argc;i++)
-    cout << argv[i] << endl;
-    cout << endl;
-  */
-
-  cout << "Received " << argc-1 << " command line arguments." << endl;
   parseArgs(argc, argv);
-  options.readOptions(optionsFile);
+  options.readConfig(configPath);
 }
 
 void CommandLineParser::parseArgs(int argc, char* argv[]) {
-  optionsFile = argv[1];
+  if(argc == 2) {
+    configPath = argv[1];
+  }
+  else {
+    cout << "One argument required: YAML config file." << endl;
+    exit(1);
+  }
 }
 
 void CommandLineParser::print() {
   cout << "Command Line Arguments: " << endl;
-  cout << "optionsFile = " << optionsFile << endl;
-  options.print();
+  cout << "configPath = " << configPath << endl;
+  options.printOptions();
 }
-
-
-// //Whether to run whole analysis or only find monolayer
-// bool onlyFindInterface;
-// cout << "argc=" << argc << endl;
-// if(argc<4)
-//   onlyFindInterface=false;
-//  else
-//    onlyFindInterface=(strcmp(argv[3],"mono")==0);
-
-
-//While reading files, we don't yet know where the monolayer will be defined for this frame, so we save an atom's coordinates if it's in a broad range, then eliminate extras later.
-//double potentialMonoLimits[2]={14.5,15.5};
-//int nMonoAtoms=0;
-//int nPotentialMonoAtoms=0;
-//vector<double> potentialMonoR;
-//vector<double> potentialMonoZ;
-
-//Open monoLimits file
-/*
-  fstream interfaceFile;
-  if(!onlyFindInterface)
-  {
-  interfaceFile.open("../mono_limits.txt",ios::in);
-  }
-  else
-  interfaceFile.open("../mono_limits.txt",ios::out);
-
-
-  if (interfaceFile.good())
-  cout << "Successfully opened " << "mono_limits.txt" << endl;
-  else
-  cout << "Failed to open " << "mono_limits.txt" << endl;
-
-  if(!onlyFindInterface)
-  {
-  interfaceFile >> monoLimits[0] >> monoLimits[1];
-  cout << "monoLimits=" << monoLimits[0] << " " << monoLimits[1] << endl;
-  }
-*/
-
-
-
-//AnalysisParameters::AnalysisParameters()
