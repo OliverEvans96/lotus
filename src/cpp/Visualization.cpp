@@ -6,14 +6,6 @@
 ///////////////////
 
 
-Figure::Figure()
-
-HistFigure::HistFigure ()
-
-DensFigure::DensFigure ()
-TanhFigure::TanhFigure ()
-
-
 TGraph *horizontalHist(TH1D* hist)
 {
     char *title, *xLabel, *yLabel;

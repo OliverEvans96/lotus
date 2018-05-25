@@ -133,24 +133,43 @@ double mean(double *v, int n) {
 }
 
 //Square
-inline double square(double x) {return x*x;}
+double square(double x) {
+  return x*x;
+}
 
 //Arctanh
-inline double atanh(double x) {return log((1+x)/(1-x))/2;}
+double atanh(double x) {
+  return log((1+x)/(1-x))/2;
+}
 
-bool isLess(int a,int b) { return (a<b); }
+bool isLess(int a,int b) {
+  return (a<b);
+}
 
 //Check whether x is in v
-bool isIn(int x, vector<int>v)
-{
+bool isIn(int x, vector<int>v) {
   return binary_search(v.begin(),v.end(),x,isLess);
 }
 
 //Check whether a file exists
-bool file_exists(const string& name);
+// https://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
+bool file_exists(const string& name) {
+  struct stat buffer;
+  return (stat (name.c_str(), &buffer) == 0);
+}
 
 //round up to nearest multiple of a number
-int roundUp(int numToRound, int multiple);
+int roundUp(int numToRound, int multiple) {
+  if (multiple == 0)
+    return numToRound;
+
+  int remainder = numToRound % multiple;
+  if (remainder == 0)
+    return numToRound;
+
+  return numToRound + multiple - remainder;
+}
+
 
 double findMinimum(vector<double> v)
 {

@@ -30,7 +30,8 @@ using namespace std;
 int main(int argc,char* argv[])
 {
   CommandLineParser commandLineParser(argc, argv);
-  InputStream inFile(commandLineParser.inLoc);
+  Options options = commandLineParser.options;
+  InputStream inFile(options.inLoc);
   FrameWriter frameWriter;
   Monolayer monolayer;
 
@@ -117,9 +118,9 @@ int main(int argc,char* argv[])
   AtomArray atomArray;
   // 1st timestep of simulation, for MSD calculations.
   AtomArray initialAtomArray; 
-  SimData simData(commandLineParser);
-  InitialTimestepReader initialTimestepReader(commandLineParser, &initialAtomArray, &simData);
-  FrameReader frameReader(commandLineParser, &atomArray, &simData);
+  SimData simData(options);
+  InitialTimestepReader initialTimestepReader(options, &initialAtomArray, &simData);
+  FrameReader frameReader(options, &atomArray, &simData);
 
   Grid grid;
 
@@ -393,7 +394,8 @@ int main(int argc,char* argv[])
 
   //Circle for fitting
   //Use "cut" as second argument for 0.25<dens<0.75 cutoff
-  CircleFit Circle(hA);
+  CircleFit circle;
+  circle.setHist(hA);
   double chi2s; //Fitting error
 
   //Test for hWaterDens
@@ -732,7 +734,7 @@ int main(int argc,char* argv[])
       cout << "Fit Circle" << endl;
       //Fit circle
       cA->cd();
-      chi2s=sphericalBulk.fitCircle(circlePointsGraph,Circle,rBulkMax,frameReader.frame.frameStep);
+      chi2s=sphericalBulk.fitCircle(circlePointsGraph,circle,rBulkMax,frameReader.frame.frameStep);
       cout << "chi2s_ps:" << chi2s << endl;
 
       cout << "Find radii" << endl;
@@ -742,15 +744,15 @@ int main(int argc,char* argv[])
       // Now, just throw this away and use the tanhfit val from
       // first bulk row, which has already been found
       // in findBoundaryPoints
-      tmpBulkEdge=Circle.Intersect(monoLimits[1]);
+      tmpBulkEdge=circle.Intersect(monoLimits[1]);
       cout << "Bulk edge: " << bulkEdge << endl;
 
       //Find contact angle
       cout << "Intersect with " << monoLimits[1] << endl;
-      contactAngle=Circle.ContactAngle();
+      contactAngle=circle.ContactAngle();
 
       //Find droplet height by intersecting circle with y-axis
-      dropletHeight=Circle.Height();
+      dropletHeight=circle.Height();
 
       //Test number of molecules in hWaterDens
       //cout << "STEP " << timestep << ": " << nWaterDens << " molecules in hWaterDens" << endl;
@@ -853,9 +855,9 @@ int main(int argc,char* argv[])
       hA->SetMaximum(colzMax);
       hA->Draw("colz");
       //Draw circle
-      TEllipse *circleEllipse = Circle.Draw();
+      TEllipse *circleEllipse = circle.Draw();
       //Draw tangent line
-      TLine *tangentLine = Circle.DrawTangentLine();
+      TLine *tangentLine = circle.DrawTangentLine();
       //Add lines
       bulkEdgeLine->SetX1(bulkEdge);
       bulkEdgeLine->SetX2(bulkEdge);

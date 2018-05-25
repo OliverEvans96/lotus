@@ -56,8 +56,8 @@ int SimData::countSteps(ifstream &inFile)
   return numSteps;
 }
 
-SimData::SimData(CommandLineParser commandLineParser) {
-  inputStream.open(commandLineParser.inLoc);
+SimData::SimData(Options options) {
+  inputStream.open(options.inLoc);
   numAtoms = countAtoms(inputStream.stream);
   numSteps = countSteps(inputStream.stream);
 }

@@ -137,22 +137,22 @@ void TimestepReader::readTimestep() {
   timestepPtr->stepNum++;
 }
 
-void FrameReader::openStream(CommandLineParser commandLineParser) {
-  inputStream.open(commandLineParser.inLoc);
+void FrameReader::openStream(Options options) {
+  inputStream.open(options.inLoc);
 }
 
-void FrameReader::setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+void FrameReader::setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
   atomArrayPtr = _atomArrayPtr;
   simDataPtr = _simDataPtr;
 
   stepsPerFrame = simDataPtr->stepsPerFrame;
-  openStream(commandLineParser);
+  openStream(options);
 
   timestepReader.setContext(&inputStream, atomArrayPtr, timestepPtr, simDataPtr);
 }
 
-FrameReader::FrameReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
-  setContext(commandLineParser, _atomArrayPtr, _simDataPtr);
+FrameReader::FrameReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+  setContext(options, _atomArrayPtr, _simDataPtr);
 }
 
 void FrameReader::updateFrame() {
@@ -172,23 +172,23 @@ void FrameReader::readFrame() {
   }
 }
 
-void InitialTimestepReader::openStream(CommandLineParser commandLineParser) {
+void InitialTimestepReader::openStream(Options options) {
   inputStream.open(initLoc);
 }
 
-void InitialTimestepReader::setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+void InitialTimestepReader::setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
   atomArrayPtr = _atomArrayPtr;
   simDataPtr = _simDataPtr;
 
   initLoc = "../init.txt";
 
-  openStream(commandLineParser);
+  openStream(options);
 
   timestepReader.setContext(&inputStream, atomArrayPtr, &emptyTimestep, simDataPtr);
 }
 
-InitialTimestepReader::InitialTimestepReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
-  setContext(commandLineParser, _atomArrayPtr, _simDataPtr);
+InitialTimestepReader::InitialTimestepReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+  setContext(options, _atomArrayPtr, _simDataPtr);
 }
 
 void InitialTimestepReader::readFromFile() {

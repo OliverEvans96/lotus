@@ -3,7 +3,7 @@
 
 //g++ `root-config --glibs --cflags` CircleFitClass.cpp circletest.cpp -o circletest.out && ./circletest.out
 
-#include "CircleFitClass.h"
+#include "CircleFit.h"
 
 //Constructors
 CircleFit::CircleFit()
@@ -63,7 +63,7 @@ CircleFit::~CircleFit()
     delete cCircDens;
 }
 
-CircleFit::setHist(TH2D *givenHist) {
+void CircleFit::setHist(TH2D *givenHist) {
   hist = givenHist;
 }
 

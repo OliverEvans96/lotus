@@ -3,7 +3,6 @@
 
 #include "Utils.h"
 #include <yaml.h>
-#include <stdexcept>
 
 using namespace std;
 

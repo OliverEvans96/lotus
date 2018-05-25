@@ -16,7 +16,14 @@ struct FrameWriter
   map<string, FILE*> streams;
   map<string, string> fmts;
   FILE* avgStepData, instStepData;
-  void openStreams();
+
+  void setOutputDir(string path);
+  void openStream(string streamName, string fmt);
+  void closeStream(string streamName);
+  template <typename T>
+  void write(string streamName, T data);
+  template <typename T>
+  void write(string streamName, vector<T> data, string fmt);
 };
 
 #endif

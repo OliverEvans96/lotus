@@ -8,8 +8,8 @@
 #include "TH1D.h"
 
 #include "Utils.h"
-#include "Quiver/Quiver.h"
-#include "../src/FieldViz/FieldViz.h"
+#include "Quiver.h"
+#include "FieldViz.h"
 
 using namespace std;
 

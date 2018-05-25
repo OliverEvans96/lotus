@@ -27,6 +27,7 @@ public:
 	CircleFit(char* name,vector<double> xCoords,vector<double> yCoords);
 	~CircleFit();
 
+  void setHist(TH2D *givenHist);
 	void Define(char* name,vector<double> xCoords,vector<double> yCoords);
 	double GetChi2s();
 	void GetSize();
@@ -47,7 +48,7 @@ public:
 	double GetYCenter();
 	double GetRadius();
 	void Print();
-		
+
 private:
 	//Variables
 	double PI; //Pi!
@@ -93,7 +94,7 @@ private:
 	vector<double> xLinFit, yLinFit;
 	double m_lin, b_lin;
 
-	
+
 	//Functions
 	double sum(vector<double> v);
 	double square(double x);

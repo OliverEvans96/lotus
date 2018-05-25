@@ -21,7 +21,7 @@ struct SimData {
   InputStream inputStream;
   LastFrame lastFrame;
 
-  SimData(CommandLineParser commandLineParser);
+  SimData(Options options);
   int countAtoms(ifstream &inFile);
   int countSteps(ifstream &inFile);
 
@@ -38,7 +38,6 @@ struct Grid {
 
   double zhi_preround, vhi_preround, rhi_preround;
 
-  Grid();
   ~Grid();
 
   void setBounds(double _zlo, double _zhi, double _rhi);

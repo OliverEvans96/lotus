@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <map>
 #include <sstream>
+#include <sys/stat.h>
 
 #include "TCanvas.h"
 #include "TH2D.h"

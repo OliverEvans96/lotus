@@ -1,6 +1,7 @@
 #ifndef ATOMS_H
 #define ATOMS_H
 
+#include <cstring>
 #include "Utils.h"
 
 using namespace std;

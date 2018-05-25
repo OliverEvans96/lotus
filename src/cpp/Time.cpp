@@ -4,10 +4,6 @@
 // Variables over time //
 /////////////////////////
 
-StepVariables::StepVariables()
-
-FrameVariables::FrameVariables()
-
 
 //////////////////
 // Time Keepers //
@@ -24,9 +20,7 @@ Frame::Frame() {
   frameStep = 0;
 }
 
-LastFrame::LastFrame()
-
-LastFrame::setSteps(int numSteps, int stepsPerFrame) {
+void LastFrame::setSteps(int numSteps, int stepsPerFrame) {
   extraSteps = numSteps % stepsPerFrame;
   divisible = (extraSteps == 0);
   penultimateFrame = numSteps - extraSteps;

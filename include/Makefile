@@ -24,12 +24,16 @@ TEST=$(BASE)/test/src
 # C++ Compiler
 CXX=g++
 # Root flags
-ROOTFLAGS=`root-config --glibs --cflags` #-lMathMore -lMinuit
+ROOTFLAGS=`root-config --glibs --cflags` -lMathMore -lMinuit
 # Specify rpath for custom shared library path
 CFLAGS=$(ROOTFLAGS) -I$(INC) -L$(LIB) -lyaml -Wl,-rpath=$(LIB)
 
-# All C++ source, header, and object files
-cpp_src=$(wildcard $(SRC)/*.cpp)
+# Main executable
+main_src=$(SRC)/droplet_analysis.cpp
+main_bin=$(main_src:$(SRC)/%.cpp=%)
+
+# All other C++ source, header, and object files
+cpp_src=$(filter-out $(main_src), $(wildcard $(SRC)/*.cpp))
 cpp_hdr=$(cpp_src:$(SRC)/%.cpp=$(INC)/%.h)
 cpp_obj=$(cpp_src:$(SRC)/%.cpp=$(INC)/%.o)
 
@@ -41,9 +45,9 @@ test_bin=$(test_src:$(TEST)/%.cpp=%)
 # UTILITIES #
 #############
 
-.PHONY: all clean cleanall run echo $(test_bin)
+.PHONY: all clean cleanall run echo $(test_bin) $(main_bin)
 
-all: $(BIN)/droplet_analysis.out
+all: $(main_bin)
 
 clean:
 	rm $(LIB)/*.o -f
@@ -56,7 +60,8 @@ run: $(BIN)/droplet_analysis.out
 	$(BIN)/droplet_analysis.out
 
 echo:
-	echo $(cpp_obj)
+	echo $(main_src)
+	echo $(cpp_src)
 
 #############
 # LIBRARIES #
@@ -65,7 +70,13 @@ echo:
 $(cpp_obj): %.o: $(SRC)/%.cpp $(INC)/%.h
 	$(CXX) -o $@ -c $< $(CFLAGS)
 
-Parameters.o: $(LIB)/libyaml.so
+MDBase.o: Utils.o Parameters.o Time.o
+Visualization.o: Utils.o Quiver.o FieldViz.o
+Readers.o: Utils.o MDBase.o Atoms.o Time.o
+Atoms.o: Utils.o
+Writers.o: Utils.o
+Droplet.o: Utils.o CircleFit.o
+Parameters.o: $(LIB)/libyaml.so Utils.o
 
 ###################
 # Compile libYAML #
@@ -81,8 +92,8 @@ $(LIB)/libyaml.so:
 # EXECUTABLES #
 ###############
 
-$(BIN)/droplet_analysis.out: $(cpp_obj)
-	$(CXX) -o $@ $^ $(CFLAGS)
+$(main_bin): $(main_src) $(cpp_obj)
+	$(CXX) -o $(BIN)/$@ $^ $(CFLAGS)
 
 #########
 # TESTS #

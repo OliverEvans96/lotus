@@ -61,8 +61,8 @@ class TimestepReader {
 
 class FrameReader {
  public:
-  FrameReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
-  void setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
+  FrameReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
+  void setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
 
 
   TimestepReader timestepReader;
@@ -73,15 +73,15 @@ class FrameReader {
   Frame frame;
 
   int stepsPerFrame;
-  void openStream(CommandLineParser _commandLineParser);
+  void openStream(Options _options);
   void updateFrame();
   void readFrame();
 };
 
 class InitialTimestepReader {
  public:
-  InitialTimestepReader(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
-  void setContext(CommandLineParser commandLineParser, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
+  InitialTimestepReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
+  void setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
   string initLoc;
   TimestepReader timestepReader;
   AtomArray* atomArrayPtr;
@@ -92,7 +92,7 @@ class InitialTimestepReader {
   Atom atom;
 
   bool fileExists();
-  void openStream(CommandLineParser _commandLineParser);
+  void openStream(Options _options);
   void readFromFile();
   void readFromStream();
   void writeToFile();
