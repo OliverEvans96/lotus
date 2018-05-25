@@ -19,7 +19,9 @@ SRC=$(BASE)/src/cpp
 BIN=$(BASE)/bin
 LIB=$(PWD)/../lib
 YAML=$(BASE)/libyaml
-TEST=$(BASE)/test/src
+TEST=$(BASE)/test
+TEST_SRC=$(TEST)/src
+TEST_INC=$(TEST)/include
 
 # C++ Compiler
 CXX=g++
@@ -27,6 +29,7 @@ CXX=g++
 ROOTFLAGS=`root-config --glibs --cflags` -lMathMore -lMinuit
 # Specify rpath for custom shared library path
 CFLAGS=$(ROOTFLAGS) -I$(INC) -L$(LIB) -lyaml -Wl,-rpath=$(LIB)
+TESTFLAGS=-I$(TEST_INC)
 
 # Main executable
 main_src=$(SRC)/droplet_analysis.cpp
@@ -37,21 +40,35 @@ cpp_src=$(filter-out $(main_src), $(wildcard $(SRC)/*.cpp))
 cpp_hdr=$(cpp_src:$(SRC)/%.cpp=$(INC)/%.h)
 cpp_obj=$(cpp_src:$(SRC)/%.cpp=$(INC)/%.o)
 
+# Main test
+main_test_src=$(TEST_SRC)/test_main.cpp
+main_test_obj=$(main_test_src:$(TEST_SRC)/%.cpp=$(TEST_INC)/%.o)
+main_test_bin=$(BIN)/test
+
 # Tests
-test_src=$(wildcard ../src/test/*)
-test_bin=$(test_src:$(TEST)/%.cpp=%)
+test_src=$(filter-out $(main_test_src), $(wildcard $(TEST_SRC)/*.cpp))
+
+# Eliminate this
+test_bin=$(test_src:$(TEST_SRC)/%.cpp=%)
+
+$(main_test_obj): $(main_test_src)
+	$(CXX) -o $@ -c $^ $(TESTFLAGS)
+
+$(main_test_bin): $(main_test_obj) $(test_src) $(cpp_obj)
+	$(CXX) -o $@ $^ $(CFLAGS) $(TESTFLAGS)
 
 #############
 # UTILITIES #
 #############
 
-.PHONY: all clean cleanall run echo $(test_bin) $(main_bin)
+.PHONY: all clean cleanall run echo test $(test_bin) $(main_bin)
 
 all: $(main_bin)
 
 clean:
 	rm $(LIB)/*.o -f
 	rm $(INC)/*.o -f
+	rm $(main_test_obj) -f
 
 cleanall: clean
 	rm $(LIB)/* -rf
@@ -60,8 +77,10 @@ run: $(BIN)/droplet_analysis.out
 	$(BIN)/droplet_analysis.out
 
 echo:
-	echo $(main_src)
-	echo $(cpp_src)
+	echo $(test_src)
+
+test: $(main_test_bin)
+	$<
 
 #############
 # LIBRARIES #

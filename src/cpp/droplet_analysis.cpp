@@ -117,7 +117,7 @@ int main(int argc,char* argv[])
   Timestep timestep;
   AtomArray atomArray;
   // 1st timestep of simulation, for MSD calculations.
-  AtomArray initialAtomArray; 
+  AtomArray initialAtomArray;
   SimData simData(options);
   InitialTimestepReader initialTimestepReader(options, &initialAtomArray, &simData);
   FrameReader frameReader(options, &atomArray, &simData);
