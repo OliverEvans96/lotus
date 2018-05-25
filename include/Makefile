@@ -17,9 +17,10 @@ BASE=..
 INC=.
 SRC=$(BASE)/src/cpp
 BIN=$(BASE)/bin
-LIB=$(PWD)/../lib
-YAML=$(BASE)/libyaml
 TEST=$(BASE)/test
+DATA=$(BASE)/data
+YAML=$(BASE)/libyaml
+LIB=$(PWD)/../lib
 TEST_SRC=$(TEST)/src
 TEST_INC=$(TEST)/include
 
@@ -65,7 +66,7 @@ $(main_test_bin): $(main_test_obj) $(test_src) $(cpp_obj)
 # UTILITIES #
 #############
 
-.PHONY: all clean cleanall run echo test $(test_bin) $(main_bin)
+.PHONY: all clean cleanall run echo test data $(test_bin) $(main_bin)
 
 all: $(main_bin)
 
@@ -75,18 +76,21 @@ clean:
 	rm $(main_test_obj) -f
 
 cleandata:
-	rm $(datafile_unzipped) -f
+	rm $(testdata_unzipped) -f
 
 cleanall: clean cleandata
 	rm $(LIB)/* -rf
+
+data: $(testdata_unzipped)
 
 run: $(BIN)/droplet_analysis.out
 	$(BIN)/droplet_analysis.out
 
 echo:
-	echo $(test_src)
+	echo $(testdata_zipped)
+	echo $(testdata_unzipped)
 
-test: $(main_test_bin)
+test: $(main_test_bin) $(testdata_unzipped)
 	$<
 
 #############
@@ -126,7 +130,7 @@ $(main_bin): $(main_src) $(cpp_obj)
 ########
 
 $(testdata_unzipped): %: %.tar.gz
-	tar -xvzf $@
+	tar -xvzf $< -C $(DATA)
 
 ########################
 # TESTS (Remove these) #

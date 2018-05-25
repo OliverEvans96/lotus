@@ -5,7 +5,11 @@ all:
 %:
 	cd include && $(MAKE) $@
 
-.PHONY: test
+# Files in current directory should be treated as phony
+# since there are no top-level targets.
+phony=$(wildcard ./*)
 
-test:
+.PHONY: $(phony)
+
+$(phony):
 	cd include && $(MAKE) $@
