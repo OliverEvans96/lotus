@@ -31,6 +31,10 @@ ROOTFLAGS=`root-config --glibs --cflags` -lMathMore -lMinuit
 CFLAGS=$(ROOTFLAGS) -I$(INC) -L$(LIB) -lyaml -Wl,-rpath=$(LIB)
 TESTFLAGS=-I$(TEST_INC)
 
+# Test data file
+testdata_zipped=$(wildcard $(DATA)/*.tar.gz)
+testdata_unzipped=$(testdata_zipped:%.tar.gz=%)
+
 # Main executable
 main_src=$(SRC)/droplet_analysis.cpp
 main_bin=$(main_src:$(SRC)/%.cpp=%)
@@ -70,7 +74,10 @@ clean:
 	rm $(INC)/*.o -f
 	rm $(main_test_obj) -f
 
-cleanall: clean
+cleandata:
+	rm $(datafile_unzipped) -f
+
+cleanall: clean cleandata
 	rm $(LIB)/* -rf
 
 run: $(BIN)/droplet_analysis.out
@@ -114,9 +121,16 @@ $(LIB)/libyaml.so:
 $(main_bin): $(main_src) $(cpp_obj)
 	$(CXX) -o $(BIN)/$@ $^ $(CFLAGS)
 
-#########
-# TESTS #
-#########
+########
+# DATA #
+########
+
+$(testdata_unzipped): %: %.tar.gz
+	tar -xvzf $@
+
+########################
+# TESTS (Remove these) #
+########################
 
 test_parameters: $(TEST)/test_parameters.cpp Parameters.o
 	$(CXX) -o $(BIN)/$@ $^ $(CFLAGS)
