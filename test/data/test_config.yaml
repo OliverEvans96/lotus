@@ -1,5 +1,5 @@
-inLoc: /some/path
-outLoc: /another/one
+inLoc: ../test/data/20A_atom2_first8
+outLoc: ../test/run
 solidTypes:
     - 1
     - 2

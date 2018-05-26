@@ -20,8 +20,8 @@ TEST_CASE("Parameters", "[lotus]") {
   REQUIRE(options.solidTypes[0] == 1);
   REQUIRE(options.solidTypes[1] == 2);
   REQUIRE(options.solidTypes[2] == 3);
-  REQUIRE(options.inLoc == "/some/path");
-  REQUIRE(options.outLoc == "/another/one");
+  REQUIRE(options.inLoc == "../test/data/20A_atom2_first8");
+  REQUIRE(options.outLoc == "../test/run");
   REQUIRE(options.skipToEnd == false);
   REQUIRE(options.trackMonoAtoms == false);
   REQUIRE(options.saveImages == false);
