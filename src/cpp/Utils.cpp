@@ -11,6 +11,8 @@ void InputStream::verifyStream() {
     }
 }
 
+InputStream::InputStream() {};
+
 InputStream::~InputStream() {
   stream.close();
 }
@@ -22,7 +24,6 @@ void InputStream::open(string _filename) {
   verifyStream();
 }
 
-InputStream::InputStream() {};
 InputStream::InputStream(string _filename) {
   open(_filename);
 }

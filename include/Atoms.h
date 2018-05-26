@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include "Utils.h"
+#include "MDBase.h"
 
 using namespace std;
 
@@ -26,8 +27,11 @@ struct Atom
 class AtomArray
 {
   void allocateArrays();
+  void deallocateArrays();
 
  public:
+  AtomArray();
+  AtomArray(SimData &simData);
   ~AtomArray();
 
   int numAtoms;

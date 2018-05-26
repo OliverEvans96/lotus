@@ -13,7 +13,7 @@ using namespace std;
 
 struct Monolayer
 {
-  Monolayer();
+  Monolayer(AtomArray atoms);
   double radius;
   double height;
   AtomArray atoms;

@@ -4,7 +4,9 @@
 // Droplet Components //
 ////////////////////////
 
-Monolayer::Monolayer() {};
+Monolayer::Monolayer(AtomArray _atoms) {
+  atoms = _atoms;
+};
 
 //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius to the vector rScaledJoin
 int Monolayer::monoFlux(vector<double> r,vector<double> z,double* monoLimits,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave,int &nMono)

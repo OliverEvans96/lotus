@@ -1,5 +1,6 @@
 inLoc: ../test/data/20A_atom2_first8
 outLoc: ../test/run
+stepsPerFrame: 3
 solidTypes:
     - 1
     - 2

@@ -150,6 +150,7 @@ void Options::readConfig(char* _configPath) {
   parseRequiredOption("inLoc", inLoc);
   parseRequiredOption("outLoc", outLoc);
 
+  parseDefaultOption("stepsPerFrame", stepsPerFrame, 5);
   parseDefaultOption("skipToEnd", skipToEnd, false);
   parseDefaultOption("trackMonoAtoms", trackMonoAtoms, false);
   parseDefaultOption("saveImages", saveImages, false);
@@ -183,6 +184,7 @@ void Options::printOptions() {
   printOption("solidTypes", solidTypes);
   printOption("inLoc", inLoc);
   printOption("outLoc", outLoc);
+  printOption("stepsPerFrame", stepsPerFrame);
   printOption("skipToEnd", skipToEnd);
   printOption("trackMonoAtoms", trackMonoAtoms);
   printOption("saveImages", saveImages);

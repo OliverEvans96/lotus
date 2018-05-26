@@ -8,18 +8,20 @@ int SimData::countAtoms(ifstream &inFile)
   string line;
   int numAtoms=0;
 
-  //Ignore the first 3 lines
-  for(int i=0;i<3;i++) inFile.ignore(256,'\n');
+  // TODO: DO THE PARSING HERE AS WELL
+
+  //Ignore the first 9 lines
+  for(int i=0;i<9;i++) {
+    inFile.ignore(256,'\n');
+  }
 
   while(countFlag)
     {
       getline(inFile,line);
 
       //Count until reaching a line containing "TIMESTEP"
-      if(line.find("TIMESTEP")!=string::npos||inFile.eof())
-        {
+      if(line.find("TIMESTEP")!=string::npos||inFile.eof()) {
           countFlag=false;
-          numAtoms-=1; //Account for the blank line
         }
       else
         numAtoms++;
@@ -56,7 +58,7 @@ int SimData::countSteps(ifstream &inFile)
   return numSteps;
 }
 
-SimData::SimData(Options options) {
+SimData::SimData(Options &options) {
   inputStream.open(options.inLoc);
   numAtoms = countAtoms(inputStream.stream);
   numSteps = countSteps(inputStream.stream);

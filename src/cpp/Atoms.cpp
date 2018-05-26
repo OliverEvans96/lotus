@@ -17,9 +17,17 @@ void Atom::calculateNonCartesian() {
 // Multi-atom data //
 /////////////////////
 
+AtomArray::AtomArray() {
+  cout << "Warning: using default constructor." << endl;
+}
+
+AtomArray::AtomArray(SimData &simData) {
+  setNumAtoms(simData.numAtoms);
+  allocateArrays();
+}
+
 AtomArray::~AtomArray() {
-  delete x, y, z, r, p;
-  delete vx, vy, vz, vr, vp;
+  deallocateArrays();
 }
 
 void AtomArray::allocateArrays() {
@@ -34,6 +42,20 @@ void AtomArray::allocateArrays() {
   vz = new double[numAtoms];
   vr = new double[numAtoms];
   vp = new double[numAtoms];
+}
+
+void AtomArray::deallocateArrays() {
+  delete [] x;
+  delete [] y;
+  delete [] z;
+  delete [] r;
+  delete [] p;
+
+  delete [] vx;
+  delete [] vy;
+  delete [] vz;
+  delete [] vr;
+  delete [] vp;
 }
 
 void AtomArray::setNumAtoms(int _numAtoms) {

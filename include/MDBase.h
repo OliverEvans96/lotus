@@ -7,8 +7,8 @@
 
 using namespace std;
 
-//Conversion factor - number density to water mass density
-const double convFact=18/.60221409;
+// Conversion factor - number density to water mass density
+const double convFact = 18/.60221409;
 
 // Source of truth for general MD variables.
 // Variables are set here, and this object (or a pointer)
@@ -21,7 +21,8 @@ struct SimData {
   InputStream inputStream;
   LastFrame lastFrame;
 
-  SimData(Options options);
+  SimData();
+  SimData(Options &options);
   int countAtoms(ifstream &inFile);
   int countSteps(ifstream &inFile);
 

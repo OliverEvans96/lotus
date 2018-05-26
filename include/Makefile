@@ -29,7 +29,7 @@ CXX=g++
 # Root flags
 ROOTFLAGS=`root-config --glibs --cflags` -lMathMore -lMinuit
 # Specify rpath for custom shared library path
-CFLAGS=$(ROOTFLAGS) -I$(INC) -L$(LIB) -lyaml -Wl,-rpath=$(LIB)
+CFLAGS=$(ROOTFLAGS) -I$(INC) -L$(LIB) -lyaml -Wl,-rpath=$(LIB) -g -w
 TESTFLAGS=-I$(TEST_INC)
 
 # Test data file
@@ -103,7 +103,7 @@ $(cpp_obj): %.o: $(SRC)/%.cpp $(INC)/%.h
 MDBase.o: Utils.o Parameters.o Time.o
 Visualization.o: Utils.o Quiver.o FieldViz.o
 Readers.o: Utils.o MDBase.o Atoms.o Time.o
-Atoms.o: Utils.o
+Atoms.o: Utils.o MDBase.o
 Writers.o: Utils.o
 Droplet.o: Utils.o CircleFit.o
 Parameters.o: $(LIB)/libyaml.so Utils.o

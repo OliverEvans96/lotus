@@ -14,9 +14,8 @@ using namespace std;
 // Readers //
 /////////////
 
+
 // These read from an InputStream, but don't actually open the files.
-
-
 class HeaderReader {
   InputStream* inputStreamPtr;
   Timestep* timestepPtr;
