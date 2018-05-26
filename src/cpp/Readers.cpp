@@ -44,9 +44,12 @@ void InputStream::skipLines(int numLines) {
 }
 
 void InputStream::skipWhitespace() {
+  int num;
+  num = stream.tellg();
   while(isspace(stream.peek())) {
     stream.get();
   }
+  num = stream.tellg();
 }
 
 bool InputStream::search(string term) {
@@ -109,7 +112,6 @@ string InputStream::search(vector<string> terms) {
   return term;
 }
 
-
 bool InputStream::searchLine(string term) {
   // Move the ifstream cursor one line past
   // the first line exactly equal to `term`.
@@ -143,16 +145,19 @@ string InputStream::searchLine(vector<string> terms) {
   string term;
   bool found;
   vector<string>::iterator it;
+  int i = 0;
 
   term = "";
   found = false;
 
-  while(stream.good()) {
+  while(!found && stream.good()) {
     getline(stream, line);
+    i++;
     for(it=terms.begin(); it<terms.end(); it++) {
       term = *it;
       if(line == term) {
         found = true;
+        cout << "Found " << line << endl;
         break;
       }
     }
@@ -160,9 +165,19 @@ string InputStream::searchLine(vector<string> terms) {
 
   if(!found) {
     term = "";
+    cout << "Not found" << endl;
   }
 
   return term;
+}
+
+bool InputStream::nextLineBlank() {
+  bool blank = false;
+  if(stream.peek() == '\n') {
+    stream.get();
+    blank = (stream.peek() == '\n');
+  }
+  return blank;
 }
 
 //Split a string into a string vector of words
@@ -497,14 +512,9 @@ void DatafileReader::readMasses() {
   double mass;
   map<int, bool> foundOne;
 
-  while(streamPtr->good()) {
-    if(streamPtr->peek() == '\n') {
-      break;
-    }
-    else {
-      *streamPtr >> type >> mass;
-      simDataPtr->masses[type] = mass;
-    }
+  while(!inputStream.nextLineBlank() && streamPtr->good()) {
+    *streamPtr >> type >> mass;
+    simDataPtr->masses[type] = mass;
   }
 }
 
@@ -512,20 +522,15 @@ void DatafileReader::readWaterBonds() {
   int bondId, bondType, OId, HId;
   map<int, bool> foundOne;
 
-  while(streamPtr->good()) {
-    if(streamPtr->peek() == '\n') {
-      break;
-    }
-    else {
-      // Assume that O atom comes first in bond, then H
-      *streamPtr >> bondId >> bondType >> OId >> HId;
-      if(bondType == options.waterBondType) {
-        if(foundOne[OId]) {
-          simDataPtr->waterBonds[OId][1] = HId;
-        }
-        else {
-          simDataPtr->waterBonds[OId][0] = HId;
-        }
+  while(!inputStream.nextLineBlank() && streamPtr->good()) {
+    // Assume that O atom comes first in bond, then H
+    *streamPtr >> bondId >> bondType >> OId >> HId;
+    if(bondType == options.waterBondType) {
+      if(foundOne[OId]) {
+        simDataPtr->waterBonds[OId][1] = HId;
+      }
+      else {
+        simDataPtr->waterBonds[OId][0] = HId;
       }
     }
   }
@@ -541,9 +546,10 @@ void DatafileReader::read() {
   readNumAtoms();
 
   for(int i=0; i<2; i++) {
-    section = inputStream.search(sections);
-
+    section = inputStream.searchLine(sections);
     inputStream.skipWhitespace();
+
+    cout << "Reading '" << section  << "'" << endl;
     if(section == "Masses") {
       readMasses();
     }
@@ -558,7 +564,7 @@ DumpfileReader::DumpfileReader(Options _options, SimData &simData) {
   simDataPtr = &simData;
   atomArray.setSimData(simData);
   frameReader.setContext(options, &atomArray, &simData);
-  read();
+  countSteps();
 }
 
 //Count the number of water atoms in the first timestep
@@ -568,8 +574,10 @@ void DumpfileReader::countAtoms() {
   string line;
   int numAtoms=0;
   ifstream *streamPtr;
+  int pos;
 
   streamPtr = &frameReader.inputStream.stream;
+  pos = streamPtr->tellg();
 
   //Ignore the first 9 lines
   for(int i=0;i<9;i++) {
@@ -590,7 +598,7 @@ void DumpfileReader::countAtoms() {
 
   //Unset eof flag (if set) & return to beginning of file
   streamPtr->clear();
-  streamPtr->seekg(0,ios::beg);
+  streamPtr->seekg(pos);
 
   cout << "Counted " << numAtoms << " atoms." << endl;
   simDataPtr->numAtoms = numAtoms;
@@ -603,8 +611,10 @@ void DumpfileReader::countSteps()
   string line;
   int numSteps=0;
   int lineNum=0;
+  int pos;
 
   streamPtr = &frameReader.inputStream.stream;
+  pos = streamPtr->tellg();
 
   //Count number of timesteps
   while(getline(*streamPtr,line))
@@ -616,14 +626,12 @@ void DumpfileReader::countSteps()
 
   //Unset eof flag (if set) & return to beginning of file
   streamPtr->clear();
-  streamPtr->seekg(0,ios::beg);
+  streamPtr->seekg(pos);
 
   cout << "Counted " << numSteps << " timesteps." << endl;
   simDataPtr->numSteps = numSteps;
 }
 
-void DumpfileReader::read() {
-  // Don't count atoms since datafile is provided
-  // Just count steps
-  countSteps();
+void DumpfileReader::readFrame() {
+  frameReader.readFrame();
 }

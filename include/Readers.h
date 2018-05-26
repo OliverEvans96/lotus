@@ -32,6 +32,7 @@ struct InputStream {
   string search(vector<string> terms);
   bool searchLine(string term);
   string searchLine(vector<string> terms);
+  bool nextLineBlank();
 };
 
 //Split a string into a string vector of words
@@ -165,7 +166,7 @@ struct DumpfileReader {
   DumpfileReader(Options _options, SimData &simData);
   void countAtoms();
   void countSteps();
-  void read();
+  void readFrame();
 };
 
 
