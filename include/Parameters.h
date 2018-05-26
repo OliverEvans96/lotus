@@ -28,7 +28,8 @@ struct Options
   bool plotAllTogether;
   bool debugOutput; // Enable debuguging print statments
   bool onlyFindInterface; // Locate monolayer in first frame and exit
-  string inLoc;
+  string dumpfile;
+  string datafile;
   string outLoc;
 
   vector<int> liquidTypes, solidTypes;

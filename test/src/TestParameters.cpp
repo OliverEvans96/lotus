@@ -21,7 +21,8 @@ TEST_CASE("Parameters", "[lotus]") {
   REQUIRE(options.solidTypes[1] == 2);
   REQUIRE(options.solidTypes[2] == 3);
   REQUIRE(options.stepsPerFrame == 3);
-  REQUIRE(options.inLoc == "../test/data/20A_atom2_first8");
+  REQUIRE(options.dumpfile == "../test/data/20A_atom2_first8");
+  REQUIRE(options.datafile == "../test/data/lammps_noZperiod_3A.dat");
   REQUIRE(options.outLoc == "../test/run");
   REQUIRE(options.skipToEnd == false);
   REQUIRE(options.trackMonoAtoms == false);

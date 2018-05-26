@@ -147,7 +147,8 @@ void Options::readConfig(char* _configPath) {
 
   parseRequiredOption("liquidTypes", liquidTypes);
   parseRequiredOption("solidTypes", solidTypes);
-  parseRequiredOption("inLoc", inLoc);
+  parseRequiredOption("dumpfile", dumpfile);
+  parseRequiredOption("datafile", datafile);
   parseRequiredOption("outLoc", outLoc);
 
   parseDefaultOption("stepsPerFrame", stepsPerFrame, 5);
@@ -182,7 +183,8 @@ void Options::printOption(string optionName, vector<T> optionVec) {
 void Options::printOptions() {
   printOption("liquidTypes", liquidTypes);
   printOption("solidTypes", solidTypes);
-  printOption("inLoc", inLoc);
+  printOption("dumpfile", dumpfile);
+  printOption("datafile", datafile);
   printOption("outLoc", outLoc);
   printOption("stepsPerFrame", stepsPerFrame);
   printOption("skipToEnd", skipToEnd);

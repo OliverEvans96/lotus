@@ -138,7 +138,7 @@ void TimestepReader::readTimestep() {
 }
 
 void FrameReader::openStream(Options options) {
-  inputStream.open(options.inLoc);
+  inputStream.open(options.dumpfile);
 }
 
 void FrameReader::setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {

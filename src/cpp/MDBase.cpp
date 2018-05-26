@@ -59,7 +59,7 @@ int SimData::countSteps(ifstream &inFile)
 }
 
 SimData::SimData(Options &options) {
-  inputStream.open(options.inLoc);
+  inputStream.open(options.dumpfile);
   numAtoms = countAtoms(inputStream.stream);
   numSteps = countSteps(inputStream.stream);
 }

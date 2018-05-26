@@ -1,4 +1,5 @@
-inLoc: ../test/data/20A_atom2_first8
+dumpfile: ../test/data/20A_atom2_first8
+datafile: ../test/data/lammps_noZperiod_3A.dat
 outLoc: ../test/run
 stepsPerFrame: 3
 solidTypes:
