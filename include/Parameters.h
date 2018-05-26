@@ -31,6 +31,7 @@ struct Options
   string dumpfile;
   string datafile;
   string outLoc;
+  int waterBondType;
 
   vector<int> liquidTypes, solidTypes;
 

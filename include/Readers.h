@@ -2,6 +2,8 @@
 #define READERS_H
 
 #include <cstdio>
+#include <map>
+#include <cctype>
 
 #include "Utils.h"
 #include "MDBase.h"
@@ -10,10 +12,38 @@
 
 using namespace std;
 
+//////////////////
+// Input Stream //
+//////////////////
+
+struct InputStream {
+  int lineNum;
+  string filename;
+  ifstream stream;
+
+  InputStream();
+  InputStream(string _filename);
+  ~InputStream();
+  void open(string _filename);
+  void verifyStream();
+  void skipLines(int numLines);
+  void skipWhitespace();
+  bool search(string term);
+  string search(vector<string> terms);
+  bool searchLine(string term);
+  string searchLine(vector<string> terms);
+};
+
+//Split a string into a string vector of words
+vector<string> strSplit(string str);
+
+//Get index and coordinates from string array of words
+void strToData(double *coords,double *velocities,double& dipole,string line);
+
+
 /////////////
 // Readers //
 /////////////
-
 
 // These read from an InputStream, but don't actually open the files.
 class HeaderReader {
@@ -60,21 +90,25 @@ class TimestepReader {
 
 class FrameReader {
  public:
-  FrameReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
-  void setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
 
-
+  Options options;
   TimestepReader timestepReader;
   AtomArray* atomArrayPtr;
   Timestep* timestepPtr;
   SimData* simDataPtr;
   InputStream inputStream;
   Frame frame;
-
   int stepsPerFrame;
-  void openStream(Options _options);
+
+  FrameReader();
+  FrameReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
+  void setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
+  void openStream();
   void updateFrame();
   void readFrame();
+
+  void countAtoms();
+  void countSteps();
 };
 
 class InitialTimestepReader {
@@ -97,5 +131,42 @@ class InitialTimestepReader {
   void writeToFile();
   void readInitialTimestep();
 };
+
+///////////////////////
+// Top-level Readers //
+///////////////////////
+
+// Read data file for all Masses & liquid Bonds
+class DatafileReader {
+  Options options;
+  InputStream inputStream;
+  vector<int> liquidTypes;
+  int HType, OType;
+  ifstream *streamPtr;
+  SimData *simDataPtr;
+  int numAtoms;
+
+  void readNumAtoms();
+  void readMasses();
+  void readWaterBonds();
+
+ public:
+  DatafileReader(Options _options, SimData &simData);
+  void openStream();
+  void read();
+};
+
+struct DumpfileReader {
+  Options options;
+  FrameReader frameReader;
+  AtomArray atomArray;
+  SimData *simDataPtr;
+
+  DumpfileReader(Options _options, SimData &simData);
+  void countAtoms();
+  void countSteps();
+  void read();
+};
+
 
 #endif

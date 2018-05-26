@@ -30,14 +30,15 @@ class AtomArray
   void deallocateArrays();
 
  public:
-  AtomArray();
-  AtomArray(SimData &simData);
-  ~AtomArray();
-
   int numAtoms;
   double *x, *y, *z, *r, *p;
   double *vx, *vy, *vz, *vr, *vp;
   double *cosTheta;
+
+  AtomArray();
+  AtomArray(SimData &simData);
+  ~AtomArray();
+  void setSimData(SimData &simData);
   void setAtom(int i, Atom atom);
   void getAtom(int i, Atom atom);
   void setNumAtoms(int _numAtoms);

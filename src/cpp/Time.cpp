@@ -24,9 +24,4 @@ void LastFrame::setSteps(int numSteps, int stepsPerFrame) {
   extraSteps = numSteps % stepsPerFrame;
   divisible = (extraSteps == 0);
   penultimateFrame = numSteps - extraSteps;
-
-  cout << "extraSteps: " << extraSteps << endl;
-  cout << "divisible: " << divisible << endl;
-  cout << "penultimateFrame: " << penultimateFrame << endl;
-
 }

@@ -1,67 +1,11 @@
 #include "MDBase.h"
 
-//Count the number of water atoms in the first timestep
-int SimData::countAtoms(ifstream &inFile)
-{
-  //Count number of atoms
-  bool countFlag=true;
-  string line;
-  int numAtoms=0;
-
-  // TODO: DO THE PARSING HERE AS WELL
-
-  //Ignore the first 9 lines
-  for(int i=0;i<9;i++) {
-    inFile.ignore(256,'\n');
-  }
-
-  while(countFlag)
-    {
-      getline(inFile,line);
-
-      //Count until reaching a line containing "TIMESTEP"
-      if(line.find("TIMESTEP")!=string::npos||inFile.eof()) {
-          countFlag=false;
-        }
-      else
-        numAtoms++;
-    }
-
-  //Unset eof flag (if set) & return to beginning of file
-  inFile.clear();
-  inFile.seekg(0,ios::beg);
-
-  cout << "Counted " << numAtoms << " atoms." << endl;
-
-  return numAtoms;
+SimData::SimData(Options options) {
+  setOptions(options);
 }
 
-//Count the number of timesteps
-int SimData::countSteps(ifstream &inFile)
-{
-  string line;
-  int numSteps=0;
-  int lineNum=0;
-
-  //Count number of timesteps
-  while(getline(inFile,line))
-    {
-      if(line.find("TIMESTEP")!=string::npos)
-        numSteps++;
-    }
-
-  //Unset eof flag (if set) & return to beginning of file
-  inFile.clear();
-  inFile.seekg(0,ios::beg);
-
-  cout << "Counted " << numSteps << " timesteps." << endl;
-  return numSteps;
-}
-
-SimData::SimData(Options &options) {
-  inputStream.open(options.dumpfile);
-  numAtoms = countAtoms(inputStream.stream);
-  numSteps = countSteps(inputStream.stream);
+void SimData::setOptions(Options options) {
+  setStepsPerFrame(options.stepsPerFrame);
 }
 
 void SimData::setStepsPerFrame(int _stepsPerFrame) {
@@ -72,6 +16,7 @@ void SimData::setStepsPerFrame(int _stepsPerFrame) {
   //If not divisible, then the last frame will have more than the rest
   numFrames = (int) floor(numSteps/stepsPerFrame);
 }
+
 
 // void Grid::mmmmm() {
 //   // Replace with Grid object ////////////////////////////////

@@ -10,6 +10,10 @@ using namespace std;
 // Conversion factor - number density to water mass density
 const double convFact = 18/.60221409;
 
+/////////////////////
+// Simulation Data //
+/////////////////////
+
 // Source of truth for general MD variables.
 // Variables are set here, and this object (or a pointer)
 // is passed around and read elsewhere.
@@ -18,16 +22,15 @@ struct SimData {
   int numSteps;
   int numFrames;
   int stepsPerFrame;
-  InputStream inputStream;
   LastFrame lastFrame;
+  map<int, double> masses;
+  map<int, int[2]> waterBonds;
 
-  SimData();
-  SimData(Options &options);
-  int countAtoms(ifstream &inFile);
-  int countSteps(ifstream &inFile);
-
-  void setStepsPerFrame(int stepsPerFrame);
+  SimData(Options options);
+  void setOptions(Options options);
+  void setStepsPerFrame(int _stepsPerFrame);
 };
+
 
 
 struct Grid {
@@ -50,10 +53,6 @@ struct Grid {
   void init();
   void deallocateBins();
 };
-
-//Count the number of water atoms in the first timestep
-int countAtoms(ifstream &inFile);
-
 
 //double fitCircle(TGraph2D* circlePointsGraph,CircleFit circle,double xMax,int timestep);
 

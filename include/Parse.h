@@ -1,25 +1,14 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-using namespace std;
-
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 #include <cstdlib>
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <cmath>
-#include <cstdlib>
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cmath>
-#include <cstdlib>
+#include "Utils.h"
 
 using namespace std;
 

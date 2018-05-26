@@ -7,6 +7,7 @@
 using namespace std;
 
 const int NUM_ATOMS = 513699;
+const int NUM_STEPS = 8;
 
 TEST_CASE("Readers", "[lotus]") {
   int argc = 2;
@@ -14,12 +15,12 @@ TEST_CASE("Readers", "[lotus]") {
   CommandLineParser commandLineParser(argc, argv);
   Options options = commandLineParser.options;
   SimData simData(options);
-  AtomArray atomArray(simData);
 
+  DatafileReader datafileReader(options, simData);
   REQUIRE(simData.numAtoms == NUM_ATOMS);
 
-  FrameReader frameReader(options, &atomArray, &simData);
-  REQUIRE(atomArray.numAtoms == NUM_ATOMS);
+  DumpfileReader dumpfileReader(options, simData);
+  REQUIRE(simData.numSteps == NUM_STEPS);
 
   //frameReader.readFrame();
 }

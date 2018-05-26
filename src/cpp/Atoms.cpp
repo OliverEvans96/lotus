@@ -17,19 +17,20 @@ void Atom::calculateNonCartesian() {
 // Multi-atom data //
 /////////////////////
 
-AtomArray::AtomArray() {
-  cout << "Warning: using default constructor." << endl;
-}
+AtomArray::AtomArray() {}
 
 AtomArray::AtomArray(SimData &simData) {
-  setNumAtoms(simData.numAtoms);
-  allocateArrays();
+  setSimData(simData);
 }
 
 AtomArray::~AtomArray() {
   deallocateArrays();
 }
 
+void AtomArray::setSimData(SimData &simData) {
+  setNumAtoms(simData.numAtoms);
+  allocateArrays();
+}
 void AtomArray::allocateArrays() {
   x = new double[numAtoms];
   y = new double[numAtoms];

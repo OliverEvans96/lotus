@@ -152,6 +152,7 @@ void Options::readConfig(char* _configPath) {
   parseRequiredOption("outLoc", outLoc);
 
   parseDefaultOption("stepsPerFrame", stepsPerFrame, 5);
+  parseDefaultOption("waterBondType", waterBondType, 2);
   parseDefaultOption("skipToEnd", skipToEnd, false);
   parseDefaultOption("trackMonoAtoms", trackMonoAtoms, false);
   parseDefaultOption("saveImages", saveImages, false);
@@ -186,6 +187,7 @@ void Options::printOptions() {
   printOption("dumpfile", dumpfile);
   printOption("datafile", datafile);
   printOption("outLoc", outLoc);
+  printOption("waterBondType", waterBondType);
   printOption("stepsPerFrame", stepsPerFrame);
   printOption("skipToEnd", skipToEnd);
   printOption("trackMonoAtoms", trackMonoAtoms);

@@ -1,103 +1,5 @@
 #include "Utils.h"
 
-void InputStream::verifyStream() {
-  //Check files
-  if (stream.good())
-    cout << "Successfully opened " << filename << endl;
-  else
-    {
-      cout << "Failed to open " << filename << endl;
-      exit(1);
-    }
-}
-
-InputStream::InputStream() {};
-
-InputStream::~InputStream() {
-  stream.close();
-}
-
-void InputStream::open(string _filename) {
-  lineNum = 0;
-  filename = _filename;
-  stream.open(filename);
-  verifyStream();
-}
-
-InputStream::InputStream(string _filename) {
-  open(_filename);
-}
-
-void InputStream::skipLines(int numLines) {
-  // Ignore lines from the file (at most 256 characters)
-  int maxChars = 256;
-  for(int i=0; i<numLines; i++) {
-    stream.ignore(maxChars, '\n');
-  }
-
-  // Increment line number counter accordingly
-  lineNum += numLines;
-}
-
-//Split a string into a string vector of words
-vector<string> strSplit(string str)
-{
-  int len=str.length();
-  stringstream ss(str);
-  int numWords=1;
-  bool foundSpace=false;
-
-  //Count number of words
-  for(int ch=0;ch<len;ch++)
-    {
-      if(isspace(str[ch]))
-        foundSpace=true;
-      if(!isspace(str[ch])&&foundSpace)
-        {
-          numWords++;
-          foundSpace=false;
-        }
-    }
-
-  //Allocate array
-  vector<string> arr(numWords);
-
-  //Read string into array
-  for(int i=0;i<len;i++)
-    ss >> arr[i];
-
-  return arr;
-}
-
-void strToData(double *coords,double *velocities,double &dipole,string line)
-{
-  string str;
-
-  int index;
-  //Split string into array of words
-  vector<string> strArr=strSplit(line);
-
-  //Get index
-  str=strArr[0];
-  index=atoi(str.data());
-
-  //Save values
-  //string -> cstring -> double
-  for(int i=0;i<3;i++)
-    {
-      //Get coordinates from the second, third, and fourth elements in the array
-      str=strArr[1+i];
-      *coords++=atof(str.data());
-
-      //Get velocities from the sixth, seventh, and eighth elements in the array
-      str=strArr[5+i];
-      *velocities++=atof(str.data());
-    }
-
-  //Save dipole moment cos(theta)
-  dipole=atof(strArr[10].data());
-}
-
 //Choose the highest value in a vector
 double max(vector<double> v)
 {
@@ -150,6 +52,11 @@ bool isLess(int a,int b) {
 //Check whether x is in v
 bool isIn(int x, vector<int>v) {
   return binary_search(v.begin(),v.end(),x,isLess);
+}
+
+// Does the string contain a substring?
+bool isIn(string str, string substr) {
+  return str.find(substr)!=string::npos;
 }
 
 //Check whether a file exists

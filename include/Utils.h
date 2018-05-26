@@ -26,25 +26,6 @@ using namespace std;
 
 const double PI = 3.141592653589793;
 
-struct InputStream {
-  int lineNum;
-  string filename;
-  ifstream stream;
-
-  InputStream();
-  InputStream(string _filename);
-  ~InputStream();
-  void open(string _filename);
-  void verifyStream();
-  void skipLines(int numLines);
-};
-
-//Split a string into a string vector of words
-vector<string> strSplit(string str);
-
-//Get index and coordinates from string array of words
-void strToData(double *coords,double *velocities,double& dipole,string line);
-
 //Choose the highest value from a vector
 double max(vector<double> v);
 
@@ -63,6 +44,9 @@ bool isLess(int a,int b);
 
 //Is x in v?
 bool isIn(int x, vector<int>v);
+
+// Does the string contain a substring?
+bool isIn(string str, string substr);
 
 //Check whether a file exists
 bool file_exists(const string& name);

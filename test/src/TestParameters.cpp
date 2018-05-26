@@ -14,6 +14,7 @@ TEST_CASE("Parameters", "[lotus]") {
   char* argv[2] = {"test", "../test/data/test_config.yaml"};
   CommandLineParser commandLineParser(argc, argv);
   Options options = commandLineParser.options;
+
   REQUIRE(options.configPath == argv[1]);
   REQUIRE(options.liquidTypes[0] == 4);
   REQUIRE(options.liquidTypes[1] == 5);

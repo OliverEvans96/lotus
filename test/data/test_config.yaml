@@ -9,4 +9,5 @@ solidTypes:
 liquidTypes:
     - 4
     - 5
+waterBondType: 2
 

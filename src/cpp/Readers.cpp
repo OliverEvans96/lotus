@@ -1,5 +1,230 @@
 #include "Readers.h"
 
+//////////////////
+// Input Stream //
+//////////////////
+
+void InputStream::verifyStream() {
+  //Check files
+  if (stream.good())
+    cout << "Successfully opened " << filename << endl;
+  else
+    {
+      cout << "Failed to open " << filename << endl;
+      exit(1);
+    }
+}
+
+InputStream::InputStream() {};
+
+InputStream::~InputStream() {
+  stream.close();
+}
+
+void InputStream::open(string _filename) {
+  lineNum = 0;
+  filename = _filename;
+  stream.open(filename);
+  verifyStream();
+}
+
+InputStream::InputStream(string _filename) {
+  open(_filename);
+}
+
+void InputStream::skipLines(int numLines) {
+  // Ignore lines from the file (at most 256 characters)
+  int maxChars = 256;
+  for(int i=0; i<numLines; i++) {
+    stream.ignore(maxChars, '\n');
+  }
+
+  // Increment line number counter accordingly
+  lineNum += numLines;
+}
+
+void InputStream::skipWhitespace() {
+  while(isspace(stream.peek())) {
+    stream.get();
+  }
+}
+
+bool InputStream::search(string term) {
+  // Move the ifstream cursor to the beginning of
+  // the first line containing `term`.
+  // (the matching line will not be consumed)
+  // Returns whether the line was found
+
+  string line;
+  bool found;
+  int pos;
+
+  found = false;
+
+  while(stream.good()) {
+    // Save beginning of line
+    pos = stream.tellg();
+    getline(stream, line);
+    if(isIn(line, term)) {
+      found = true;
+      // Rewind to line beginning
+      stream.seekg(pos);
+      break;
+    }
+  }
+
+  return found;
+}
+
+string InputStream::search(vector<string> terms) {
+  // Move the ifstream cursor one line past
+  // the first line containing one of the
+  // strings in `terms`.
+  // (the matching line will be consumed)
+  // Returns the line found
+
+  string line;
+  string term;
+  bool found;
+  vector<string>::iterator it;
+
+  term = "";
+  found = false;
+
+  while(stream.good()) {
+    getline(stream, line);
+    for(it=terms.begin(); it<terms.end(); it++) {
+      term = *it;
+      if(isIn(line, term)) {
+        found = true;
+        break;
+      }
+    }
+  }
+
+  if(!found) {
+    term = "";
+  }
+
+  return term;
+}
+
+
+bool InputStream::searchLine(string term) {
+  // Move the ifstream cursor one line past
+  // the first line exactly equal to `term`.
+  // (the matching line will be consumed)
+  // Returns whether the line was found
+
+  string line;
+  bool found;
+
+  found = false;
+
+  while(stream.good()) {
+    getline(stream, line);
+    if(line == term) {
+      found = true;
+      break;
+    }
+  }
+
+  return found;
+}
+
+string InputStream::searchLine(vector<string> terms) {
+  // Move the ifstream cursor one line past
+  // the first line exactly equal to one of the
+  // strings in `terms`.
+  // (the matching line will be consumed)
+  // Returns the line found
+
+  string line;
+  string term;
+  bool found;
+  vector<string>::iterator it;
+
+  term = "";
+  found = false;
+
+  while(stream.good()) {
+    getline(stream, line);
+    for(it=terms.begin(); it<terms.end(); it++) {
+      term = *it;
+      if(line == term) {
+        found = true;
+        break;
+      }
+    }
+  }
+
+  if(!found) {
+    term = "";
+  }
+
+  return term;
+}
+
+//Split a string into a string vector of words
+vector<string> strSplit(string str)
+{
+  int len=str.length();
+  stringstream ss(str);
+  int numWords=1;
+  bool foundSpace=false;
+
+  //Count number of words
+  for(int ch=0;ch<len;ch++)
+    {
+      if(isspace(str[ch]))
+        foundSpace=true;
+      if(!isspace(str[ch])&&foundSpace)
+        {
+          numWords++;
+          foundSpace=false;
+        }
+    }
+
+  //Allocate array
+  vector<string> arr(numWords);
+
+  //Read string into array
+  for(int i=0;i<len;i++)
+    ss >> arr[i];
+
+  return arr;
+}
+
+// TODO: Delete
+void strToData(double *coords,double *velocities,double &dipole,string line)
+{
+  string str;
+
+  int index;
+  //Split string into array of words
+  vector<string> strArr=strSplit(line);
+
+  //Get index
+  str=strArr[0];
+  index=atoi(str.data());
+
+  //Save values
+  //string -> cstring -> double
+  for(int i=0;i<3;i++)
+    {
+      //Get coordinates from the second, third, and fourth elements in the array
+      str=strArr[1+i];
+      *coords++=atof(str.data());
+
+      //Get velocities from the sixth, seventh, and eighth elements in the array
+      str=strArr[5+i];
+      *velocities++=atof(str.data());
+    }
+
+  //Save dipole moment cos(theta)
+  dipole=atof(strArr[10].data());
+}
+
 /////////////
 // Readers //
 /////////////
@@ -108,7 +333,7 @@ void LineReader::readLine() {
   atom.cosTheta = dipole;
   *atomNumPtr++;
 
-  // READ THE LINE AND STORE DATA IN atom
+  // Read the line and store data in atom
 }
 
 void TimestepReader::setContext(InputStream* _inputStreamPtr, AtomArray* atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr) {
@@ -137,19 +362,23 @@ void TimestepReader::readTimestep() {
   timestepPtr->stepNum++;
 }
 
-void FrameReader::openStream(Options options) {
+void FrameReader::openStream() {
   inputStream.open(options.dumpfile);
 }
 
-void FrameReader::setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+void FrameReader::setContext(Options _options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+  options = _options;
   atomArrayPtr = _atomArrayPtr;
   simDataPtr = _simDataPtr;
 
   stepsPerFrame = simDataPtr->stepsPerFrame;
-  openStream(options);
+  simDataPtr->setOptions(options);
+  openStream();
 
   timestepReader.setContext(&inputStream, atomArrayPtr, timestepPtr, simDataPtr);
 }
+
+FrameReader::FrameReader() {}
 
 FrameReader::FrameReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
   setContext(options, _atomArrayPtr, _simDataPtr);
@@ -236,3 +465,165 @@ void InitialTimestepReader::readInitialTimestep() {
   }
 }
 
+
+///////////////////////
+// Top-level Readers //
+///////////////////////
+
+DatafileReader::DatafileReader(Options _options, SimData &simData) {
+  options = _options;
+  simDataPtr = &simData;
+  inputStream.open(options.datafile);
+  streamPtr = &inputStream.stream;
+  read();
+}
+
+void DatafileReader::readNumAtoms() {
+  bool found;
+  int pos = streamPtr->tellg();
+  streamPtr->seekg(0, ios::beg);
+
+  found = inputStream.search("atoms");
+  *streamPtr >> numAtoms;
+
+  streamPtr->seekg(pos);
+  simDataPtr->numAtoms = numAtoms;
+  cout << "Read " << numAtoms << " atoms." << endl;
+}
+
+void DatafileReader::readMasses() {
+  string word;
+  int type;
+  double mass;
+  map<int, bool> foundOne;
+
+  while(streamPtr->good()) {
+    if(streamPtr->peek() == '\n') {
+      break;
+    }
+    else {
+      *streamPtr >> type >> mass;
+      simDataPtr->masses[type] = mass;
+    }
+  }
+}
+
+void DatafileReader::readWaterBonds() {
+  int bondId, bondType, OId, HId;
+  map<int, bool> foundOne;
+
+  while(streamPtr->good()) {
+    if(streamPtr->peek() == '\n') {
+      break;
+    }
+    else {
+      // Assume that O atom comes first in bond, then H
+      *streamPtr >> bondId >> bondType >> OId >> HId;
+      if(bondType == options.waterBondType) {
+        if(foundOne[OId]) {
+          simDataPtr->waterBonds[OId][1] = HId;
+        }
+        else {
+          simDataPtr->waterBonds[OId][0] = HId;
+        }
+      }
+    }
+  }
+}
+
+void DatafileReader::read() {
+  string section;
+  vector<string> sections;
+
+  sections.push_back("Masses");
+  sections.push_back("Bonds");
+
+  readNumAtoms();
+
+  for(int i=0; i<2; i++) {
+    section = inputStream.search(sections);
+
+    inputStream.skipWhitespace();
+    if(section == "Masses") {
+      readMasses();
+    }
+    else if(section == "Bonds") {
+      readWaterBonds();
+    }
+  }
+}
+
+DumpfileReader::DumpfileReader(Options _options, SimData &simData) {
+  options = _options;
+  simDataPtr = &simData;
+  atomArray.setSimData(simData);
+  frameReader.setContext(options, &atomArray, &simData);
+  read();
+}
+
+//Count the number of water atoms in the first timestep
+void DumpfileReader::countAtoms() {
+  //Count number of atoms
+  bool countFlag=true;
+  string line;
+  int numAtoms=0;
+  ifstream *streamPtr;
+
+  streamPtr = &frameReader.inputStream.stream;
+
+  //Ignore the first 9 lines
+  for(int i=0;i<9;i++) {
+    streamPtr->ignore(256,'\n');
+  }
+
+  while(countFlag)
+    {
+      getline(*streamPtr,line);
+
+      //Count until reaching a line containing "TIMESTEP"
+      if(isIn(line, "TIMESTEP") || streamPtr->eof()) {
+          countFlag=false;
+        }
+      else
+        numAtoms++;
+    }
+
+  //Unset eof flag (if set) & return to beginning of file
+  streamPtr->clear();
+  streamPtr->seekg(0,ios::beg);
+
+  cout << "Counted " << numAtoms << " atoms." << endl;
+  simDataPtr->numAtoms = numAtoms;
+}
+
+//Count the number of timesteps
+void DumpfileReader::countSteps()
+{
+  ifstream *streamPtr;
+  string line;
+  int numSteps=0;
+  int lineNum=0;
+
+  streamPtr = &frameReader.inputStream.stream;
+
+  //Count number of timesteps
+  while(getline(*streamPtr,line))
+    {
+      if(isIn(line, "TIMESTEP")) {
+        numSteps++;
+      }
+    }
+
+  //Unset eof flag (if set) & return to beginning of file
+  streamPtr->clear();
+  streamPtr->seekg(0,ios::beg);
+
+  cout << "Counted " << numSteps << " timesteps." << endl;
+  simDataPtr->numSteps = numSteps;
+}
+
+void DumpfileReader::read() {
+  // Don't count atoms since datafile is provided
+  // Just count steps
+  countSteps();
+}
