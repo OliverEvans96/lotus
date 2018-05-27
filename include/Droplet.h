@@ -13,12 +13,17 @@ using namespace std;
 
 struct Monolayer
 {
+  Monolayer();
   Monolayer(AtomArray atoms);
   double radius;
   double height;
-  AtomArray atoms;
+  Options options;
+  SimData *simDataPtr;
+  AtomArray *atomArrayPtr;
+  TH1D hMono;
 
   void calculateRadius();
+  void fillOne();
 
   //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius
   int monoFlux(vector<double> r,vector<double>z,double* monoLimits,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave,int &nMono);
@@ -37,10 +42,18 @@ struct CircularBulk
   double volume;
   double contactAngle;
   CircleFit circle;
+  Options options;
+  SimData simDataPtr;
+  AtomArray atomArrayPtr;
+  TH2D hBulk;
 
+  void setContext(Options options, SimData *simDataPtr, AtomArray *atomArrayPtr);
+  void fillOne(Atom atom);
   void calculateHeight();
   void calculateRadius();
   void calculateContactAngle();
+  void calculateSphericalVolume();
+  void calculateCylindricalVolume();
 
   double guessRowBoundary(TH2D* hist,int j);
 
@@ -54,20 +67,20 @@ struct CircularBulk
   void guessTanhFit(TH1D* hist,double* fitBounds,double &ld, double &width,double &boundary,double &xlo,double &xhi);
 
   double solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, int startBin, int frameStep, double bulkEdge, string fitType, double pos, TLegend* tanhLegend, TLine** tanhLines, TText **tanhTexts, TPaveText *tanhTextBox);
-
 };
 
-struct SphericalBulk : CircularBulk
-{
-  SphericalBulk();
-  void calculateVolume();
+struct Droplet {
+  CircularBulk bulk;
+  Monolayer monolayer;
+  Options options;
+  SimData *simDataPtr;
+
+  Droplet(Options _options, SimData &simData);
+
+  void fillOne(Atom &atom);
+  void fill(AtomArray &atomArray);
 };
 
-struct CylindricalBulk : CircularBulk
-{
-  CylindricalBulk();
-  void calculateVolume();
-};
 
 ////////////////////
 // Misc. Analysis //
@@ -76,7 +89,7 @@ struct CylindricalBulk : CircularBulk
 struct monolayerTracker
 {
   int numMonoIDs; // # of atoms to track
-  int* id; // IDs of atoms 
+  int* id; // IDs of atoms
   int* monoIDs; // ??
   AtomArray monoAtoms;
 };

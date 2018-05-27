@@ -67,7 +67,7 @@ bool InputStream::search(string term) {
     // Save beginning of line
     pos = stream.tellg();
     getline(stream, line);
-    if(isIn(line, term)) {
+    if(isIn(term, line)) {
       found = true;
       // Rewind to line beginning
       stream.seekg(pos);
@@ -588,7 +588,7 @@ void DumpfileReader::countAtoms() {
       getline(*streamPtr,line);
 
       //Count until reaching a line containing "TIMESTEP"
-      if(isIn(line, "TIMESTEP") || streamPtr->eof()) {
+      if(isIn("TIMESTEP", line) || streamPtr->eof()) {
           countFlag=false;
         }
       else
@@ -618,7 +618,7 @@ void DumpfileReader::countSteps()
   //Count number of timesteps
   while(getline(*streamPtr,line))
     {
-      if(isIn(line, "TIMESTEP")) {
+      if(isIn("TIMESTEP", line)) {
         numSteps++;
       }
     }
@@ -633,4 +633,8 @@ void DumpfileReader::countSteps()
 
 void DumpfileReader::readFrame() {
   frameReader.readFrame();
+}
+
+bool DumpfileReader::good() {
+  return frameReader.frame.frameNum < simDataPtr->numFrames;
 }

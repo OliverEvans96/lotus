@@ -17,6 +17,7 @@ struct Options
   StrVecMap yamlMap;
   char* configPath;
 
+  string geometry; // spherical or cylindrical
   int stepsPerFrame;
   bool skipToEnd; // Jump to last frame
   bool trackMonoAtoms; // Follow a few atoms that end up in the monolayer

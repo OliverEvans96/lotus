@@ -55,7 +55,7 @@ bool isIn(int x, vector<int>v) {
 }
 
 // Does the string contain a substring?
-bool isIn(string str, string substr) {
+bool isIn(string substr, string str) {
   return str.find(substr)!=string::npos;
 }
 

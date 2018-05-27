@@ -8,6 +8,7 @@
 #include "Utils.h"
 #include "MDBase.h"
 #include "Atoms.h"
+#include "Droplet.h"
 #include "Time.h"
 
 using namespace std;
@@ -169,6 +170,7 @@ struct DumpfileReader {
   void countAtoms();
   void countSteps();
   void readFrame();
+  bool good();
 };
 
 
