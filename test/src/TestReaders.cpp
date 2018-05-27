@@ -31,6 +31,6 @@ TEST_CASE("Readers", "[lotus]") {
   DumpfileReader dumpfileReader(options, simData);
   REQUIRE(simData.numSteps == NUM_STEPS);
 
-  //dumpfileReader.readFrame();
+  dumpfileReader.readFrame();
 }
 

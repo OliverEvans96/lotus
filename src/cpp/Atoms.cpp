@@ -28,8 +28,8 @@ AtomArray::~AtomArray() {
 }
 
 void AtomArray::setSimData(SimData &simData) {
-  setNumAtoms(simData.numAtoms);
-  allocateArrays();
+  simDataPtr = &simData;
+  setNumAtoms(simDataPtr->numAtoms);
 }
 void AtomArray::allocateArrays() {
   x = new double[numAtoms];
@@ -65,6 +65,7 @@ void AtomArray::setNumAtoms(int _numAtoms) {
 }
 
 void AtomArray::setAtom(int i, Atom atom) {
+  printf("%5.2f %5.2f %5.2f %5.2f %5.2f\n");
   x[i] = atom.x;
   y[i] = atom.y;
   z[i] = atom.z;

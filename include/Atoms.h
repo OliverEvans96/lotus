@@ -2,6 +2,7 @@
 #define ATOMS_H
 
 #include <cstring>
+#include <cstdio>
 #include "Utils.h"
 #include "MDBase.h"
 
@@ -26,6 +27,7 @@ struct Atom
 
 class AtomArray
 {
+  SimData *simDataPtr;
   void allocateArrays();
   void deallocateArrays();
 

@@ -34,9 +34,8 @@ InputStream::InputStream(string _filename) {
 
 void InputStream::skipLines(int numLines) {
   // Ignore lines from the file (at most 256 characters)
-  int maxChars = 256;
   for(int i=0; i<numLines; i++) {
-    stream.ignore(maxChars, '\n');
+    stream.ignore(256, '\n');
   }
 
   // Increment line number counter accordingly
@@ -157,7 +156,6 @@ string InputStream::searchLine(vector<string> terms) {
       term = *it;
       if(line == term) {
         found = true;
-        cout << "Found " << line << endl;
         break;
       }
     }
@@ -165,7 +163,6 @@ string InputStream::searchLine(vector<string> terms) {
 
   if(!found) {
     term = "";
-    cout << "Not found" << endl;
   }
 
   return term;
@@ -178,6 +175,14 @@ bool InputStream::nextLineBlank() {
     blank = (stream.peek() == '\n');
   }
   return blank;
+}
+
+string InputStream::peekLine() {
+  string line;
+  int pos = stream.tellg();
+  getline(stream, line);
+  stream.seekg(pos);
+  return line;
 }
 
 //Split a string into a string vector of words
@@ -244,20 +249,24 @@ void strToData(double *coords,double *velocities,double &dipole,string line)
 // Readers //
 /////////////
 
-void HeaderReader::setContext(InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* lineNumPtr) {
+void HeaderReader::setContext(InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr) {
   inputStreamPtr = _inputStreamPtr;
   timestepPtr = _timestepPtr;
-  lineNumPtr = lineNumPtr;
+  lineNumPtr = _lineNumPtr;
 }
 
 void HeaderReader::readHeader() {
   string junk;
-  inputStreamPtr->stream >> junk >> timestepPtr->time;
-  inputStreamPtr->stream.ignore();
-  *lineNumPtr++;
+  getline(inputStreamPtr->stream, junk);
+  inputStreamPtr->stream >> timestepPtr->time;
+  // TODO: Read box dimensions for periodic BCs
+  for(int i=0; i<7; i++)
+    getline(inputStreamPtr->stream, junk);
+
+  *lineNumPtr += 9;
 
   cout << endl;
-  cout << "Timestep " << timestepPtr->time << " @ line " << *lineNumPtr-1 << endl;
+  cout << "Timestep " << timestepPtr->time << " @ line " << *lineNumPtr << endl;
 }
 
 
@@ -329,28 +338,22 @@ void LineReader::strToData(double* coords,double* velocities,double& dipole,stri
 
 void LineReader::readLine() {
   double coords[3], velocities[3];
-  double dipole;
-  string line;
-
-  getline(inputStreamPtr->stream,line);
-  *lineNumPtr++;
-
-  //Save data
-  strToData(coords,velocities,dipole,line);
-  atom.x = coords[0];
-  atom.y = coords[1];
-  atom.z = coords[2];
-
-  atom.vx = velocities[0];
-  atom.vy = velocities[1];
-  atom.vz = velocities[2];
-
-  atom.cosTheta = dipole;
-  *atomNumPtr++;
+  int atomId, atomType;
+  int ix, iy, iz;
 
   // Read the line and store data in atom
+  // TODO: Account for periodic BCs
+  inputStreamPtr->stream >> atomId >> atomType
+                         >> atom.x >> atom.y >> atom.z
+                         >> ix >> iy >> iz;
+  *lineNumPtr++;
+  *atomNumPtr++;
 }
 
+TimestepReader::TimestepReader() {
+  atomNum = 0;
+  lineNum = 1;
+}
 void TimestepReader::setContext(InputStream* _inputStreamPtr, AtomArray* atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr) {
   inputStreamPtr = _inputStreamPtr;
   lineReader.setContext(inputStreamPtr, &atomNum, &lineNum);
@@ -365,15 +368,11 @@ void TimestepReader::resetAtomCounter() {
 
 void TimestepReader::readTimestep() {
   resetAtomCounter();
-
   headerReader.readHeader();
-  cout << "Step # " << timestepPtr->time << endl;
-
   for(int i=0; i<atomArrayPtr->numAtoms; i++) {
     lineReader.readLine();
     atomArrayPtr->setAtom(i, lineReader.atom);
   }
-
   timestepPtr->stepNum++;
 }
 
@@ -390,7 +389,7 @@ void FrameReader::setContext(Options _options, AtomArray* _atomArrayPtr, SimData
   simDataPtr->setOptions(options);
   openStream();
 
-  timestepReader.setContext(&inputStream, atomArrayPtr, timestepPtr, simDataPtr);
+  timestepReader.setContext(&inputStream, atomArrayPtr, &timestep, simDataPtr);
 }
 
 FrameReader::FrameReader() {}
@@ -400,8 +399,8 @@ FrameReader::FrameReader(Options options, AtomArray* _atomArrayPtr, SimData* _si
 }
 
 void FrameReader::updateFrame() {
-  frame.frameStep = timestepPtr->stepNum;
-  frame.time = timestepPtr->time;
+  frame.frameStep = timestep.stepNum;
+  frame.time = timestep.time;
 }
 
 void FrameReader::readFrame() {

@@ -32,7 +32,6 @@ struct SimData {
 };
 
 
-
 struct Grid {
   double zlo, zhi, rhi, vhi;
   double dz, dv;

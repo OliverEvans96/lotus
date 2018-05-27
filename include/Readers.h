@@ -33,6 +33,7 @@ struct InputStream {
   bool searchLine(string term);
   string searchLine(vector<string> terms);
   bool nextLineBlank();
+  string peekLine();
 };
 
 //Split a string into a string vector of words
@@ -50,10 +51,10 @@ void strToData(double *coords,double *velocities,double& dipole,string line);
 class HeaderReader {
   InputStream* inputStreamPtr;
   Timestep* timestepPtr;
-  int* lineNumPtr;
 
  public:
-  void setContext(InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* lineNumPtr);
+  int* lineNumPtr;
+  void setContext(InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr);
   void readHeader();
 };
 
@@ -84,6 +85,7 @@ class TimestepReader {
   int atomNum;
   int lineNum;
 
+  TimestepReader();
   void setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr);
   void resetAtomCounter();
   void readTimestep();
@@ -95,7 +97,7 @@ class FrameReader {
   Options options;
   TimestepReader timestepReader;
   AtomArray* atomArrayPtr;
-  Timestep* timestepPtr;
+  Timestep timestep;
   SimData* simDataPtr;
   InputStream inputStream;
   Frame frame;
