@@ -162,7 +162,7 @@ void Options::readConfig(char* _configPath) {
   parseDefaultOption("plotVr", plotVr, false);
   parseDefaultOption("plotDensity", plotDensity, false);
   parseDefaultOption("plotAllTogether", plotAllTogether, false);
-  parseDefaultOption("debugOutput", debugOutput, false);
+  parseDefaultOption("verbose", verbose, false);
   parseDefaultOption("onlyFindInterface", onlyFindInterface, false);
 }
 
@@ -199,7 +199,7 @@ void Options::printOptions() {
   printOption("plotVr", plotVr);
   printOption("plotDensity", plotDensity);
   printOption("plotAllTogether", plotAllTogether);
-  printOption("debugOutput", debugOutput);
+  printOption("verbose", verbose);
   printOption("onlyFindInterface", onlyFindInterface);
 }
 

@@ -34,10 +34,9 @@ TEST_CASE("Readers", "[lotus]") {
   REQUIRE(options.plotVr == false);
   REQUIRE(options.plotDensity == false);
   REQUIRE(options.plotAllTogether == false);
-  REQUIRE(options.debugOutput == false);
+  REQUIRE(options.verbose == false);
   REQUIRE(options.onlyFindInterface == false);
   SimData simData(options);
-  Droplet droplet(options);
   DatafileReader datafileReader(options, simData);
   REQUIRE(simData.masses.size() == 5);
   REQUIRE(simData.masses[1] == 26.981540);
@@ -45,12 +44,18 @@ TEST_CASE("Readers", "[lotus]") {
   REQUIRE(simData.masses[3] == 1.007825);
   REQUIRE(simData.masses[4] == 15.9994);
   REQUIRE(simData.masses[5] == 1.00794);
-
   REQUIRE(simData.numAtoms == NUM_ATOMS);
   REQUIRE(simData.waterBonds.size() == NUM_WATER);
 
-  DumpfileReader dumpfileReader(options, simData, droplet);
+  AtomArray atoms(simData);
+  REQUIRE(atoms.numAtoms == NUM_ATOMS);
+
+  DumpfileReader dumpfileReader(options, simData, atoms);
+  REQUIRE(simData.lastFrame.frameNum == 1);
+  REQUIRE(simData.lastFrame.numSteps == 5);
   REQUIRE(simData.numSteps == NUM_STEPS);
+
+  Droplet droplet(options, simData, atoms);
 
   // Time loop
   while(dumpfileReader.good()) {

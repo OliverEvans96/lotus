@@ -68,9 +68,9 @@ struct Frame
 // divisible by stepsPerFrame.
 struct LastFrame
 {
-  int penultimateFrame;
   int extraSteps;
-  bool divisible;
+  int frameNum;
+  int numSteps;
 
   void setSteps(int numSteps, int stepsPerFrame);
 };

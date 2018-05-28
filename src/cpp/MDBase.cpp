@@ -4,11 +4,15 @@ SimData::SimData(Options options) {
   setOptions(options);
 }
 
-void SimData::setOptions(Options options) {
-  setStepsPerFrame(options.stepsPerFrame);
+void SimData::setOptions(Options _options) {
+  options = _options;
+  liquidTypes = options.liquidTypes;
+  solidTypes = options.solidTypes;
 }
 
 void SimData::setStepsPerFrame(int _stepsPerFrame) {
+  if(options.verbose)
+    cout << "SimData.setStepsPerFrame" << endl;
   stepsPerFrame = _stepsPerFrame;
   lastFrame.setSteps(numSteps, stepsPerFrame);
 
@@ -17,6 +21,10 @@ void SimData::setStepsPerFrame(int _stepsPerFrame) {
   numFrames = (int) floor(numSteps/stepsPerFrame);
 }
 
+void SimData::setNumSteps(int _numSteps) {
+  numSteps = _numSteps;
+  setStepsPerFrame(options.stepsPerFrame);
+}
 
 // void Grid::mmmmm() {
 //   // Replace with Grid object ////////////////////////////////

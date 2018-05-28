@@ -13,17 +13,19 @@ using namespace std;
 
 struct Monolayer
 {
-  Monolayer();
-  Monolayer(AtomArray atoms);
   double radius;
   double height;
   Options options;
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
+  double zlim[2]; //TODO: set
   TH1D hMono;
 
+  Monolayer();
+  void setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr);
   void calculateRadius();
-  void fillOne();
+  void fillOne(Atom &atom);
+  bool inMonolayer(Atom &atom);
 
   //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius
   int monoFlux(vector<double> r,vector<double>z,double* monoLimits,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave,int &nMono);
@@ -43,12 +45,12 @@ struct CircularBulk
   double contactAngle;
   CircleFit circle;
   Options options;
-  SimData simDataPtr;
-  AtomArray atomArrayPtr;
+  SimData *simDataPtr;
+  AtomArray *atomArrayPtr;
   TH2D hBulk;
 
   void setContext(Options options, SimData *simDataPtr, AtomArray *atomArrayPtr);
-  void fillOne(Atom atom);
+  void fillOne(Atom &atom);
   void calculateHeight();
   void calculateRadius();
   void calculateContactAngle();
@@ -74,9 +76,10 @@ struct Droplet {
   Monolayer monolayer;
   Options options;
   SimData *simDataPtr;
+  AtomArray *atomArrayPtr;
 
-  Droplet(Options _options, SimData &simData);
-
+  Droplet(Options _options, SimData &simData, AtomArray &atomArray);
+  void setContext(Options _options, SimData &simData, AtomArray &atomArray);
   void fillOne(Atom &atom);
   void fill(AtomArray &atomArray);
 };

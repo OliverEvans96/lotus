@@ -17,8 +17,6 @@ void Atom::calculateNonCartesian() {
 // Multi-atom data //
 /////////////////////
 
-AtomArray::AtomArray() {}
-
 AtomArray::AtomArray(SimData &simData) {
   setSimData(simData);
 }
@@ -30,8 +28,11 @@ AtomArray::~AtomArray() {
 void AtomArray::setSimData(SimData &simData) {
   simDataPtr = &simData;
   setNumAtoms(simDataPtr->numAtoms);
+  cout << "numAtoms = " << numAtoms << endl;
 }
 void AtomArray::allocateArrays() {
+  type = new int[numAtoms];
+
   x = new double[numAtoms];
   y = new double[numAtoms];
   z = new double[numAtoms];
@@ -46,6 +47,8 @@ void AtomArray::allocateArrays() {
 }
 
 void AtomArray::deallocateArrays() {
+  delete [] type;
+
   delete [] x;
   delete [] y;
   delete [] z;
@@ -65,7 +68,8 @@ void AtomArray::setNumAtoms(int _numAtoms) {
 }
 
 void AtomArray::setAtom(int i, Atom atom) {
-  printf("%5.2f %5.2f %5.2f %5.2f %5.2f\n");
+  type[i] = atom.type;
+
   x[i] = atom.x;
   y[i] = atom.y;
   z[i] = atom.z;
@@ -77,11 +81,11 @@ void AtomArray::setAtom(int i, Atom atom) {
   vz[i] = atom.vz;
   vr[i] = atom.vr;
   vp[i] = atom.vp;
-
-  cosTheta[i] = atom.cosTheta;
 }
 
 void AtomArray::getAtom(int i, Atom atom) {
+  atom.type = type[i];
+
   atom.x = x[i];
   atom.y = y[i];
   atom.z = z[i];
@@ -93,7 +97,5 @@ void AtomArray::getAtom(int i, Atom atom) {
   atom.vz = vz[i];
   atom.vr = vr[i];
   atom.vp = vp[i];
-
-  atom.cosTheta = cosTheta[i];
 }
 

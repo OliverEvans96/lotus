@@ -18,16 +18,20 @@ const double convFact = 18/.60221409;
 // Variables are set here, and this object (or a pointer)
 // is passed around and read elsewhere.
 struct SimData {
+  Options options;
   int numAtoms;
   int numSteps;
   int numFrames;
   int stepsPerFrame;
   LastFrame lastFrame;
+  vector<int> liquidTypes;
+  vector<int> solidTypes;
   map<int, double> masses;
   map<int, int[2]> waterBonds;
 
   SimData(Options options);
   void setOptions(Options options);
+  void setNumSteps(int _numSteps);
   void setStepsPerFrame(int _stepsPerFrame);
 };
 

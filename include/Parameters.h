@@ -27,7 +27,7 @@ struct Options
   bool plotVr;
   bool plotDensity;
   bool plotAllTogether;
-  bool debugOutput; // Enable debuguging print statments
+  bool verbose; // Enable debuguging print statments
   bool onlyFindInterface; // Locate monolayer in first frame and exit
   string dumpfile;
   string datafile;

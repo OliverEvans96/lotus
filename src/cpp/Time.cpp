@@ -20,8 +20,8 @@ Frame::Frame() {
   frameStep = 0;
 }
 
-void LastFrame::setSteps(int numSteps, int stepsPerFrame) {
-  extraSteps = numSteps % stepsPerFrame;
-  divisible = (extraSteps == 0);
-  penultimateFrame = numSteps - extraSteps;
+void LastFrame::setSteps(int totalNumSteps, int stepsPerFrame) {
+  extraSteps = totalNumSteps % stepsPerFrame;
+  numSteps = stepsPerFrame + extraSteps;
+  frameNum = totalNumSteps / stepsPerFrame - 1;
 }

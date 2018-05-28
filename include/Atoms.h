@@ -17,7 +17,7 @@ struct Atom
  public:
   double x, y, z, r, p;
   double vx, vy, vz, vr, vp;
-  double cosTheta;
+  int type;
   void calculateNonCartesian();
 };
 
@@ -33,11 +33,11 @@ class AtomArray
 
  public:
   int numAtoms;
+  int *type;
   double *x, *y, *z, *r, *p;
   double *vx, *vy, *vz, *vr, *vp;
   double *cosTheta;
 
-  AtomArray();
   AtomArray(SimData &simData);
   ~AtomArray();
   void setSimData(SimData &simData);

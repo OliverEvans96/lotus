@@ -249,7 +249,8 @@ void strToData(double *coords,double *velocities,double &dipole,string line)
 // Readers //
 /////////////
 
-void HeaderReader::setContext(InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr) {
+void HeaderReader::setContext(Options _options, InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr) {
+  options = _options;
   inputStreamPtr = _inputStreamPtr;
   timestepPtr = _timestepPtr;
   lineNumPtr = _lineNumPtr;
@@ -257,20 +258,25 @@ void HeaderReader::setContext(InputStream* _inputStreamPtr, Timestep* _timestepP
 
 void HeaderReader::readHeader() {
   string junk;
+  if(options.verbose)
+    cout << "Reading header: @ " << inputStreamPtr->stream.tellg() << " '" << inputStreamPtr->peekLine() << "'" << endl;
   getline(inputStreamPtr->stream, junk);
   inputStreamPtr->stream >> timestepPtr->time;
+  inputStreamPtr->stream.ignore(256, '\n');
   // TODO: Read box dimensions for periodic BCs
-  for(int i=0; i<7; i++)
+  for(int i=0; i<7; i++) {
     getline(inputStreamPtr->stream, junk);
+  }
 
-  *lineNumPtr += 9;
+  *(lineNumPtr) += 9;
 
   cout << endl;
   cout << "Timestep " << timestepPtr->time << " @ line " << *lineNumPtr << endl;
 }
 
 
-void LineReader::setContext(InputStream* _inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr) {
+void LineReader::setContext(Options _options, InputStream* _inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr) {
+  options = _options;
   inputStreamPtr = _inputStreamPtr;
   atomNumPtr = _atomNumPtr;
   lineNumPtr = _lineNumPtr;
@@ -338,28 +344,32 @@ void LineReader::strToData(double* coords,double* velocities,double& dipole,stri
 
 void LineReader::readLine() {
   double coords[3], velocities[3];
-  int atomId, atomType;
+  int atomId;
   int ix, iy, iz;
 
   // Read the line and store data in atom
   // TODO: Account for periodic BCs
-  inputStreamPtr->stream >> atomId >> atomType
+  inputStreamPtr->stream >> atomId >> atom.type
                          >> atom.x >> atom.y >> atom.z
                          >> ix >> iy >> iz;
-  *lineNumPtr++;
-  *atomNumPtr++;
+
+  inputStreamPtr->stream.ignore(256, '\n');
+  (*lineNumPtr)++;
+  (*atomNumPtr)++;
 }
 
 TimestepReader::TimestepReader() {
   atomNum = 0;
   lineNum = 1;
 }
-void TimestepReader::setContext(InputStream* _inputStreamPtr, AtomArray* atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr) {
+void TimestepReader::setContext(Options _options, InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr) {
+  options = _options;
   inputStreamPtr = _inputStreamPtr;
-  lineReader.setContext(inputStreamPtr, &atomNum, &lineNum);
-  headerReader.setContext(inputStreamPtr, timestepPtr, &lineNum);
   timestepPtr = _timestepPtr;
   simDataPtr = _simDataPtr;
+  atomArrayPtr = _atomArrayPtr;
+  lineReader.setContext(options, inputStreamPtr, &atomNum, &lineNum);
+  headerReader.setContext(options, inputStreamPtr, timestepPtr, &lineNum);
 }
 
 void TimestepReader::resetAtomCounter() {
@@ -367,6 +377,8 @@ void TimestepReader::resetAtomCounter() {
 }
 
 void TimestepReader::readTimestep() {
+  if(options.verbose)
+    cout << "Reading timestep: @" << inputStreamPtr->stream.tellg() << " '" << inputStreamPtr->peekLine() << "'" << endl;
   resetAtomCounter();
   headerReader.readHeader();
   for(int i=0; i<atomArrayPtr->numAtoms; i++) {
@@ -389,7 +401,7 @@ void FrameReader::setContext(Options _options, AtomArray* _atomArrayPtr, SimData
   simDataPtr->setOptions(options);
   openStream();
 
-  timestepReader.setContext(&inputStream, atomArrayPtr, &timestep, simDataPtr);
+  timestepReader.setContext(options, &inputStream, atomArrayPtr, &timestep, simDataPtr);
 }
 
 FrameReader::FrameReader() {}
@@ -404,22 +416,48 @@ void FrameReader::updateFrame() {
 }
 
 void FrameReader::readFrame() {
+  int stepsThisFrame;
   // Read first timestep separately to set frame variables
   // to those of the first timestep in the frame.
+  if(options.verbose)
+    cout << "Reading frame: @" << inputStream.stream.tellg() << " '" << inputStream.peekLine() << "'" << endl;
   timestepReader.readTimestep();
   updateFrame();
 
+  if(frame.frameNum < simDataPtr->numFrames-1) {
+    stepsThisFrame = stepsPerFrame;
+  }
+  else {
+    stepsThisFrame = simDataPtr->lastFrame.numSteps;
+  }
+
+  if(options.verbose) {
+    cout << "frameNum = " << frame.frameNum << endl;
+    cout << "numFrames = " << simDataPtr->numFrames << endl;
+    cout << "stepsThisFrame = " << stepsThisFrame << endl;
+  }
+
   // Then read the rest
-  for(int n; n<stepsPerFrame-1; n++) {
+  for(int n=1; n<stepsThisFrame; n++) {
+    if(options.verbose)
+      cout << "frameStep " << n << endl;
     timestepReader.readTimestep();
   }
+
+  frame.frameNum++;
+}
+
+// First timestep in the dumpfile
+InitialTimestepReader::InitialTimestepReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+  setContext(options, _atomArrayPtr, _simDataPtr);
 }
 
 void InitialTimestepReader::openStream(Options options) {
   inputStream.open(initLoc);
 }
 
-void InitialTimestepReader::setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+void InitialTimestepReader::setContext(Options _options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
+  options = _options;
   atomArrayPtr = _atomArrayPtr;
   simDataPtr = _simDataPtr;
 
@@ -427,11 +465,8 @@ void InitialTimestepReader::setContext(Options options, AtomArray* _atomArrayPtr
 
   openStream(options);
 
-  timestepReader.setContext(&inputStream, atomArrayPtr, &emptyTimestep, simDataPtr);
-}
+  timestepReader.setContext(options, &inputStream, atomArrayPtr, &emptyTimestep, simDataPtr);
 
-InitialTimestepReader::InitialTimestepReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr) {
-  setContext(options, _atomArrayPtr, _simDataPtr);
 }
 
 void InitialTimestepReader::readFromFile() {
@@ -558,10 +593,10 @@ void DatafileReader::read() {
   }
 }
 
-DumpfileReader::DumpfileReader(Options _options, SimData &simData) {
+DumpfileReader::DumpfileReader(Options _options, SimData &simData, AtomArray &atomArray) {
   options = _options;
   simDataPtr = &simData;
-  atomArray.setSimData(simData);
+  atomArrayPtr = &atomArray;
   frameReader.setContext(options, &atomArray, &simData);
   countSteps();
 }
@@ -627,8 +662,8 @@ void DumpfileReader::countSteps()
   streamPtr->clear();
   streamPtr->seekg(pos);
 
+  simDataPtr->setNumSteps(numSteps);
   cout << "Counted " << numSteps << " timesteps." << endl;
-  simDataPtr->numSteps = numSteps;
 }
 
 void DumpfileReader::readFrame() {

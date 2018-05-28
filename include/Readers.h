@@ -50,16 +50,18 @@ void strToData(double *coords,double *velocities,double& dipole,string line);
 
 // These read from an InputStream, but don't actually open the files.
 class HeaderReader {
+  Options options;
   InputStream* inputStreamPtr;
   Timestep* timestepPtr;
 
  public:
   int* lineNumPtr;
-  void setContext(InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr);
+  void setContext(Options options, InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr);
   void readHeader();
 };
 
 class LineReader {
+  Options options;
   string line;
   string input;
   int* atomNumPtr;
@@ -70,11 +72,12 @@ class LineReader {
 
  public:
   Atom atom;
-  void setContext(InputStream *_inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr);
+  void setContext(Options options, InputStream *_inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr);
   void readLine();
 };
 
 class TimestepReader {
+  Options options;
   LineReader lineReader;
   HeaderReader headerReader;
   Timestep* timestepPtr;
@@ -87,7 +90,7 @@ class TimestepReader {
   int lineNum;
 
   TimestepReader();
-  void setContext(InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr);
+  void setContext(Options _options, InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr);
   void resetAtomCounter();
   void readTimestep();
 };
@@ -116,6 +119,7 @@ class FrameReader {
 };
 
 class InitialTimestepReader {
+  Options options;
  public:
   InitialTimestepReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
   void setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
@@ -163,10 +167,10 @@ class DatafileReader {
 struct DumpfileReader {
   Options options;
   FrameReader frameReader;
-  AtomArray atomArray;
   SimData *simDataPtr;
+  AtomArray *atomArrayPtr;
 
-  DumpfileReader(Options _options, SimData &simData);
+  DumpfileReader(Options _options, SimData &simData, AtomArray &atomArray);
   void countAtoms();
   void countSteps();
   void readFrame();

@@ -6,15 +6,10 @@
 
 Monolayer::Monolayer() {}
 
-Monolayer::Monolayer(AtomArray &atomArray, Options _options) {
-  atomArrayPtr = &atomArray;
-  options = &options;
-}
-
-void Monolayer::setContext(Options _options, SimData *_simData, AtomArray *_atomArrayPtr) {
+void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr) {
   options = _options;
-  simDataPtr = &simData;
-  atomArrayPtr = &atomArray;
+  simDataPtr = _simDataPtr;
+  atomArrayPtr = _atomArrayPtr;
 }
 
 void Monolayer::fillOne(Atom &atom) {
@@ -22,12 +17,17 @@ void Monolayer::fillOne(Atom &atom) {
     // TODO: Make this more efficient by calculating
     // only the necessary "radius".
     if(options.geometry == "spherical") {
-      hMono.fill(atom.r);
+      hMono.Fill(atom.r);
     }
     else if(options.geometry == "cylindrical") {
-      hMono.fill(atom.y)
+      hMono.Fill(atom.y);
     }
   }
+}
+
+// Whether an atom is in the monolayer
+bool Monolayer::inMonolayer(Atom &atom) {
+  return ((zlim[0] < atom.z) && (atom.z > zlim[1]));
 }
 
 //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius to the vector rScaledJoin
@@ -156,10 +156,10 @@ void Monolayer::findMonoLimits(TH1D *hWaterDens,double *monoLimits)
 
 CircularBulk::CircularBulk() {}
 
-CircularBulk::setContext(Options options, SimData *simDataPtr, AtomArray *atomArrayPtr) {
+void CircularBulk::setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr) {
   options = _options;
-  simDataPtr = &simData;
-  atomArrayPtr = &atomArray;
+  simDataPtr = _simDataPtr;
+  atomArrayPtr = _atomArrayPtr;
 }
 
 //Guess boundary of water molecule by counting for a single row
@@ -734,14 +734,14 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
 void CircularBulk::fillOne(Atom &atom) {
   // TODO: Make more efficient
   if(options.geometry == "spherical") {
-    hBulk.fill(atom.r, atom.z);
+    hBulk.Fill(atom.r, atom.z);
   }
   else if(options.geometry == "cylindrical") {
-    hBulk.fill(atom.y, atom.z);
+    hBulk.Fill(atom.y, atom.z);
   }
 }
 
-Droplet::Droplet(Options options, SimData &simData, AtomArray &atomArray) {
+Droplet::Droplet(Options _options, SimData &simData, AtomArray &atomArray) {
   setContext(options, simData, atomArray);
 }
 
@@ -750,17 +750,17 @@ void Droplet::fillOne(Atom &atom) {
   monolayer.fillOne(atom);
 }
 
-Droplet::fill(AtomArray &atoms) {
+void Droplet::fill(AtomArray &atoms) {
   Atom atom;
-  for(int i=0; i<simData.numAtoms; i++) {
-    if(isIn(atoms.atomType[i], simData.liquidTypes)) {
+  for(int i=0; i<simDataPtr->numAtoms; i++) {
+    if(isIn(atoms.type[i], simDataPtr->liquidTypes)) {
       atoms.getAtom(i, atom);
       fillOne(atom);
     }
   }
 }
 
-void Droplet::Droplet.setContext(Options _options, SimData &simData, AtomArray &atomArray) {
+void Droplet::setContext(Options _options, SimData &simData, AtomArray &atomArray) {
   options = _options;
   simDataPtr = &simData;
   atomArrayPtr = &atomArray;
