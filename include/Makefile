@@ -113,6 +113,7 @@ Parameters.o: $(LIB)/libyaml.so Utils.o
 ###################
 
 $(LIB)/libyaml.so:
+	git submodule update --init --progress # Get submodule if not present
 	cd $(YAML) && ./bootstrap
 	cd $(YAML) && ./configure --prefix=$(PWD)/..
 	cd $(YAML) && make
