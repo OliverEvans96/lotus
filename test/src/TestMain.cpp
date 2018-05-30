@@ -34,10 +34,10 @@ TEST_CASE("Readers", "[lotus]") {
   REQUIRE(options.plotVr == false);
   REQUIRE(options.plotDensity == false);
   REQUIRE(options.plotAllTogether == false);
-  REQUIRE(options.verbose == false);
+  // REQUIRE(options.verbose == false);
   REQUIRE(options.onlyFindInterface == false);
   SimData simData(options);
-  DatafileReader datafileReader(options, simData);
+  DatafileReader datafileReader(simData);
   REQUIRE(simData.masses.size() == 5);
   REQUIRE(simData.masses[1] == 26.981540);
   REQUIRE(simData.masses[2] == 15.994915);

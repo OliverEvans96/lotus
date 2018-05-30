@@ -28,10 +28,11 @@ struct Atom
 class AtomArray
 {
   SimData *simDataPtr;
-  void allocateArrays();
+  bool allocated;
   void deallocateArrays();
 
  public:
+  void allocateArrays();
   int numAtoms;
   int *type;
   double *x, *y, *z, *r, *p;

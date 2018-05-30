@@ -8,13 +8,20 @@ void SimData::setOptions(Options _options) {
   options = _options;
   liquidTypes = options.liquidTypes;
   solidTypes = options.solidTypes;
+  stepsPerFrame = options.stepsPerFrame;
 }
 
 void SimData::setStepsPerFrame(int _stepsPerFrame) {
   if(options.verbose)
-    cout << "SimData.setStepsPerFrame" << endl;
+    cout << "SimData.setStepsPerFrame = " << _stepsPerFrame << endl;
   stepsPerFrame = _stepsPerFrame;
   lastFrame.setSteps(numSteps, stepsPerFrame);
+  if(options.verbose) {
+    cout << "Last frame:" << endl;
+    cout << "extraSteps = " << lastFrame.extraSteps << endl;
+    cout << "numSteps = " << lastFrame.numSteps << endl;
+    cout << "frameNum = " << lastFrame.frameNum << endl;
+  }
 
   //Number of frames (collections of timesteps)
   //If not divisible, then the last frame will have more than the rest

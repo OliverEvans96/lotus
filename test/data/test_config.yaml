@@ -11,4 +11,4 @@ liquidTypes:
     - 5
 waterBondType: 2
 geometry: spherical
-verbose: false
+verbose: true

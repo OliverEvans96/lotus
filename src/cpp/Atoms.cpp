@@ -18,6 +18,7 @@ void Atom::calculateNonCartesian() {
 /////////////////////
 
 AtomArray::AtomArray(SimData &simData) {
+  allocated = false;
   setSimData(simData);
 }
 
@@ -31,40 +32,55 @@ void AtomArray::setSimData(SimData &simData) {
   cout << "numAtoms = " << numAtoms << endl;
 }
 void AtomArray::allocateArrays() {
-  type = new int[numAtoms];
+  // Last frame may be longer than the rest,
+  // so allocate arrays accordingly.
+  int arraySize = numAtoms * simDataPtr->lastFrame.numSteps;
+  if(!allocated ) {
+    if(simDataPtr->options.verbose) {
+      cout << "lastFrame.numSteps = " << simDataPtr->lastFrame.numSteps << endl;
+      cout << "Allocating arrays of size " << arraySize;
+      printf(" (%8.4f) GB\n", arraySize/pow(2,27)*3);
+    }
 
-  x = new double[numAtoms];
-  y = new double[numAtoms];
-  z = new double[numAtoms];
-  r = new double[numAtoms];
-  p = new double[numAtoms];
 
-  vx = new double[numAtoms];
-  vy = new double[numAtoms];
-  vz = new double[numAtoms];
-  vr = new double[numAtoms];
-  vp = new double[numAtoms];
+    type = new int[arraySize];
+    x = new double[arraySize];
+    y = new double[arraySize];
+    z = new double[arraySize];
+    r = new double[arraySize];
+    p = new double[arraySize];
+
+    // vx = new double[numAtoms];
+    // vy = new double[numAtoms];
+    // vz = new double[numAtoms];
+    // vr = new double[numAtoms];
+    // vp = new double[numAtoms];
+
+    allocated = true;
+  }
 }
 
 void AtomArray::deallocateArrays() {
-  delete [] type;
+  if(allocated) {
 
-  delete [] x;
-  delete [] y;
-  delete [] z;
-  delete [] r;
-  delete [] p;
+    delete [] type;
 
-  delete [] vx;
-  delete [] vy;
-  delete [] vz;
-  delete [] vr;
-  delete [] vp;
+    delete [] x;
+    delete [] y;
+    delete [] z;
+    delete [] r;
+    delete [] p;
+
+    // delete [] vx;
+    // delete [] vy;
+    // delete [] vz;
+    // delete [] vr;
+    // delete [] vp;
+  }
 }
 
 void AtomArray::setNumAtoms(int _numAtoms) {
   numAtoms = _numAtoms;
-  allocateArrays();
 }
 
 void AtomArray::setAtom(int i, Atom atom) {
@@ -76,11 +92,11 @@ void AtomArray::setAtom(int i, Atom atom) {
   r[i] = atom.r;
   p[i] = atom.p;
 
-  vx[i] = atom.vx;
-  vy[i] = atom.vy;
-  vz[i] = atom.vz;
-  vr[i] = atom.vr;
-  vp[i] = atom.vp;
+  // vx[i] = atom.vx;
+  // vy[i] = atom.vy;
+  // vz[i] = atom.vz;
+  // vr[i] = atom.vr;
+  // vp[i] = atom.vp;
 }
 
 void AtomArray::getAtom(int i, Atom atom) {

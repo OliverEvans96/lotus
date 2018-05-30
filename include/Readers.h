@@ -92,7 +92,7 @@ class TimestepReader {
   TimestepReader();
   void setContext(Options _options, InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr);
   void resetAtomCounter();
-  void readTimestep();
+  void readTimestep(int stepInFrame);
 };
 
 class FrameReader {
@@ -159,7 +159,7 @@ class DatafileReader {
   void readWaterBonds();
 
  public:
-  DatafileReader(Options _options, SimData &simData);
+  DatafileReader(SimData &simData);
   void openStream();
   void read();
 };

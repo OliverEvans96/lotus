@@ -376,14 +376,17 @@ void TimestepReader::resetAtomCounter() {
   atomNum = 0;
 }
 
-void TimestepReader::readTimestep() {
+void TimestepReader::readTimestep(int stepInFrame) {
+  int offset = stepInFrame * atomArrayPtr->numAtoms;
   if(options.verbose)
     cout << "Reading timestep: @" << inputStreamPtr->stream.tellg() << " '" << inputStreamPtr->peekLine() << "'" << endl;
   resetAtomCounter();
   headerReader.readHeader();
   for(int i=0; i<atomArrayPtr->numAtoms; i++) {
     lineReader.readLine();
-    atomArrayPtr->setAtom(i, lineReader.atom);
+    // All atoms in frame are stored,
+    // so step offset must be considered.
+    atomArrayPtr->setAtom(offset + i, lineReader.atom);
   }
   timestepPtr->stepNum++;
 }
@@ -421,7 +424,7 @@ void FrameReader::readFrame() {
   // to those of the first timestep in the frame.
   if(options.verbose)
     cout << "Reading frame: @" << inputStream.stream.tellg() << " '" << inputStream.peekLine() << "'" << endl;
-  timestepReader.readTimestep();
+  timestepReader.readTimestep(0);
   updateFrame();
 
   if(frame.frameNum < simDataPtr->numFrames-1) {
@@ -441,7 +444,7 @@ void FrameReader::readFrame() {
   for(int n=1; n<stepsThisFrame; n++) {
     if(options.verbose)
       cout << "frameStep " << n << endl;
-    timestepReader.readTimestep();
+    timestepReader.readTimestep(n);
   }
 
   frame.frameNum++;
@@ -481,7 +484,7 @@ void InitialTimestepReader::readFromStream() {
   // (same file other timesteps will be read from)
   // This will be called if the initial timestep file
   // doesn't exist.
-  timestepReader.readTimestep();
+  timestepReader.readTimestep(0);
 }
 
 bool InitialTimestepReader::fileExists() {
@@ -519,8 +522,8 @@ void InitialTimestepReader::readInitialTimestep() {
 // Top-level Readers //
 ///////////////////////
 
-DatafileReader::DatafileReader(Options _options, SimData &simData) {
-  options = _options;
+DatafileReader::DatafileReader(SimData &simData) {
+  options = simData.options;
   simDataPtr = &simData;
   inputStream.open(options.datafile);
   streamPtr = &inputStream.stream;
@@ -663,6 +666,7 @@ void DumpfileReader::countSteps()
   streamPtr->seekg(pos);
 
   simDataPtr->setNumSteps(numSteps);
+  atomArrayPtr->allocateArrays();
   cout << "Counted " << numSteps << " timesteps." << endl;
 }
 
