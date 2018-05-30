@@ -23,6 +23,7 @@ YAML=$(BASE)/libyaml
 LIB=$(PWD)/../lib
 TEST_SRC=$(TEST)/src
 TEST_INC=$(TEST)/include
+RUN=$(BASE)/run
 
 # C++ Compiler
 CXX=g++
@@ -91,7 +92,7 @@ echo:
 	echo $(testdata_unzipped)
 
 test: $(main_test_bin) $(testdata_unzipped)
-	$<
+	cd $(RUN) && $<
 
 #############
 # LIBRARIES #
