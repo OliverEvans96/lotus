@@ -596,11 +596,11 @@ void DatafileReader::read() {
   }
 }
 
-DumpfileReader::DumpfileReader(Options _options, SimData &simData, AtomArray &atomArray) {
-  options = _options;
-  simDataPtr = &simData;
+DumpfileReader::DumpfileReader(AtomArray &atomArray) {
   atomArrayPtr = &atomArray;
-  frameReader.setContext(options, &atomArray, &simData);
+  simDataPtr = atomArrayPtr->simDataPtr;
+  options = simDataPtr->options;
+  frameReader.setContext(options, atomArrayPtr, simDataPtr);
   countSteps();
 }
 

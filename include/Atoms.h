@@ -27,17 +27,16 @@ struct Atom
 
 class AtomArray
 {
-  SimData *simDataPtr;
   bool allocated;
   void deallocateArrays();
 
  public:
   void allocateArrays();
   int numAtoms;
+  SimData *simDataPtr;
   int *type;
   double *x, *y, *z, *r, *p;
-  double *vx, *vy, *vz, *vr, *vp;
-  double *cosTheta;
+  // double *vx, *vy, *vz, *vr, *vp;
 
   AtomArray(SimData &simData);
   ~AtomArray();

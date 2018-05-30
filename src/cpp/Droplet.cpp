@@ -741,8 +741,8 @@ void CircularBulk::fillOne(Atom &atom) {
   }
 }
 
-Droplet::Droplet(Options _options, SimData &simData, AtomArray &atomArray) {
-  setContext(options, simData, atomArray);
+Droplet::Droplet(AtomArray &atomArray) {
+  setContext(atomArray);
 }
 
 void Droplet::fillOne(Atom &atom) {
@@ -760,10 +760,10 @@ void Droplet::fill(AtomArray &atoms) {
   }
 }
 
-void Droplet::setContext(Options _options, SimData &simData, AtomArray &atomArray) {
-  options = _options;
-  simDataPtr = &simData;
+void Droplet::setContext(AtomArray &atomArray) {
   atomArrayPtr = &atomArray;
+  simDataPtr = atomArrayPtr->simDataPtr;
+  options = simDataPtr->options;
 
   bulk.setContext(options, simDataPtr, atomArrayPtr);
   monolayer.setContext(options, simDataPtr, atomArrayPtr);

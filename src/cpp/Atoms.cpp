@@ -108,10 +108,10 @@ void AtomArray::getAtom(int i, Atom atom) {
   atom.r = r[i];
   atom.p = p[i];
 
-  atom.vx = vx[i];
-  atom.vy = vy[i];
-  atom.vz = vz[i];
-  atom.vr = vr[i];
-  atom.vp = vp[i];
+  // atom.vx = vx[i];
+  // atom.vy = vy[i];
+  // atom.vz = vz[i];
+  // atom.vr = vr[i];
+  // atom.vp = vp[i];
 }
 

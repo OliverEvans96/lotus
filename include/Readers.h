@@ -170,7 +170,7 @@ struct DumpfileReader {
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
 
-  DumpfileReader(Options _options, SimData &simData, AtomArray &atomArray);
+  DumpfileReader(AtomArray &atomArray);
   void countAtoms();
   void countSteps();
   void readFrame();

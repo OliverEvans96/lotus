@@ -2,6 +2,8 @@
 #include "MDBase.h"
 #include "Atoms.h"
 #include "Readers.h"
+#include "Droplet.h"
+#include "Substrate.h"
 #include "catch.hpp"
 
 using namespace std;
@@ -50,12 +52,13 @@ TEST_CASE("Readers", "[lotus]") {
   AtomArray atoms(simData);
   REQUIRE(atoms.numAtoms == NUM_ATOMS);
 
-  DumpfileReader dumpfileReader(options, simData, atoms);
+  DumpfileReader dumpfileReader(atoms);
   REQUIRE(simData.lastFrame.frameNum == 1);
   REQUIRE(simData.lastFrame.numSteps == 5);
   REQUIRE(simData.numSteps == NUM_STEPS);
 
-  Droplet droplet(options, simData, atoms);
+  Substrate substrate(atoms);
+  Droplet droplet(atoms);
 
   // Time loop
   while(dumpfileReader.good()) {

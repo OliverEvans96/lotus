@@ -78,8 +78,8 @@ struct Droplet {
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
 
-  Droplet(Options _options, SimData &simData, AtomArray &atomArray);
-  void setContext(Options _options, SimData &simData, AtomArray &atomArray);
+  Droplet(AtomArray &atomArray);
+  void setContext(AtomArray &atomArray);
   void fillOne(Atom &atom);
   void fill(AtomArray &atomArray);
 };
