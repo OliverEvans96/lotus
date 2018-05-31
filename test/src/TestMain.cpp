@@ -11,6 +11,8 @@ using namespace std;
 const int NUM_ATOMS = 513699;
 const int NUM_STEPS = 8;
 const int NUM_WATER = 1105;
+const int STEPS_PER_FRAME = 3;
+const double SUBSTRATE_MASS = 28178136.0;
 
 TEST_CASE("Readers", "[lotus]") {
   int argc = 2;
@@ -24,7 +26,7 @@ TEST_CASE("Readers", "[lotus]") {
   REQUIRE(options.solidTypes[1] == 2);
   REQUIRE(options.solidTypes[2] == 3);
   REQUIRE(options.geometry == "spherical");
-  REQUIRE(options.stepsPerFrame == 3);
+  REQUIRE(options.stepsPerFrame == STEPS_PER_FRAME);
   REQUIRE(options.dumpfile == "../test/data/20A_atom2_first8");
   REQUIRE(options.datafile == "../test/data/lammps_noZperiod_3A.dat");
   REQUIRE(options.outLoc == "../test/run");
@@ -60,9 +62,18 @@ TEST_CASE("Readers", "[lotus]") {
   Substrate substrate(atoms);
   Droplet droplet(atoms);
 
+  char filename[100];
+
   // Time loop
   while(dumpfileReader.good()) {
     dumpfileReader.readFrame();
+    substrate.fill(atoms);
+
+    sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);
+    substrate.plotDensity(filename);
+
+    // Check substrate mass
+    REQUIRE(abs(substrate.getMass() - SUBSTRATE_MASS) < 1e-3*SUBSTRATE_MASS);
   }
 }
 

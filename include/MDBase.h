@@ -14,6 +14,12 @@ const double convFact = 18/.60221409;
 // Simulation Data //
 /////////////////////
 
+struct BoxBounds {
+  double xlo, xhi;
+  double ylo, yhi;
+  double zlo, zhi;
+};
+
 // Source of truth for general MD variables.
 // Variables are set here, and this object (or a pointer)
 // is passed around and read elsewhere.
@@ -28,13 +34,13 @@ struct SimData {
   vector<int> solidTypes;
   map<int, double> masses;
   map<int, int[2]> waterBonds;
+  BoxBounds simBounds;
 
   SimData(Options options);
   void setOptions(Options options);
   void setNumSteps(int _numSteps);
   void setStepsPerFrame(int _stepsPerFrame);
 };
-
 
 struct Grid {
   double zlo, zhi, rhi, vhi;
@@ -50,10 +56,10 @@ struct Grid {
   void setBounds(double _zlo, double _zhi, double _rhi);
   void setSpacing(double _dz, double _dv);
 
+  void init();
   void calculateVolumeLimits();
   void allocateBins();
   void calculateBins();
-  void init();
   void deallocateBins();
 };
 

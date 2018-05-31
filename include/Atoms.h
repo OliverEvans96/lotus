@@ -19,6 +19,7 @@ struct Atom
   double vx, vy, vz, vr, vp;
   int type;
   void calculateNonCartesian();
+  void print();
 };
 
 /////////////////////
@@ -41,8 +42,8 @@ class AtomArray
   AtomArray(SimData &simData);
   ~AtomArray();
   void setSimData(SimData &simData);
-  void setAtom(int i, Atom atom);
-  void getAtom(int i, Atom atom);
+  void setAtom(int i, Atom &atom);
+  void getAtom(int i, Atom &atom);
   void setNumAtoms(int _numAtoms);
 };
 

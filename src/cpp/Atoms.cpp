@@ -13,6 +13,10 @@ void Atom::calculateNonCartesian() {
   vp = (vx*x + vy*y + vz*z) / p;
 }
 
+void Atom::print() {
+  printf("Atom: type %d @ (%.2f, %.2f, %.2f)\n", type, x, y, z);
+}
+
 /////////////////////
 // Multi-atom data //
 /////////////////////
@@ -83,7 +87,7 @@ void AtomArray::setNumAtoms(int _numAtoms) {
   numAtoms = _numAtoms;
 }
 
-void AtomArray::setAtom(int i, Atom atom) {
+void AtomArray::setAtom(int i, Atom &atom) {
   type[i] = atom.type;
 
   x[i] = atom.x;
@@ -99,7 +103,7 @@ void AtomArray::setAtom(int i, Atom atom) {
   // vp[i] = atom.vp;
 }
 
-void AtomArray::getAtom(int i, Atom atom) {
+void AtomArray::getAtom(int i, Atom &atom) {
   atom.type = type[i];
 
   atom.x = x[i];
@@ -114,4 +118,3 @@ void AtomArray::getAtom(int i, Atom atom) {
   // atom.vr = vr[i];
   // atom.vp = vp[i];
 }
-

@@ -13,16 +13,27 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
 }
 
 void Monolayer::fillOne(Atom &atom) {
+  int mass;
   if(inMonolayer(atom)) {
     // TODO: Make this more efficient by calculating
-    // only the necessary "radius".
+    // only the necessary "radius" (y or r).
     if(options.geometry == "spherical") {
-      hMono.Fill(atom.r);
+      mass = simDataPtr->masses[atom.type];
+      hMono.Fill(atom.r, mass);
     }
     else if(options.geometry == "cylindrical") {
       hMono.Fill(atom.y);
     }
   }
+}
+
+void Monolayer::convertUnits() {
+  // Divide by number of steps per frame
+  hMono.Scale(simDataPtr->stepsPerFrame);
+  // Divide by volume to get density
+  // TODO (get volume) (involves zlim)
+  // Convert units from amu/AA to g/cc
+  hMono.Scale(NANO_DENS_TO_MACRO);
 }
 
 // Whether an atom is in the monolayer
@@ -731,33 +742,34 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
     return val;
 }
 
-void CircularBulk::fillOne(Atom &atom) {
-  // TODO: Make more efficient
-  if(options.geometry == "spherical") {
-    hBulk.Fill(atom.r, atom.z);
-  }
-  else if(options.geometry == "cylindrical") {
-    hBulk.Fill(atom.y, atom.z);
-  }
-}
-
 Droplet::Droplet(AtomArray &atomArray) {
   setContext(atomArray);
 }
 
 void Droplet::fillOne(Atom &atom) {
-  bulk.fillOne(atom);
-  monolayer.fillOne(atom);
+  //bulk.fillOne(atom);
+  //monolayer.fillOne(atom);
 }
 
 void Droplet::fill(AtomArray &atoms) {
   Atom atom;
   for(int i=0; i<simDataPtr->numAtoms; i++) {
+    // If liquid
     if(isIn(atoms.type[i], simDataPtr->liquidTypes)) {
       atoms.getAtom(i, atom);
       fillOne(atom);
     }
   }
+}
+
+void Droplet::convertUnits() {
+  // Divide by number of steps per frame
+  hDroplet.Scale(simDataPtr->stepsPerFrame);
+  // Divide by volume to get density
+  // TODO (Should this happen earlier?)
+  // => Look at previous code.
+  // Convert units from amu/AA to g/cc
+  hDroplet.Scale(NANO_DENS_TO_MACRO);
 }
 
 void Droplet::setContext(AtomArray &atomArray) {

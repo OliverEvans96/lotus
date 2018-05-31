@@ -249,24 +249,32 @@ void strToData(double *coords,double *velocities,double &dipole,string line)
 // Readers //
 /////////////
 
-void HeaderReader::setContext(Options _options, InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr) {
+void HeaderReader::setContext(Options _options, InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr, BoxBounds* _boundsPtr) {
   options = _options;
   inputStreamPtr = _inputStreamPtr;
   timestepPtr = _timestepPtr;
   lineNumPtr = _lineNumPtr;
+  boundsPtr = _boundsPtr;
 }
 
 void HeaderReader::readHeader() {
   string junk;
   if(options.verbose)
     cout << "Reading header: @ " << inputStreamPtr->stream.tellg() << " '" << inputStreamPtr->peekLine() << "'" << endl;
+
   getline(inputStreamPtr->stream, junk);
   inputStreamPtr->stream >> timestepPtr->time;
   inputStreamPtr->stream.ignore(256, '\n');
-  // TODO: Read box dimensions for periodic BCs
-  for(int i=0; i<7; i++) {
+
+  for(int i=0; i<3; i++) {
     getline(inputStreamPtr->stream, junk);
   }
+  inputStreamPtr->stream >> boundsPtr->xlo >> boundsPtr->xhi;
+  inputStreamPtr->stream >> boundsPtr->ylo >> boundsPtr->yhi;
+  inputStreamPtr->stream >> boundsPtr->zlo >> boundsPtr->zhi;
+  inputStreamPtr->stream.ignore(256, '\n');
+
+  getline(inputStreamPtr->stream, junk);
 
   *(lineNumPtr) += 9;
 
@@ -275,11 +283,12 @@ void HeaderReader::readHeader() {
 }
 
 
-void LineReader::setContext(Options _options, InputStream* _inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr) {
+void LineReader::setContext(Options _options, InputStream* _inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr, BoxBounds* _boundsPtr) {
   options = _options;
   inputStreamPtr = _inputStreamPtr;
   atomNumPtr = _atomNumPtr;
   lineNumPtr = _lineNumPtr;
+  boundsPtr = _boundsPtr;
 }
 
 //Split a string into a string vector of words
@@ -343,15 +352,21 @@ void LineReader::strToData(double* coords,double* velocities,double& dipole,stri
 }
 
 void LineReader::readLine() {
-  double coords[3], velocities[3];
   int atomId;
+  double xs, ys, zs;
   int ix, iy, iz;
 
   // Read the line and store data in atom
+  // xs, ys, zs are between 0 and 1,
+  // ix, iy, iz are number of periodic image
   // TODO: Account for periodic BCs
   inputStreamPtr->stream >> atomId >> atom.type
-                         >> atom.x >> atom.y >> atom.z
+                         >> xs >> ys >> zs
                          >> ix >> iy >> iz;
+
+  atom.x = boundsPtr->xlo + (boundsPtr->xhi - boundsPtr->xlo) * (ix + xs);
+  atom.y = boundsPtr->ylo + (boundsPtr->yhi - boundsPtr->ylo) * (iy + ys);
+  atom.z = boundsPtr->zlo + (boundsPtr->zhi - boundsPtr->zlo) * (iz + zs);
 
   inputStreamPtr->stream.ignore(256, '\n');
   (*lineNumPtr)++;
@@ -368,8 +383,8 @@ void TimestepReader::setContext(Options _options, InputStream* _inputStreamPtr, 
   timestepPtr = _timestepPtr;
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
-  lineReader.setContext(options, inputStreamPtr, &atomNum, &lineNum);
-  headerReader.setContext(options, inputStreamPtr, timestepPtr, &lineNum);
+  lineReader.setContext(options, inputStreamPtr, &atomNum, &lineNum, &timestepBounds);
+  headerReader.setContext(options, inputStreamPtr, timestepPtr, &lineNum, &timestepBounds);
 }
 
 void TimestepReader::resetAtomCounter() {
@@ -543,6 +558,38 @@ void DatafileReader::readNumAtoms() {
   cout << "Read " << numAtoms << " atoms." << endl;
 }
 
+void DatafileReader::readBoxBounds() {
+  bool found;
+  int pos = streamPtr->tellg();
+  streamPtr->seekg(0);
+  found = inputStream.search("xlo");
+  if(options.verbose) {
+    cout << "Found x: " << inputStream.peekLine() << endl;
+  }
+  *streamPtr >> simDataPtr->simBounds.xlo >> simDataPtr->simBounds.xhi;
+
+  streamPtr->seekg(0);
+  found = inputStream.search("ylo");
+  if(options.verbose) {
+    cout << "Found y: " << inputStream.peekLine() << endl;
+  }
+  *streamPtr >> simDataPtr->simBounds.ylo >> simDataPtr->simBounds.yhi;
+
+  streamPtr->seekg(0);
+  found = inputStream.search("zlo");
+  if(options.verbose) {
+    cout << "Found z: " << inputStream.peekLine() << endl;
+  }
+  *streamPtr >> simDataPtr->simBounds.zlo >> simDataPtr->simBounds.zhi;
+
+  cout << "Read bounds:" << endl;
+  cout << "x: " << simDataPtr->simBounds.xlo << " " << simDataPtr->simBounds.xhi << endl;
+  cout << "y: " << simDataPtr->simBounds.ylo << " " << simDataPtr->simBounds.yhi << endl;
+  cout << "z: " << simDataPtr->simBounds.zlo << " " << simDataPtr->simBounds.zhi << endl;
+
+  streamPtr->seekg(pos);
+}
+
 void DatafileReader::readMasses() {
   string word;
   int type;
@@ -581,6 +628,7 @@ void DatafileReader::read() {
   sections.push_back("Bonds");
 
   readNumAtoms();
+  readBoxBounds();
 
   for(int i=0; i<2; i++) {
     section = inputStream.searchLine(sections);
@@ -671,7 +719,9 @@ void DumpfileReader::countSteps()
 }
 
 void DumpfileReader::readFrame() {
+  frameNum = frameReader.frame.frameNum;
   frameReader.readFrame();
+  cout << "frameNum = " << frameNum << endl;
 }
 
 bool DumpfileReader::good() {

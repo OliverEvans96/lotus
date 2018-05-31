@@ -21,10 +21,13 @@
 #include "TFile.h"
 #include "TText.h"
 #include "TPaveText.h"
+#include "TStyle.h"
 
 using namespace std;
 
 const double PI = 3.141592653589793;
+// Multiply amu/AA by this number to get g/cc
+const double NANO_DENS_TO_MACRO = 0.60221409;
 
 //Choose the highest value from a vector
 double max(vector<double> v);

@@ -106,7 +106,8 @@ Visualization.o: Utils.o Quiver.o FieldViz.o
 Readers.o: Utils.o MDBase.o Atoms.o Time.o
 Atoms.o: Utils.o MDBase.o
 Writers.o: Utils.o
-Droplet.o: Utils.o CircleFit.o
+Droplet.o: Utils.o Atoms.o CircleFit.o
+Substrate.o: Utils.o Atoms.o
 Parameters.o: $(LIB)/libyaml.so Utils.o
 
 ###################

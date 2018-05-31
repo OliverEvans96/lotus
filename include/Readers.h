@@ -8,7 +8,6 @@
 #include "Utils.h"
 #include "MDBase.h"
 #include "Atoms.h"
-#include "Droplet.h"
 #include "Time.h"
 
 using namespace std;
@@ -53,10 +52,11 @@ class HeaderReader {
   Options options;
   InputStream* inputStreamPtr;
   Timestep* timestepPtr;
+  BoxBounds* boundsPtr;
 
  public:
   int* lineNumPtr;
-  void setContext(Options options, InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr);
+  void setContext(Options options, InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr, BoxBounds* _boundsPtr);
   void readHeader();
 };
 
@@ -67,12 +67,13 @@ class LineReader {
   int* atomNumPtr;
   int* lineNumPtr;
   InputStream* inputStreamPtr;
+  BoxBounds* boundsPtr;
   vector<string> strSplit(string str);
   void strToData(double* coords, double* velocities, double& dipole, string line);
 
  public:
   Atom atom;
-  void setContext(Options options, InputStream *_inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr);
+  void setContext(Options options, InputStream *_inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr, BoxBounds* _boundsPtr);
   void readLine();
 };
 
@@ -84,6 +85,10 @@ class TimestepReader {
   AtomArray* atomArrayPtr;
   InputStream* inputStreamPtr;
   SimData* simDataPtr;
+  BoxBounds timestepBounds;
+  double xlo, xhi;
+  double ylo, yhi;
+  double zlo, zhi;
 
  public:
   int atomNum;
@@ -157,6 +162,7 @@ class DatafileReader {
   void readNumAtoms();
   void readMasses();
   void readWaterBonds();
+  void readBoxBounds();
 
  public:
   DatafileReader(SimData &simData);
@@ -169,6 +175,7 @@ struct DumpfileReader {
   FrameReader frameReader;
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
+  int frameNum;
 
   DumpfileReader(AtomArray &atomArray);
   void countAtoms();

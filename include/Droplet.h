@@ -19,6 +19,7 @@ struct Monolayer
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
   double zlim[2]; //TODO: set
+  // TODO: Use pointer here, initialize properly
   TH1D hMono;
 
   Monolayer();
@@ -26,6 +27,7 @@ struct Monolayer
   void calculateRadius();
   void fillOne(Atom &atom);
   bool inMonolayer(Atom &atom);
+  void convertUnits();
 
   //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius
   int monoFlux(vector<double> r,vector<double>z,double* monoLimits,double baseRadius,TH1D* rScaledJoin,TH1D* rScaledLeave,int &nMono);
@@ -47,7 +49,6 @@ struct CircularBulk
   Options options;
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
-  TH2D hBulk;
 
   void setContext(Options options, SimData *simDataPtr, AtomArray *atomArrayPtr);
   void fillOne(Atom &atom);
@@ -77,11 +78,14 @@ struct Droplet {
   Options options;
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
+  // TODO: Use pointer here, initialize properly
+  TH2D hDroplet;
 
   Droplet(AtomArray &atomArray);
   void setContext(AtomArray &atomArray);
   void fillOne(Atom &atom);
   void fill(AtomArray &atomArray);
+  void convertUnits();
 };
 
 
