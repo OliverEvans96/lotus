@@ -30,7 +30,7 @@ CXX=g++
 # Root flags
 ROOTFLAGS=`root-config --glibs --cflags` -lMathMore -lMinuit
 # Specify rpath for custom shared library path
-CFLAGS=$(ROOTFLAGS) -I$(INC) -L$(LIB) -lyaml -Wl,-rpath=$(LIB) -g -w
+CFLAGS=$(ROOTFLAGS) -I$(INC) -L$(LIB) -lyaml -Wl,-rpath=$(LIB) -g #-w
 TESTFLAGS=-I$(TEST_INC)
 
 # Test data file

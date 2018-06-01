@@ -33,6 +33,12 @@ struct Options
   string datafile;
   string outLoc;
   int waterBondType;
+  double dz;
+  double dv;
+  double plot_rmax;
+  double plot_zmax;
+  double plot_aspect;
+  int plot_width;
 
   vector<int> liquidTypes, solidTypes;
 

@@ -22,6 +22,7 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TStyle.h"
+#include "TError.h"
 
 using namespace std;
 

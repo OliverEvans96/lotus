@@ -78,14 +78,20 @@ struct Droplet {
   Options options;
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
-  // TODO: Use pointer here, initialize properly
-  TH2D hDroplet;
+  TH2D *hDroplet;
+  TCanvas *cDroplet;
 
   Droplet(AtomArray &atomArray);
+  ~Droplet();
   void setContext(AtomArray &atomArray);
   void fillOne(Atom &atom);
   void fill(AtomArray &atomArray);
   void convertUnits();
+  void createHist();
+  void createCanvas();
+  void plotDensity(char* filename);
+  double getMass();
+  void reset();
 };
 
 

@@ -23,8 +23,9 @@ struct Substrate {
   void reset();
   void convertUnits();
   void createHist(double dz);
-  void createCanvas(int width=800, int height=600);
+  void createCanvas();
   void plotDensity(char* filename);
+  void findLimits();
   double getMass();
 };
 

@@ -28,13 +28,14 @@ void Substrate::fill(AtomArray &atoms) {
   Atom atom;
   reset();
   for(int i=0; i<simDataPtr->numAtoms; i++) {
-    // If not liquid
-    if(!isIn(atoms.type[i], simDataPtr->liquidTypes)) {
+    // If solid
+    if(isIn(atoms.type[i], simDataPtr->solidTypes)) {
       atoms.getAtom(i, atom);
       fillOne(atom);
     }
   }
   convertUnits();
+  findLimits();
 }
 
 void Substrate::reset() {
@@ -45,14 +46,13 @@ void Substrate::convertUnits() {
   double dx, dy, dz;
 
   // Divide by number of steps per frame
-  hSubs->Scale(simDataPtr->stepsPerFrame);
+  hSubs->Scale(1.0/simDataPtr->stepsPerFrame);
   // Divide by volume to get density
-  // TODO (get volume)
   dx = simDataPtr->simBounds.xhi - simDataPtr->simBounds.xlo;
   dy = simDataPtr->simBounds.yhi - simDataPtr->simBounds.ylo;
   dz = hSubs->GetXaxis()->GetBinWidth(0);
   hSubs->Scale(1.0/(dx*dy*dz));
-  // Convert units from amu/AA to g/cc
+  // Convert units from amu/AA^3 to g/cc
   hSubs->Scale(NANO_DENS_TO_MACRO);
 }
 
@@ -64,17 +64,18 @@ void Substrate::createHist(double dz) {
   nz = (int) ceil((zhi - zlo)/dz);
   // If dz doesn't evenly divide zhi-zlo, shift zhi up slightly.
   zhi = zlo + nz*dz;
-  cout << "zlo = " << zlo << endl;
-  cout << "zhi = " << zhi << endl;
-  cout << "dz = " << dz << endl;
-  cout << "nz = " << nz << endl;
-  hSubs = new TH1D("Substrate", "Substrate", nz, zlo, zhi);
 
+  hSubs = new TH1D("Substrate", "Substrate", nz, zlo, zhi);
   hSubs->SetLineColor(kOrange+3); //Brown
   hSubs->SetLineWidth(2);
+  hSubs->SetStats(0);
 }
 
-void Substrate::createCanvas(int width, int height) {
+// TODO: Move to Visualize.cpp
+void Substrate::createCanvas() {
+  int width, height;
+  width = options.plot_width;
+  height = (int) round(width / options.plot_aspect);
   cSubs = new TCanvas("Substrate", "Substrate", width, height);
 }
 
@@ -89,6 +90,35 @@ void Substrate::plotDensity(char* filename) {
   if(options.verbose) {
     cout << "Saving density hist @ '" << ss.str().data() << "'" << endl;
   }
+}
+
+void Substrate::findLimits() {
+  bool foundBottom = false;
+  bool foundTop = false;
+  // Cutoff density (g/cc)
+  double cutoff = 0.05;
+  double dens;
+  // ROOT hists are 1-indexed
+  for(int i=1; i<=hSubs->GetNbinsX(); i++) {
+    dens = hSubs->GetBinContent(i);
+    if(!foundBottom && dens>cutoff) {
+      zlim[0] = hSubs->GetBinLowEdge(i);
+      printf("Found bottom @ bin %d (z=%.2f)\n", i, zlim[0]);
+      foundBottom = true;
+    }
+    if((foundBottom && !foundTop) && dens<cutoff) {
+      zlim[1] = hSubs->GetBinLowEdge(i);
+      printf("Found top @ bin %d (z=%.2f)\n", i, zlim[1]);
+      foundTop = true;
+      break;
+    }
+  }
+  if(options.verbose) {
+    printf("Substrate limits: (%.2f, %.2f)\n", zlim[0], zlim[1]);
+  }
+
+  // Save to simData
+  simDataPtr->substrateTop = zlim[1];
 }
 
 double Substrate::getMass() {

@@ -14,22 +14,20 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
 
 void Monolayer::fillOne(Atom &atom) {
   int mass;
-  if(inMonolayer(atom)) {
-    // TODO: Make this more efficient by calculating
-    // only the necessary "radius" (y or r).
-    if(options.geometry == "spherical") {
-      mass = simDataPtr->masses[atom.type];
-      hMono.Fill(atom.r, mass);
-    }
-    else if(options.geometry == "cylindrical") {
-      hMono.Fill(atom.y);
-    }
+  // TODO: Make this more efficient by calculating
+  // only the necessary "radius" (y or r).
+  if(options.geometry == "spherical") {
+    mass = simDataPtr->masses[atom.type];
+    hMono.Fill(atom.r, mass);
+  }
+  else if(options.geometry == "cylindrical") {
+    hMono.Fill(atom.y);
   }
 }
 
 void Monolayer::convertUnits() {
   // Divide by number of steps per frame
-  hMono.Scale(simDataPtr->stepsPerFrame);
+  hMono.Scale(1.0/simDataPtr->stepsPerFrame);
   // Divide by volume to get density
   // TODO (get volume) (involves zlim)
   // Convert units from amu/AA to g/cc
@@ -744,32 +742,13 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
 
 Droplet::Droplet(AtomArray &atomArray) {
   setContext(atomArray);
+  createHist();
+  createCanvas();
 }
 
-void Droplet::fillOne(Atom &atom) {
-  //bulk.fillOne(atom);
-  //monolayer.fillOne(atom);
-}
-
-void Droplet::fill(AtomArray &atoms) {
-  Atom atom;
-  for(int i=0; i<simDataPtr->numAtoms; i++) {
-    // If liquid
-    if(isIn(atoms.type[i], simDataPtr->liquidTypes)) {
-      atoms.getAtom(i, atom);
-      fillOne(atom);
-    }
-  }
-}
-
-void Droplet::convertUnits() {
-  // Divide by number of steps per frame
-  hDroplet.Scale(simDataPtr->stepsPerFrame);
-  // Divide by volume to get density
-  // TODO (Should this happen earlier?)
-  // => Look at previous code.
-  // Convert units from amu/AA to g/cc
-  hDroplet.Scale(NANO_DENS_TO_MACRO);
+Droplet::~Droplet() {
+  delete hDroplet;
+  delete cDroplet;
 }
 
 void Droplet::setContext(AtomArray &atomArray) {
@@ -781,6 +760,115 @@ void Droplet::setContext(AtomArray &atomArray) {
   monolayer.setContext(options, simDataPtr, atomArrayPtr);
 }
 
-////////////////////
-// Misc. Analysis //
-////////////////////
+void Droplet::fillOne(Atom &atom) {
+  double mass, z;
+  mass = simDataPtr->masses[atom.type];
+  // z relative to top of substrate
+  z = atom.z - simDataPtr->substrateTop;
+  hDroplet->Fill(atom.r, z, mass);
+}
+
+void Droplet::fill(AtomArray &atoms) {
+  Atom atom;
+  reset();
+  cout << "Filling w.r.t. z=" << simDataPtr->substrateTop << endl;
+  for(int i=0; i<simDataPtr->numAtoms; i++) {
+    // If liquid
+    if(isIn(atoms.type[i], simDataPtr->liquidTypes)) {
+      atoms.getAtom(i, atom);
+      atom.calculateNonCartesian();
+      fillOne(atom);
+      // Add to monolayer
+      if(monolayer.inMonolayer(atom)) {
+        monolayer.fillOne(atom);
+      }
+    }
+  }
+
+  convertUnits();
+  monolayer.convertUnits();
+}
+
+void Droplet::reset() {
+  hDroplet->Reset();
+}
+
+void Droplet::convertUnits() {
+  // Divide by number of steps per frame
+  hDroplet->Scale(1.0/simDataPtr->stepsPerFrame);
+  // Divide by volume to get density
+  hDroplet->Scale(1.0/options.dv);
+  // Convert units from amu/AA^3 to g/cc
+  hDroplet->Scale(NANO_DENS_TO_MACRO);
+}
+
+void Droplet::createHist() {
+  double zlo, zhi;
+  double rlo, rhi;
+  // Set limits on histograms
+  Grid grid;
+  double dz = options.dz;
+  double dv = options.dv;
+  zlo = 0;
+  zhi = options.plot_zmax;
+  rlo = 0;
+  rhi = options.plot_rmax;
+
+  grid.setBounds(zlo, zhi, rhi);
+  grid.setSpacing(dz, dv);
+  grid.init();
+
+  if(options.verbose) {
+    cout << "Grid:" << endl;
+    cout << "dz = " << dz << endl;
+    cout << "dv = " << dv << endl;
+    cout << "nr = " << grid.nr << endl;
+    cout << "nz = " << grid.nz << endl;
+    cout << "zlo = " << grid.zlo << endl;
+    cout << "zhi = " << grid.zhi << endl;
+    cout << "rVals = ";
+    for(int i=0; i<grid.nr; i++) {
+      cout << grid.rVals[i] << ", ";
+    }
+    cout << endl;
+  }
+
+  hDroplet = new TH2D("hDroplet","hDroplet",grid.nr,grid.rVals,grid.nz,grid.zlo,grid.zhi);
+  hDroplet->SetStats(0);
+  hDroplet->SetMinimum(0);
+  hDroplet->SetMaximum(2.0);
+}
+
+// TODO: Move to Visualize.cpp
+void Droplet::createCanvas() {
+  int width, height;
+  width = options.plot_width;
+  height = (int) round(width / options.plot_aspect);
+  cDroplet = new TCanvas("Droplet", "Droplet", width, height);
+}
+
+// TODO: Move to Visualize.cpp
+void Droplet::plotDensity(char* filename) {
+  stringstream ss;
+  ss << options.outLoc << "/" << filename;
+  gStyle->SetCanvasPreferGL(true);
+  cDroplet->cd();
+  hDroplet->Draw("colZ");
+  cDroplet->SaveAs(ss.str().data());
+  if(options.verbose) {
+    cout << "Saving droplet hist @ '" << ss.str().data() << "'" << endl;
+  }
+}
+
+double Droplet::getMass() {
+  // Total mass in amu
+  double mass;
+
+  // Integrate over whole cylindrical volume
+  // All bins have equal volume by design
+  // This quantity has units g/cm^3*AA^3
+  mass = hDroplet->Integral() * options.dv;
+  // Convert units to amu
+  mass /= NANO_DENS_TO_MACRO;
+  return mass;
+}

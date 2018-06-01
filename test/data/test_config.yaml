@@ -3,12 +3,16 @@ datafile: ../test/data/lammps_noZperiod_3A.dat
 outLoc: ../test/run
 stepsPerFrame: 3
 solidTypes:
-    - 1
-    - 2
-    - 3
+  - 1
+  - 2
+  - 3
 liquidTypes:
-    - 4
-    - 5
+  - 4
+  - 5
 waterBondType: 2
 geometry: spherical
 verbose: true
+plot_rmax: 80
+plot_zmax: 60
+plot_aspect: 1
+plot_width: 600

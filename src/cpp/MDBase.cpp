@@ -2,6 +2,9 @@
 
 SimData::SimData(Options options) {
   setOptions(options);
+
+  // Default values
+  substrateTop = 0;
 }
 
 void SimData::setOptions(Options _options) {
@@ -12,8 +15,6 @@ void SimData::setOptions(Options _options) {
 }
 
 void SimData::setStepsPerFrame(int _stepsPerFrame) {
-  if(options.verbose)
-    cout << "SimData.setStepsPerFrame = " << _stepsPerFrame << endl;
   stepsPerFrame = _stepsPerFrame;
   lastFrame.setSteps(numSteps, stepsPerFrame);
   if(options.verbose) {
@@ -81,19 +82,19 @@ void SimData::setNumSteps(int _numSteps) {
 //   cout << "nA=" << nA << endl;                              //
 //                                                             //
 //   ////////////////////////////////////////////////////////////
-// 
-// 
+//
+//
 //   //Values to use for equal-area bins
 //   double aVals[nA];
 //   double vVals[nA];
 //   double rVals[nA];
 //   double pVals[nA];
-//   
+//
 // }
 
 void Grid::setBounds(double _zlo, double _zhi, double _rhi) {
   zlo = _zlo;
-  zhi = _zhi;
+  zhi_preround = _zhi;
   rhi_preround = _rhi;
 }
 
@@ -104,13 +105,14 @@ void Grid::setSpacing(double _dz, double _dv) {
 
 void Grid::calculateVolumeLimits() {
   // Volume of full cylinder containing outer bin.
+  // Increase upper limits if total width is not divisible
+  // by required spacing (e.g. (zhi-zlo)%dz != 0)
   vhi_preround = dz * PI * rhi_preround * rhi_preround;
-  nv = (int) round(vhi_preround / dv);
+  nv = (int) ceil(vhi_preround / dv);
   nr = nv;
   vhi = nv * dv;
   rhi = sqrt(vhi / (PI*dz));
-
-  nz = (int) round((zhi_preround-zlo) / dz);
+  nz = (int) ceil((zhi_preround-zlo) / dz);
   zhi = zlo + nz * dz;
 }
 
@@ -138,4 +140,3 @@ void Grid::deallocateBins() {
 Grid::~Grid() {
   deallocateBins();
 }
-

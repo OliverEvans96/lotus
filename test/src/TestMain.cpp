@@ -12,7 +12,8 @@ const int NUM_ATOMS = 513699;
 const int NUM_STEPS = 8;
 const int NUM_WATER = 1105;
 const int STEPS_PER_FRAME = 3;
-const double SUBSTRATE_MASS = 28178136.0;
+const double SUBSTRATE_MASS = 3130904.0;
+const double DROPLET_MASS = 6563.56701333;
 
 TEST_CASE("Readers", "[lotus]") {
   int argc = 2;
@@ -68,12 +69,18 @@ TEST_CASE("Readers", "[lotus]") {
   while(dumpfileReader.good()) {
     dumpfileReader.readFrame();
     substrate.fill(atoms);
+    droplet.fill(atoms);
+    REQUIRE(abs(substrate.getMass() - SUBSTRATE_MASS) < 1e-3*SUBSTRATE_MASS);
+    REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 1e-3*DROPLET_MASS);
+    printf("Substrate Mass = %.10f\n", substrate.getMass());
+    printf("Droplet Mass = %.10f\n", droplet.getMass());
 
     sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);
     substrate.plotDensity(filename);
 
-    // Check substrate mass
-    REQUIRE(abs(substrate.getMass() - SUBSTRATE_MASS) < 1e-3*SUBSTRATE_MASS);
+    sprintf(filename, "droplet_density%d.png", dumpfileReader.frameNum);
+    droplet.plotDensity(filename);
+
   }
 }
 

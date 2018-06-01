@@ -164,7 +164,22 @@ void Options::readConfig(char* _configPath) {
   parseDefaultOption("plotAllTogether", plotAllTogether, false);
   parseDefaultOption("verbose", verbose, false);
   parseDefaultOption("onlyFindInterface", onlyFindInterface, false);
+  parseDefaultOption("dz", dz, 1.0);
+  parseDefaultOption("dv", dv, 500.0);
+  parseDefaultOption("plot_rmax", plot_rmax, 150.0);
+  parseDefaultOption("plot_zmax", plot_zmax, 100.0);
+  parseDefaultOption("plot_aspect", plot_aspect, 1.0);
+  parseDefaultOption("plot_width", plot_width, 800);
+
+  // Set ROOT verbosity
+  if(verbose) {
+    gErrorIgnoreLevel = kInfo;
+  }
+  else {
+    gErrorIgnoreLevel = kWarning;
+  }
 }
+
 
 template <typename T>
 void Options::printOption(string optionName, T option) {
@@ -201,11 +216,23 @@ void Options::printOptions() {
   printOption("plotAllTogether", plotAllTogether);
   printOption("verbose", verbose);
   printOption("onlyFindInterface", onlyFindInterface);
+  printOption("plot_rmax", plot_rmax);
+  printOption("plot_zmax", plot_zmax);
+  printOption("plot_aspect", plot_aspect);
+  printOption("dz", dz);
+  printOption("dv", dv);
+  printOption("plot_rmax", plot_rmax);
+  printOption("plot_zmax", plot_zmax);
+  printOption("plot_aspect", plot_aspect);
+  printOption("plot_width", plot_width);
 }
 
 CommandLineParser::CommandLineParser(int argc, char* argv[]) {
   parseArgs(argc, argv);
   options.readConfig(configPath);
+  if(options.verbose) {
+    print();
+  }
 }
 
 void CommandLineParser::parseArgs(int argc, char* argv[]) {

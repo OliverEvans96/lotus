@@ -24,6 +24,7 @@ struct BoxBounds {
 // Variables are set here, and this object (or a pointer)
 // is passed around and read elsewhere.
 struct SimData {
+  // Static data
   Options options;
   int numAtoms;
   int numSteps;
@@ -35,6 +36,10 @@ struct SimData {
   map<int, double> masses;
   map<int, int[2]> waterBonds;
   BoxBounds simBounds;
+
+  // Dynamic data
+  double substrateTop;
+
 
   SimData(Options options);
   void setOptions(Options options);
