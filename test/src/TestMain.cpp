@@ -69,11 +69,27 @@ TEST_CASE("Readers", "[lotus]") {
   while(dumpfileReader.good()) {
     dumpfileReader.readFrame();
     substrate.fill(atoms);
-    droplet.fill(atoms);
     REQUIRE(abs(substrate.getMass() - SUBSTRATE_MASS) < 1e-3*SUBSTRATE_MASS);
+    droplet.fill(atoms);
     REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 1e-3*DROPLET_MASS);
-    printf("Substrate Mass = %.10f\n", substrate.getMass());
-    printf("Droplet Mass = %.10f\n", droplet.getMass());
+    // TODO: Traverse droplet histogram to find boundary
+    // TODO: Add boundary points to CircleFit
+    REQUIRE(droplet.bulk.circle.GetNumPoints() > 0);
+    // TODO: Fill monolayer histogram
+    REQUIRE(droplet.monolayer.hMono.GetEntries > 0);
+    // TODO: Find top and bottom of monolayer
+    REQUIRE(droplet.monolayer.zlim[1] - droplet.monolayer.zlim[0] > 0);
+    // TODO: Calculate monolayer radius
+    REQUIRE(droplet.monolayer.radius > 0);
+    // TODO: Intersect circle with monolayer top
+    REQUIRE(droplet.bulk.circle.intersected);
+    // TODO: Calculate height, bulk radius, contact angle
+    REQUIRE(droplet.bulk.heght > 0);
+    REQUIRE(droplet.bulk.radius > 0);
+    REQUIRE(droplet.bulk.contactAngle > 0);
+    // TODO: Write frame quantities to file
+    //       - rm, rb, ca, h, circle points
+    // TODO: Add option to enable/disable circle fit
 
     sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);
     substrate.plotDensity(filename);

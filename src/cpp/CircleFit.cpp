@@ -546,6 +546,10 @@ void CircleFit::Print()
     cout << endl;
 }
 
+int CircleFit::GetNumPoints() {
+  return x.size();
+}
+
 //Count number of lines in file
 void CircleFit::countLines(ifstream &inFile)
 {

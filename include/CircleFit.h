@@ -48,6 +48,7 @@ public:
 	double GetYCenter();
 	double GetRadius();
 	void Print();
+  int GetNumPoints();
 
 private:
 	//Variables
