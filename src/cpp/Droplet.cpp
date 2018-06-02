@@ -765,6 +765,9 @@ void Droplet::fillOne(Atom &atom) {
   mass = simDataPtr->masses[atom.type];
   // z relative to top of substrate
   z = atom.z - simDataPtr->substrateTop;
+  // cout << "atom.z = " << atom.z << endl;
+  // cout << "substrateTop = " << simDataPtr->substrateTop << endl;
+  // cout << "z = " << z << endl;
   hDroplet->Fill(atom.r, z, mass);
 }
 

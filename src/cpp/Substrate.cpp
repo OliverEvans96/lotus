@@ -94,10 +94,14 @@ void Substrate::plotDensity(char* filename) {
 
 void Substrate::findLimits() {
   bool foundBottom = false;
-  bool foundTop = false;
   // Cutoff density (g/cc)
   double cutoff = 0.05;
   double dens;
+
+  // Require this many bins under the cutoff
+  // in order to consider the top of the substrate found.
+  int numRequired = 3;
+  int numFound = 0;
   // ROOT hists are 1-indexed
   for(int i=1; i<=hSubs->GetNbinsX(); i++) {
     dens = hSubs->GetBinContent(i);
@@ -106,10 +110,14 @@ void Substrate::findLimits() {
       printf("Found bottom @ bin %d (z=%.2f)\n", i, zlim[0]);
       foundBottom = true;
     }
-    if((foundBottom && !foundTop) && dens<cutoff) {
-      zlim[1] = hSubs->GetBinLowEdge(i);
+    if((foundBottom) && dens<cutoff) {
+      numFound++;
+    }
+    if(numFound == numRequired) {
+      // If we have seen enough bins below cutoff,
+      // then call the first one the top.
+      zlim[1] = hSubs->GetBinLowEdge(i-(numRequired-1));
       printf("Found top @ bin %d (z=%.2f)\n", i, zlim[1]);
-      foundTop = true;
       break;
     }
   }
@@ -118,6 +126,7 @@ void Substrate::findLimits() {
   }
 
   // Save to simData
+  cout << "Setting substrateTop = " << zlim[1] << endl;
   simDataPtr->substrateTop = zlim[1];
 }
 
