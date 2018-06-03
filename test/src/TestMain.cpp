@@ -74,9 +74,11 @@ TEST_CASE("Readers", "[lotus]") {
     REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 1e-3*DROPLET_MASS);
     // TODO: Traverse droplet histogram to find boundary
     // TODO: Add boundary points to CircleFit
+    droplet.findBoundaryPoints();
+    REQUIRE(droplet.bulk.gCirclePoints->GetN() > 0);
     REQUIRE(droplet.bulk.circle.GetNumPoints() > 0);
     // TODO: Fill monolayer histogram
-    REQUIRE(droplet.monolayer.hMono.GetEntries > 0);
+    REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
     // TODO: Find top and bottom of monolayer
     REQUIRE(droplet.monolayer.zlim[1] - droplet.monolayer.zlim[0] > 0);
     // TODO: Calculate monolayer radius
@@ -84,7 +86,7 @@ TEST_CASE("Readers", "[lotus]") {
     // TODO: Intersect circle with monolayer top
     REQUIRE(droplet.bulk.circle.intersected);
     // TODO: Calculate height, bulk radius, contact angle
-    REQUIRE(droplet.bulk.heght > 0);
+    REQUIRE(droplet.bulk.height > 0);
     REQUIRE(droplet.bulk.radius > 0);
     REQUIRE(droplet.bulk.contactAngle > 0);
     // TODO: Write frame quantities to file

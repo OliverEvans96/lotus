@@ -5,6 +5,11 @@
 ////////////////////////
 
 Monolayer::Monolayer() {}
+Monolayer::~Monolayer() {
+  // TODO: Pretty weird to allocate in Droplet
+  // and delete in Monolayer.
+  delete hMono;
+}
 
 void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr) {
   options = _options;
@@ -18,20 +23,20 @@ void Monolayer::fillOne(Atom &atom) {
   // only the necessary "radius" (y or r).
   if(options.geometry == "spherical") {
     mass = simDataPtr->masses[atom.type];
-    hMono.Fill(atom.r, mass);
+    hMono->Fill(atom.r, mass);
   }
   else if(options.geometry == "cylindrical") {
-    hMono.Fill(atom.y);
+    hMono->Fill(atom.y);
   }
 }
 
 void Monolayer::convertUnits() {
   // Divide by number of steps per frame
-  hMono.Scale(1.0/simDataPtr->stepsPerFrame);
+  hMono->Scale(1.0/simDataPtr->stepsPerFrame);
   // Divide by volume to get density
   // TODO (get volume) (involves zlim)
   // Convert units from amu/AA to g/cc
-  hMono.Scale(NANO_DENS_TO_MACRO);
+  hMono->Scale(NANO_DENS_TO_MACRO);
 }
 
 // Whether an atom is in the monolayer
@@ -163,7 +168,13 @@ void Monolayer::findMonoLimits(TH1D *hWaterDens,double *monoLimits)
 
 }
 
-CircularBulk::CircularBulk() {}
+CircularBulk::CircularBulk() {
+  gCirclePoints = new TGraph();
+}
+
+CircularBulk::~CircularBulk() {
+  delete gCirclePoints;
+}
 
 void CircularBulk::setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr) {
   options = _options;
@@ -274,6 +285,7 @@ void CircularBulk::findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char*
     //For each row
     for(int j=firstBulkBin+1;j<=ny;j++)
     {
+        cout << "RF j = " << j << endl;
         //Create projection
         px = hist->ProjectionX("px",j,j);
         center = hist->GetYaxis()->GetBinCenter(j);
@@ -281,12 +293,14 @@ void CircularBulk::findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char*
         //Solve for x coordinate where tanhFit(x)=0.5
         //Include all bins
         tmpx=solveTanhFit(px,tanhFit,fitBounds,1,frameStep,bulkEdge,"row",center,tanhLegend,tanhLines,tanhTexts,tanhTextBox);
+        cout << "tmpx = " << tmpx << endl;
         //cout << "Row " << j << ": tmpx=" << tmpx << endl;
         if(tmpx>0)
         {
             //Found another row containing droplet
             tmpy=hist->GetYaxis()->GetBinCenter(j);
             circlePointsGraph->SetPoint(n,tmpx,tmpy);
+            printf("CPG Set %d @ (%.2f, %.2f).\n", n, tmpx, tmpy);
 
             //Choose the value from the row above the monolayer to be the x coordinate after which to discard points for circle fitting to determine the bulk-monolayer interface
             if(j==firstBulkBin)
@@ -343,11 +357,11 @@ void CircularBulk::findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char*
     // Update bulkEdge
     bulkEdge = tmpBulkEdge;
 
-    TCanvas* c5 = new TCanvas();
-     c5->cd();
-    circlePointsGraph->Draw("APL");
-     c5->SaveAs("test.C");
-     delete c5;
+    // TCanvas* c5 = new TCanvas();
+    //  c5->cd();
+    // circlePointsGraph->Draw("APL");
+    //  c5->SaveAs("test.C");
+    //  delete c5;
 
     delete tanhFit;
 }
@@ -543,9 +557,16 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
     //cout << "startBin=" << startBin << endl;
     //cout << "startPoint=" << startPoint << endl;
 
+    cout << "THF" << endl;
     //Best guess based on counting, not fitting
     double lowGuess,hiGuess;
     guessTanhFit(hist,fitBounds,ldGuess,width,boundary,lowGuess,hiGuess);
+    cout << "Guess:" << endl;
+    cout << "ldGuess = " << ldGuess << endl;
+    cout << "width = " << width << endl;
+    cout << "boundary = " << boundary << endl;
+    cout << "lowGuess = " << lowGuess << endl;
+    cout << "hiGuess = " << hiGuess << endl;
     /*
     cout << endl;
     cout << "Guessed fit to be: " << endl;
@@ -575,6 +596,11 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
     double ld=tanhFit->GetParameter(0);
     double w=tanhFit->GetParameter(1);
     double c=tanhFit->GetParameter(2);
+
+    cout << "Fit Params:" << endl;
+    cout << "ld = " << ld << endl;
+    cout << "w = " << w << endl;
+    cout << "c = " << c << endl;
 
     /*
     cout << endl;
@@ -610,124 +636,124 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
     //else
     //    draw=false;
 
-    //Save image
-    if(draw && val>0)
-    {
-        //Canvas
-        TCanvas *cTanh = new TCanvas();
+    // //Save image
+    // if(draw && val>0)
+    // {
+    //     //Canvas
+    //     TCanvas *cTanh = new TCanvas();
 
-        //Title
-        stringstream title;
+    //     //Title
+    //     stringstream title;
 
-        //Draw hist
-        hist->GetXaxis()->SetRangeUser(tanhRangeUser[0],tanhRangeUser[1]);
-        hist->GetYaxis()->SetRangeUser(tanhRangeUser[2],tanhRangeUser[3]);
-        hist->Draw();
+    //     //Draw hist
+    //     hist->GetXaxis()->SetRangeUser(tanhRangeUser[0],tanhRangeUser[1]);
+    //     hist->GetYaxis()->SetRangeUser(tanhRangeUser[2],tanhRangeUser[3]);
+    //     hist->Draw();
 
-        //Text - Where is this bin located?
-        title.str("");
-        title << fitType << " pos: " << pos;
-        TText *posText = new TText(.45,.85,title.str().data());
-        posText->SetNDC();
-        posText->Draw();
+    //     //Text - Where is this bin located?
+    //     title.str("");
+    //     title << fitType << " pos: " << pos;
+    //     TText *posText = new TText(.45,.85,title.str().data());
+    //     posText->SetNDC();
+    //     posText->Draw();
 
-        //Set annotation lines
+    //     //Set annotation lines
 
-        //Set lines to span plot box
-        for(int i=1;i<7;i++)
-        {
-            //Vertical lines have identical x coordinates
-            if(tanhLines[i]->GetX1()==tanhLines[i]->GetX2())
-            {
-                tanhLines[i]->SetY1(tanhRangeUser[2]);
-                tanhLines[i]->SetY2(tanhRangeUser[3]);
-            }
-            //Horizontal lines do not
-            else
-            {
-                tanhLines[i]->SetX1(tanhRangeUser[0]);
-                tanhLines[i]->SetX2(tanhRangeUser[1]);
-            }
-        }
+    //     //Set lines to span plot box
+    //     for(int i=1;i<7;i++)
+    //     {
+    //         //Vertical lines have identical x coordinates
+    //         if(tanhLines[i]->GetX1()==tanhLines[i]->GetX2())
+    //         {
+    //             tanhLines[i]->SetY1(tanhRangeUser[2]);
+    //             tanhLines[i]->SetY2(tanhRangeUser[3]);
+    //         }
+    //         //Horizontal lines do not
+    //         else
+    //         {
+    //             tanhLines[i]->SetX1(tanhRangeUser[0]);
+    //             tanhLines[i]->SetX2(tanhRangeUser[1]);
+    //         }
+    //     }
 
-        //ld (horizontal)
-        tanhLines[0]->SetY1(ld);
-        tanhLines[0]->SetY2(ld);
-        tanhLines[0]->Draw();
-        //x0
-        tanhLines[2]->SetX1(c);
-        tanhLines[2]->SetX2(c);
-        tanhLines[3]->Draw();
-        //x0guess
-        tanhLines[3]->SetX1(boundary);
-        tanhLines[3]->SetX2(boundary);
-        tanhLines[3]->Draw();
-        //lowGuess
-        tanhLines[4]->SetX1(lowGuess);
-        tanhLines[4]->SetX2(lowGuess);
-        tanhLines[4]->Draw();
-        //hiGuess
-        tanhLines[5]->SetX1(hiGuess);
-        tanhLines[5]->SetX2(hiGuess);
-        tanhLines[5]->Draw();
-        //lowBin
-        tanhLines[6]->SetX1(startPoint);
-        tanhLines[6]->SetX2(startPoint);
-        tanhLines[6]->Draw();
-        //sol
-        tanhLines[1]->SetX1(val);
-        tanhLines[1]->SetX2(val);
-        tanhLines[1]->Draw();
+    //     //ld (horizontal)
+    //     tanhLines[0]->SetY1(ld);
+    //     tanhLines[0]->SetY2(ld);
+    //     tanhLines[0]->Draw();
+    //     //x0
+    //     tanhLines[2]->SetX1(c);
+    //     tanhLines[2]->SetX2(c);
+    //     tanhLines[3]->Draw();
+    //     //x0guess
+    //     tanhLines[3]->SetX1(boundary);
+    //     tanhLines[3]->SetX2(boundary);
+    //     tanhLines[3]->Draw();
+    //     //lowGuess
+    //     tanhLines[4]->SetX1(lowGuess);
+    //     tanhLines[4]->SetX2(lowGuess);
+    //     tanhLines[4]->Draw();
+    //     //hiGuess
+    //     tanhLines[5]->SetX1(hiGuess);
+    //     tanhLines[5]->SetX2(hiGuess);
+    //     tanhLines[5]->Draw();
+    //     //lowBin
+    //     tanhLines[6]->SetX1(startPoint);
+    //     tanhLines[6]->SetX2(startPoint);
+    //     tanhLines[6]->Draw();
+    //     //sol
+    //     tanhLines[1]->SetX1(val);
+    //     tanhLines[1]->SetX2(val);
+    //     tanhLines[1]->Draw();
 
-        //Set texts
-        //pos
-        title.str("");
-        title << "pos: " << pos;
-        tanhTexts[0]->SetText(0,0,title.str().data());
-        //w_guess
-        title.str("");
-        title << "w_guess: " << width;
-        tanhTexts[1]->SetText(0,0,title.str().data());
-        //w
-        title.str("");
-        title << "w: " << w;
-        tanhTexts[2]->SetText(0,0,title.str().data());
-        //x0_guess
-        title.str("");
-        title << "x0_guess: " << boundary;
-        tanhTexts[3]->SetText(0,0,title.str().data());
-        //x0
-        title.str("");
-        title << "x0: " << c;
-        tanhTexts[4]->SetText(0,0,title.str().data());
-        title.str("");
+    //     //Set texts
+    //     //pos
+    //     title.str("");
+    //     title << "pos: " << pos;
+    //     tanhTexts[0]->SetText(0,0,title.str().data());
+    //     //w_guess
+    //     title.str("");
+    //     title << "w_guess: " << width;
+    //     tanhTexts[1]->SetText(0,0,title.str().data());
+    //     //w
+    //     title.str("");
+    //     title << "w: " << w;
+    //     tanhTexts[2]->SetText(0,0,title.str().data());
+    //     //x0_guess
+    //     title.str("");
+    //     title << "x0_guess: " << boundary;
+    //     tanhTexts[3]->SetText(0,0,title.str().data());
+    //     //x0
+    //     title.str("");
+    //     title << "x0: " << c;
+    //     tanhTexts[4]->SetText(0,0,title.str().data());
+    //     title.str("");
 
-        //Draw annotations
-        tanhTextBox->Draw();
-        tanhLegend->Draw();
+    //     //Draw annotations
+    //     tanhTextBox->Draw();
+    //     tanhLegend->Draw();
 
-        //Draw graph
-        tanhPointsGraph->SetMarkerStyle(20);
-        tanhPointsGraph->Draw("same p");
+    //     //Draw graph
+    //     tanhPointsGraph->SetMarkerStyle(20);
+    //     tanhPointsGraph->Draw("same p");
 
-        /*
-        //Draw solution
-        TLine *solLine= new TLine(val,0,val,1);
-        solLine->SetLineWidth(3);
-        solLine->SetLineColor(kOrange);
-        solLine->Draw();
-        */
+    //     /*
+    //     //Draw solution
+    //     TLine *solLine= new TLine(val,0,val,1);
+    //     solLine->SetLineWidth(3);
+    //     solLine->SetLineColor(kOrange);
+    //     solLine->Draw();
+    //     */
 
-        //Title
-        title.str("");
-        title << "img/tanh/step" << frameStep << "_" << fitType << setw(3) << setfill('0') << fitNum << ".png";
-        hist->SetTitle(title.str().data());
+    //     //Title
+    //     title.str("");
+    //     title << "img/tanh/step" << frameStep << "_" << fitType << setw(3) << setfill('0') << fitNum << ".png";
+    //     hist->SetTitle(title.str().data());
 
-        //Save
-        cTanh->SaveAs(title.str().data());
+    //     //Save
+    //     cTanh->SaveAs(title.str().data());
 
-        delete cTanh;
-    }
+    //     delete cTanh;
+    // }
 
     //Update variables
     fitNum++;
@@ -742,7 +768,7 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
 
 Droplet::Droplet(AtomArray &atomArray) {
   setContext(atomArray);
-  createHist();
+  createHists();
   createCanvas();
 }
 
@@ -805,7 +831,7 @@ void Droplet::convertUnits() {
   hDroplet->Scale(NANO_DENS_TO_MACRO);
 }
 
-void Droplet::createHist() {
+void Droplet::createHists() {
   double zlo, zhi;
   double rlo, rhi;
   // Set limits on histograms
@@ -840,6 +866,10 @@ void Droplet::createHist() {
   hDroplet->SetStats(0);
   hDroplet->SetMinimum(0);
   hDroplet->SetMaximum(2.0);
+
+  // TODO: This is probably not the way to do this.
+  // Maybe pass the grid object instead.
+  monolayer.hMono = new TH1D("hMono", "hMono", grid.nr, grid.rVals);
 }
 
 // TODO: Move to Visualize.cpp
@@ -874,4 +904,9 @@ double Droplet::getMass() {
   // Convert units to amu
   mass /= NANO_DENS_TO_MACRO;
   return mass;
+}
+
+void Droplet::findBoundaryPoints() {
+  double rBulkMax = 200.0;
+  bulk.findBoundaryPoints(hDroplet, bulk.gCirclePoints, "a", monolayer.zlim, monolayer.hMono, rBulkMax, monolayer.radius, bulk.radius, /*unnecessary*/simDataPtr->framePtr->frameStep, /*legend*/(TLegend*)NULL, (TLine**)/*tanhLines*/NULL, (TText**)/*tanhTexts*/NULL, (TPaveText*)/*tanhTextBox*/NULL);
 }

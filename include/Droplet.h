@@ -20,9 +20,10 @@ struct Monolayer
   AtomArray *atomArrayPtr;
   double zlim[2]; //TODO: set
   // TODO: Use pointer here, initialize properly
-  TH1D hMono;
+  TH1D *hMono;
 
   Monolayer();
+  ~Monolayer();
   void setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr);
   void calculateRadius();
   void fillOne(Atom &atom);
@@ -40,6 +41,7 @@ struct Monolayer
 struct CircularBulk
 {
   CircularBulk();
+  ~CircularBulk();
 
   double height;
   double radius;
@@ -49,6 +51,7 @@ struct CircularBulk
   Options options;
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
+  TGraph *gCirclePoints;
 
   void setContext(Options options, SimData *simDataPtr, AtomArray *atomArrayPtr);
   void fillOne(Atom &atom);
@@ -87,11 +90,12 @@ struct Droplet {
   void fillOne(Atom &atom);
   void fill(AtomArray &atomArray);
   void convertUnits();
-  void createHist();
+  void createHists();
   void createCanvas();
   void plotDensity(char* filename);
   double getMass();
   void reset();
+  void findBoundaryPoints();
 };
 
 

@@ -419,6 +419,9 @@ void FrameReader::setContext(Options _options, AtomArray* _atomArrayPtr, SimData
   simDataPtr->setOptions(options);
   openStream();
 
+  // Save pointer to frame for simData
+  simDataPtr->framePtr = &frame;
+
   timestepReader.setContext(options, &inputStream, atomArrayPtr, &timestep, simDataPtr);
 }
 

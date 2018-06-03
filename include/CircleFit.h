@@ -50,6 +50,8 @@ public:
 	void Print();
   int GetNumPoints();
 
+	bool intersected; //Whether Intersect() has been called
+
 private:
 	//Variables
 	double PI; //Pi!
@@ -61,7 +63,6 @@ private:
 	double theta; //Contact angle
 	double cosTheta; //Cos(contact angle)
 	double height; //Droplet height at x=0
-	bool intersected; //Whether Intersect() has been called
 	double m,b; //Parameters for tangent line
 	double margins[4]; //Margins of canvas
 	double xlo,ylo,xhi,yhi; //Edges of histogram
