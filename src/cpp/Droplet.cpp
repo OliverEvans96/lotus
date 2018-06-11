@@ -19,22 +19,44 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
 
 void Monolayer::fillOne(Atom &atom) {
   int mass;
+  mass = simDataPtr->masses[atom.type];
   // TODO: Make this more efficient by calculating
   // only the necessary "radius" (y or r).
   if(options.geometry == "spherical") {
-    mass = simDataPtr->masses[atom.type];
     hMono->Fill(atom.r, mass);
+    //cout << "fill mono @ " << atom.r << endl;
   }
   else if(options.geometry == "cylindrical") {
-    hMono->Fill(atom.y);
+    hMono->Fill(atom.y, mass);
+    //cout << "fill mono @ " << atom.r << endl;
+  }
+  cout << "Entries: " << hMono->GetEntries() << endl;
+}
+
+void Monolayer::fill(AtomArray &atoms) {
+  Atom atom;
+  // Add to monolayer
+  for(int i=0; i<simDataPtr->numAtoms; i++) {
+    atoms.getAtom(i, atom);
+    if(isIn(atoms.type[i], simDataPtr->liquidTypes)) {
+      if(inMonolayer(atom)) {
+        fillOne(atom);
+      }
+    }
   }
 }
 
 void Monolayer::convertUnits() {
+  // Must be called after monoLimits are found.
+  double dv;
+
   // Divide by number of steps per frame
   hMono->Scale(1.0/simDataPtr->stepsPerFrame);
+  // Calculate monolayer bin volume
+  // options.dv is for hDroplet, which uses options.dz.
+  dv = options.dv * (zlim[1] - zlim[0])/options.dz;
   // Divide by volume to get density
-  // TODO (get volume) (involves zlim)
+  hMono->Scale(1.0/dv);
   // Convert units from amu/AA to g/cc
   hMono->Scale(NANO_DENS_TO_MACRO);
 }
@@ -805,21 +827,29 @@ void Droplet::fill(AtomArray &atoms) {
   Atom atom;
   reset();
   cout << "Filling w.r.t. z=" << simDataPtr->substrateTop << endl;
+  cout << "monoLimits:" << monolayer.zlim[0] << " " << monolayer.zlim[1] << endl;
   for(int i=0; i<simDataPtr->numAtoms; i++) {
     // If liquid
     if(isIn(atoms.type[i], simDataPtr->liquidTypes)) {
       atoms.getAtom(i, atom);
       atom.calculateNonCartesian();
       fillOne(atom);
-      // Add to monolayer
-      if(monolayer.inMonolayer(atom)) {
-        monolayer.fillOne(atom);
-      }
     }
   }
 
   convertUnits();
   monolayer.convertUnits();
+}
+
+void Droplet::findMonolayer() {
+  // TODO: Determine radius from options?
+  double rDensCyl = 20;
+
+  double firstxbin = 1;
+  double lastxbin = hDroplet->GetXaxis()->FindBin(rDensCyl);
+
+  TH1D* hLiquidDens = hDroplet->ProjectionY("hLiquidDens", firstxbin, lastxbin);
+  monolayer.findMonoLimits(hLiquidDens, monolayer.zlim);
 }
 
 void Droplet::reset() {
@@ -910,15 +940,20 @@ double Droplet::getMass() {
   return mass;
 }
 
-void Droplet::findBoundaryPoints() {
-  // TODO: Set boundaries from options
-  double rBulkMax = 200.0;
-  bulk.findBoundaryPoints(hDroplet, bulk.gCirclePoints, "a", monolayer.zlim, monolayer.hMono, rBulkMax, monolayer.radius, bulk.radius, /*unnecessary*/simDataPtr->framePtr->frameStep, /*legend*/(TLegend*)NULL, (TLine**)/*tanhLines*/NULL, (TText**)/*tanhTexts*/NULL, (TPaveText*)/*tanhTextBox*/NULL);
-}
-
-void Droplet::fitCircle() {
-  // TODO: Set boundaries from options
+void Droplet::dropletCalculations() {
+  // TODO: Set boundary points from options
   double rBulkMax = 200.0;
   double chi2;
+
+  // TODO: Should this go here?
+
+  // TODO: Why is monoLimits necessary here?
+  // Get circle
+  bulk.findBoundaryPoints(hDroplet, bulk.gCirclePoints, "a", monolayer.zlim, monolayer.hMono, rBulkMax, monolayer.radius, bulk.radius, /*unnecessary*/simDataPtr->framePtr->frameStep, /*legend*/(TLegend*)NULL, (TLine**)/*tanhLines*/NULL, (TText**)/*tanhTexts*/NULL, (TPaveText*)/*tanhTextBox*/NULL);
   chi2 = bulk.fitCircle(bulk.gCirclePoints, bulk.circle, rBulkMax, simDataPtr->framePtr->time);
+
+  // Calculate quantities
+  bulk.radius = bulk.circle.Intersect(monolayer.zlim[1]);
+  bulk.contactAngle = bulk.circle.ContactAngle();
+  bulk.height = bulk.circle.Height();
 }

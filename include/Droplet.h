@@ -27,6 +27,7 @@ struct Monolayer
   void setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr);
   void calculateRadius();
   void fillOne(Atom &atom);
+  void fill(AtomArray &atoms);
   bool inMonolayer(Atom &atom);
   void convertUnits();
 
@@ -95,8 +96,8 @@ struct Droplet {
   void plotDensity(char* filename);
   double getMass();
   void reset();
-  void findBoundaryPoints();
-  void fitCircle();
+  void findMonolayer();
+  void dropletCalculations();
 };
 
 
