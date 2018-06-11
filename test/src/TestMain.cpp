@@ -76,6 +76,7 @@ TEST_CASE("Readers", "[lotus]") {
     // TODO: Add boundary points to CircleFit
     droplet.findBoundaryPoints();
     REQUIRE(droplet.bulk.gCirclePoints->GetN() > 0);
+    droplet.fitCircle();
     REQUIRE(droplet.bulk.circle.GetNumPoints() > 0);
     // TODO: Fill monolayer histogram
     REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);

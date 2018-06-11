@@ -96,6 +96,7 @@ struct Droplet {
   double getMass();
   void reset();
   void findBoundaryPoints();
+  void fitCircle();
 };
 
 

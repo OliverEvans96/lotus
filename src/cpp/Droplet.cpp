@@ -235,9 +235,11 @@ void CircularBulk::findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char*
     //circlePointsGraph->Set(nx+ny);
 
     //Fitting tanh function
+    // TODO: Set function limits from options, not hard coded
     TF1* tanhFit = new TF1("tanhFit","[0]/2*(1-tanh(4*(x-[2])/([1])))",0,300);
 
     //Set Bounds on parameters
+    // TODO: Set bounds from options
     double fitBounds[6]={0.2,2.0,2,20,0,300};
     tanhFit->SetParLimits(0,fitBounds[0],fitBounds[1]); //ld
     tanhFit->SetParLimits(1,fitBounds[2],fitBounds[3]); //w
@@ -367,22 +369,21 @@ void CircularBulk::findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char*
 }
 
 //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points and find the intersection of the circle with the substrate interface. The result is the bulk-monolayer interface
-double CircularBulk::fitCircle(TGraph* g,CircleFit &circle,double xMax,int timestep)
-{
-    //g->Draw("SAME");
+double CircularBulk::fitCircle(TGraph* gCirclePoints,CircleFit &circle,double xMax,int timestep) {
+    //gCirclePoints->Draw("SAME");
     //Fit circle and intersect it with a constant c (Interface)
-    char* name1 = (char*) g->GetTitle();
+    char* name1 = (char*) gCirclePoints->GetTitle();
     stringstream nameStream;
     nameStream << name1 << setw(8) << setfill('0') << timestep;
     char* name2 = (char*) nameStream.str().data();
-    int n=g->GetN();
+    int n=gCirclePoints->GetN();
     vector<double> x(n),y(n);
     double xTest,yTest;
 
     cout << "xMax=" << xMax << endl;
 
     //Sort points
-    g->Sort();
+    gCirclePoints->Sort();
 
 //     //Limits for circle fitting for first 50 timesteps
 //     double lowLim=30;
@@ -394,9 +395,9 @@ double CircularBulk::fitCircle(TGraph* g,CircleFit &circle,double xMax,int times
     for(int i=0;i<n;i++)
     {
         //Test the point before including it
-        //g->GetPoint(i,xTest,yTest);
-        xTest=g->GetX()[i];
-        yTest=g->GetY()[i];
+        //gCirclePoints->GetPoint(i,xTest,yTest);
+        xTest=gCirclePoints->GetX()[i];
+        yTest=gCirclePoints->GetY()[i];
 
         //Only use point if it is less than xMax
         // I AM NOW USING ALL POINTS SINCE BAD ONES SHOULD ALREADY
@@ -426,12 +427,12 @@ double CircularBulk::fitCircle(TGraph* g,CircleFit &circle,double xMax,int times
     //circleFitFunction->SetParameters(-13,-134,2200);
 
     //cout << endl << "GRAPH JUST BEFORE FIT" << endl;
-    //for(int i=0;i<g->GetN();i++)
-    //    cout << g->GetX()[i] << " " << g->GetY()[i] << endl; //" " << g->GetZ()[i] << endl;
+    //for(int i=0;i<gCirclePoints->GetN();i++)
+    //    cout << gCirclePoints->GetX()[i] << " " << gCirclePoints->GetY()[i] << endl; //" " << gCirclePoints->GetZ()[i] << endl;
 
     cout << endl;
 
-    //g->Fit("circleFitFunction","RW");
+    //gCirclePoints->Fit("circleFitFunction","RW");
 
     //double x0=circleFitFunction->GetParameter(0);
     //double y0=circleFitFunction->GetParameter(1);
@@ -446,7 +447,7 @@ double CircularBulk::fitCircle(TGraph* g,CircleFit &circle,double xMax,int times
     //TCanvas *cCirc = new TCanvas();
     //cCirc->cd();
     //cout << "CURRENT CANVAS: " << gPad->GetCanvas()->GetName() << endl;
-    //g->Draw("AL");
+    //gCirclePoints->Draw("AL");
     //e->Draw();
     //cCirc->SaveAs("circleFit.C");
     //stringstream s;
@@ -582,7 +583,9 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
     {
         x[i-startBin]=hist->GetBinCenter(i);
         y[i-startBin]=hist->GetBinContent(i);
-        //cout << "Point " << i-startBin << ": (" << x[i-startBin] << "," << y[i-startBin] << ")" << endl;
+        if(y[i-startBin] != 0) {
+          cout << "(nonzero Point) " << i-startBin << ": (" << x[i-startBin] << "," << y[i-startBin] << ")" << endl;
+        }
     }
     //cout << "Points done!" << endl << endl;
 
@@ -595,41 +598,42 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
     //Get Parameters
     double ld=tanhFit->GetParameter(0);
     double w=tanhFit->GetParameter(1);
-    double c=tanhFit->GetParameter(2);
+    double x0=tanhFit->GetParameter(2);
 
     cout << "Fit Params:" << endl;
     cout << "ld = " << ld << endl;
     cout << "w = " << w << endl;
-    cout << "c = " << c << endl;
+    cout << "x0 = " << x0 << endl;
 
     /*
     cout << endl;
     cout << "Calculated fit to be: " << endl;
     cout << "ldGuess=" << ld << endl;
     cout << "width=" << w << endl;
-    cout << "boundary=" << c << endl;
+    cout << "boundary=" << x0 << endl;
     cout << endl;
     */
 
-    //Assume the fit is okay until proven otherwise
-    //abs(c) => fit didn't blow up
     //ld>0.5 =>fit is valid and intersects 0.5=>column contains droplet
     //Otherwise => failure
-    if(abs(c)<1000 && ld>0.5)
+    // TODO: Set max in options
+    if(abs(x0)<1000 && ld>0.0)
     {
-        //Solve for x coordinate where the tanhFit(x)=0.5
-        val=w/4*atanh(1-1.0/ld)+c;
+      // Use point where dens = ld/2.
+      val = x0;
 
-        //If successful but too low, call it a failure
-        if(val<=startPoint)
-            val=-1;
+      //If successful but too low, call it a failure
+      if(val<=startPoint)
+          val=-1;
     }
     else
     {
-        //Histogram doesn't contain bulk water
-        val=-1;
-        //cout << "TanhFit failed for " << fitType << " " << fitNum << endl;
+      //Histogram doesn't contain bulk water
+      val=-1;
+      //cout << "TanhFit failed for " << fitType << " " << fitNum << endl;
     }
+
+    cout << "val = " << val << endl;
 
     //if(frameStep==8810000)
     //draw=true;
@@ -907,6 +911,14 @@ double Droplet::getMass() {
 }
 
 void Droplet::findBoundaryPoints() {
+  // TODO: Set boundaries from options
   double rBulkMax = 200.0;
   bulk.findBoundaryPoints(hDroplet, bulk.gCirclePoints, "a", monolayer.zlim, monolayer.hMono, rBulkMax, monolayer.radius, bulk.radius, /*unnecessary*/simDataPtr->framePtr->frameStep, /*legend*/(TLegend*)NULL, (TLine**)/*tanhLines*/NULL, (TText**)/*tanhTexts*/NULL, (TPaveText*)/*tanhTextBox*/NULL);
+}
+
+void Droplet::fitCircle() {
+  // TODO: Set boundaries from options
+  double rBulkMax = 200.0;
+  double chi2;
+  chi2 = bulk.fitCircle(bulk.gCirclePoints, bulk.circle, rBulkMax, simDataPtr->framePtr->time);
 }
