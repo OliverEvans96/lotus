@@ -4,6 +4,7 @@
 #include "Readers.h"
 #include "Droplet.h"
 #include "Substrate.h"
+#include "Visualize.h"
 #include "catch.hpp"
 
 using namespace std;
@@ -89,7 +90,11 @@ TEST_CASE("Readers", "[lotus]") {
     // TODO: Write frame quantities to file
     //       - rm, rb, ca, h, circle points
     // TODO: Add option to enable/disable circle fit
+
     // TODO: Visualizations
+    HistFigure histFigure(droplet.hDroplet,"testHistFig", "out.png", options);
+    histFigure.draw();
+    REQUIRE(fileExists("out.png"));
 
     sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);
     substrate.plotDensity(filename);

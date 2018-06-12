@@ -4,6 +4,7 @@
 #include "Utils.h"
 #include "Atoms.h"
 #include "CircleFit.h"
+#include "Visualize.h"
 
 using namespace std;
 

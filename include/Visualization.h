@@ -23,13 +23,23 @@ struct Figure
   TCanvas* canvas;
   string outFile;
   string title;
+  int width;
+  int height;
+  SimData* simDataPtr;
+  double xlo, xhi;
+  double ylo, yhi;
 
-  void draw();
+  Figure(string _string, string _outFile);
+  ~Figure();
   void save();
+  void saveROOT();
 };
 
 struct HistFigure : Figure
 {
+  TH2D *hDroplet;
+  TEllipse *circleEllipse;
+  TLine *tangentLine;
   TLine* bulkEdgeLine;
   TLine* monoEdgeLine;
   TLine* heightLine;
@@ -42,8 +52,24 @@ struct HistFigure : Figure
   TText* bEText;
   TText* mEText;
 
+  HistFigure(TH2D* _hDroplet, string _title, string _outFile, SimData* _simDataPtr);
+  ~HistFigure();
+
+  void createLines();
+  void createLegend();
+  void deleteLines();
+  void deleteLegend();
+
+  void setLineStyle();
+  void setHistStyle();
+  void setLegendStyle();
+  void setStyle();
+
+  void drawHist();
+  void drawLines();
   void drawText();
   void drawAnnotations();
+  void draw();
 };
 
 
@@ -51,8 +77,25 @@ class DensFigure : Figure
 {
   TLine* monoHiLineDens;
   TLine* monoLoLineDens;
+  TH1D* hLiquidDens;
+  TH1D* hSubstrateDens;
+  TLegend* densLeg;
 
-  void drawAnnotations();
+  DensFigure();
+  ~DensFigure();
+  void setLineStyle();
+  void setLegendStyle();
+  void setStyle();
+  void createLines();
+  void createLegend();
+  void deleteLines();
+  void deleteLegend();
+  void drawLines();
+  void drawLegend();
+  void draw();
+
+  // TODO: Remove this
+  void plotDensity();
 };
 
 class TanhFigure : Figure
@@ -69,9 +112,13 @@ class TanhFigure : Figure
   TText* tanhTexts;
   TText* tanhLines;
 
+  TanhFigure();
+  ~TanhFigure();
+  void createLines();
   void setStyle();
   void fillLegend();
   void fillPaveText();
+  void draw();
 };
 
 //Draw a TH1D horizontally, returning a TGraph which should probably be deleted
