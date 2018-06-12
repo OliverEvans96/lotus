@@ -50,7 +50,7 @@ void Figure::save() {
 }
 
 // TODO: Constructor
-HistFigure::HistFigure(TH2D* _hDroplet, string _title, string _outFile, SimData* _simDataPtr) : Figure(_title, _outFile, _simDataPtr) {
+DropletFigure::DropletFigure(TH2D* _hDroplet, string _title, string _outFile, SimData* _simDataPtr) : Figure(_title, _outFile, _simDataPtr) {
   hDroplet = _hDroplet;
   xlo = 0;
   xhi = simDataPtr->plot_rmax;
@@ -60,12 +60,12 @@ HistFigure::HistFigure(TH2D* _hDroplet, string _title, string _outFile, SimData*
   createLegend();
 }
 
-HistFigure::~HistFigure() {
+DropletFigure::~DropletFigure() {
   deleteLines();
   deleteLegend();
 }
 
-void HistFigure::createLines() {
+void DropletFigure::createLines() {
   //Bulk & Mono radius vertical lines
   bulkEdgeLine = new TLine(xlo,ylo,xlo,yhi); //Bulk edge
   monoEdgeLine = new TLine(xlo,ylo,xlo,yhi); //Mono edge
@@ -74,7 +74,7 @@ void HistFigure::createLines() {
   monoLoLine = new TLine(xlo,ylo,xlo,yhi); //bottom of monolayer
 }
 
-void HistFigure::createLegend() {
+void DropletFigure::createLegend() {
   legend = new TLegend(.65,.65,.85,.85);
   textBox = new TPaveText();
   cAText = textBox->AddText("Contact angle");
@@ -83,7 +83,7 @@ void HistFigure::createLegend() {
   mEText = textBox->AddText("Mono edge");
 }
 
-void HistFigure::deleteLines() {
+void DropletFigure::deleteLines() {
   delete bulkEdgeLine;
   delete monoEdgeLine;
   delete heightLine;
@@ -91,7 +91,7 @@ void HistFigure::deleteLines() {
   delete monoLoLine;
 }
 
-void HistFigure::deleteLegend() {
+void DropletFigure::deleteLegend() {
   delete legend;
   delete textBox;
   delete cAText;
@@ -100,7 +100,7 @@ void HistFigure::deleteLegend() {
   delete mEText;
 }
 
-void HistFigure::setLineStyle() {
+void DropletFigure::setLineStyle() {
   //Line properties
   bulkEdgeLine->SetLineWidth(3);
   bulkEdgeLine->SetLineColor(kGreen);
@@ -118,12 +118,12 @@ void HistFigure::setLineStyle() {
   monoLoLine->SetLineStyle(2);
 }
 
-void HistFigure::setHistStyle() {
+void DropletFigure::setHistStyle() {
   hist->SetMinimum(colzMin);
   hist->SetMaximum(colzMax);
 }
 
-void HistFigure::setLegendStyle() {
+void DropletFigure::setLegendStyle() {
   //Text to show data
   textBox->SetX1NDC(.65);
   textBox->SetY1NDC(.5);
@@ -134,17 +134,17 @@ void HistFigure::setLegendStyle() {
   textBox->SetTextSize(0.025);
 }
 
-void HistFigure::setStyle() {
+void DropletFigure::setStyle() {
   setLineStyle();
   setHistStyle();
   setLegendStyle();
 }
 
-void HistFigure::drawHist() {
+void DropletFigure::drawHist() {
   hist->Draw("colZ")
 }
 
-void HistFigure::drawLines() {
+void DropletFigure::drawLines() {
   // Bulk circle
   circleEllipse = circle.Draw();
   // Contact angle tangent
@@ -176,12 +176,12 @@ void HistFigure::drawLines() {
   circlePointsGraph->Draw("same P");
 }
 
-void HistFigure::drawLegend() {
+void DropletFigure::drawLegend() {
   hALegend->Draw();
   textBox->Draw();
 }
 
-void HistFigure::setLegendText() {
+void DropletFigure::setLegendText() {
   // TODO: Do this differently (w/o ss)
   //Add data text box
   title.str("");
@@ -198,7 +198,7 @@ void HistFigure::setLegendText() {
   mEText->SetText(0,0,title.str().data());
 }
 
-void HistFigure::addLegendEntries() {
+void DropletFigure::addLegendEntries() {
   hALegend->AddEntry(circlePointsGraph,"Droplet boundary","lp");
   hALegend->AddEntry(bulkEdgeLine,"Bulk radius","l");
   hALegend->AddEntry(monoEdgeLine,"Mono radius","l");
@@ -208,11 +208,11 @@ void HistFigure::addLegendEntries() {
   hALegend->AddEntry(tangentLine,"Tangent line","l");
 }
 
-void HistFigure::drawLegend() {
+void DropletFigure::drawLegend() {
   //2D Density Hist Legend
 }
 
-void HistFigure::draw() {
+void DropletFigure::draw() {
   drawLines();
   drawLegend();
 }

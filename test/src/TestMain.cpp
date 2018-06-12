@@ -92,7 +92,7 @@ TEST_CASE("Readers", "[lotus]") {
     // TODO: Add option to enable/disable circle fit
 
     // TODO: Visualizations
-    HistFigure histFigure(droplet.hDroplet,"testHistFig", "out.png", options);
+    DropletFigure dropletFigure(droplet.hDroplet,"testHistFig", "out.png", options);
     histFigure.draw();
     REQUIRE(fileExists("out.png"));
 

@@ -35,7 +35,7 @@ struct Figure
   void saveROOT();
 };
 
-struct HistFigure : Figure
+struct DropletFigure : Figure
 {
   TH2D *hDroplet;
   TEllipse *circleEllipse;
@@ -52,8 +52,8 @@ struct HistFigure : Figure
   TText* bEText;
   TText* mEText;
 
-  HistFigure(TH2D* _hDroplet, string _title, string _outFile, SimData* _simDataPtr);
-  ~HistFigure();
+  DropletFigure(TH2D* _hDroplet, string _title, string _outFile, SimData* _simDataPtr);
+  ~DropletFigure();
 
   void createLines();
   void createLegend();
