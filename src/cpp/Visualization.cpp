@@ -301,6 +301,13 @@ void DensFigure::plotDensity(char* filename) {
 
 TanhFigure::TanhFigure() {
   // TODO: set xlo, xhi, etc.
+  // x = z
+  xlo = simDataPtr->simBounds.zlo;
+  xhi = simDataPtr->simBounds.zhi;
+  // y = density
+  ylo = simDataPtr->options.dens_max;
+  yhi = simDataPtr->options.dens_min;
+
   createLines();
 }
 

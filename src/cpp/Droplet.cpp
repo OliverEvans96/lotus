@@ -667,7 +667,7 @@ void Droplet::fill(AtomArray &atoms) {
   Atom atom;
   reset();
   cout << "Filling w.r.t. z=" << simDataPtr->substrateTop << endl;
-  cout << "monoLimits:" << monolayer.zlim[0] << " " << monolayer.zlim[1] << endl;
+  cout << "monoLimits: " << monolayer.zlim[0] << " " << monolayer.zlim[1] << endl;
   for(int i=0; i<simDataPtr->numAtoms; i++) {
     // If liquid
     if(isIn(atoms.type[i], simDataPtr->liquidTypes)) {

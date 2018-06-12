@@ -36,6 +36,8 @@ struct Options
   int waterBondType;
   double dz;
   double dv;
+  double dens_min;
+  double dens_max;
   double plot_rmax;
   double plot_zmax;
   double plot_aspect;

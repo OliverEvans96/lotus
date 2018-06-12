@@ -167,6 +167,8 @@ void Options::readConfig(char* _configPath) {
   parseDefaultOption("onlyFindInterface", onlyFindInterface, false);
   parseDefaultOption("dz", dz, 1.0);
   parseDefaultOption("dv", dv, 500.0);
+  parseDefaultOption("dens_min", dens_min, 0.0);
+  parseDefaultOption("dens_max", dens_max, 6.0);
   parseDefaultOption("plot_rmax", plot_rmax, 150.0);
   parseDefaultOption("plot_zmax", plot_zmax, 100.0);
   parseDefaultOption("plot_aspect", plot_aspect, 1.0);
@@ -218,6 +220,8 @@ void Options::printOptions() {
   printOption("plotAllTogether", plotAllTogether);
   printOption("verbose", verbose);
   printOption("onlyFindInterface", onlyFindInterface);
+  printOption("dens_min", dens_min);
+  printOption("dens_max", dens_max);
   printOption("plot_rmax", plot_rmax);
   printOption("plot_zmax", plot_zmax);
   printOption("plot_aspect", plot_aspect);
