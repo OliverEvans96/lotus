@@ -102,7 +102,7 @@ $(cpp_obj): %.o: $(SRC)/%.cpp $(INC)/%.h
 	$(CXX) -o $@ -c $< $(CFLAGS)
 
 MDBase.o: Utils.o Parameters.o Time.o
-Visualization.o: Utils.o Quiver.o FieldViz.o
+Visualization.o: Utils.o Quiver.o FieldViz.o MDBase.o CircleFit.o
 Readers.o: Utils.o MDBase.o Atoms.o Time.o
 Atoms.o: Utils.o MDBase.o
 Writers.o: Utils.o

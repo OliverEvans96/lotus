@@ -5,14 +5,13 @@
 // Visualization //
 ///////////////////
 
-Figure::Figure(string _title, string _outFile, SimData* _simDataPtr) {
+Figure::Figure(string _title, string _outFile, SimData &simData) {
   title = _title;
   outFile = _outFile;
-  options = _options;
-  simDataPtr = _simDataPtr;
-  boundsPtr = simDataPtr->simBounds;
+  simDataPtr = &simData;
+  options = simDataPtr->options;
 
-  createCanvas(name);
+  createCanvas();
   setCanvasStyle();
 }
 
@@ -23,7 +22,7 @@ Figure::~Figure() {
 void Figure::createCanvas() {
   width = options.plot_width;
   height = (int) round(width / options.plot_aspect);
-  canvas = new TCanvas(name, name, width, height);
+  canvas = new TCanvas(title.data(), title.data(), width, height);
 }
 
 void Figure::setCanvasStyle() {
@@ -32,7 +31,7 @@ void Figure::setCanvasStyle() {
 }
 
 void Figure::saveImage() {
-  canvas->SaveAs(outFile);
+  canvas->SaveAs(outFile.data());
 }
 
 void Figure::saveROOT() {
@@ -50,12 +49,14 @@ void Figure::save() {
 }
 
 // TODO: Constructor
-DropletFigure::DropletFigure(TH2D* _hDroplet, string _title, string _outFile, SimData* _simDataPtr) : Figure(_title, _outFile, _simDataPtr) {
+DropletFigure::DropletFigure(TH2D* _hDroplet, TGraph* _gCirclePoints, CircleFit &circle, string _title, string _outFile, SimData &simData) : Figure(_title, _outFile, simData) {
   hDroplet = _hDroplet;
+  gCirclePoints = _gCirclePoints;
+  circlePtr = &circle;
   xlo = 0;
-  xhi = simDataPtr->plot_rmax;
+  xhi = options.plot_rmax;
   ylo = 0;
-  yhi = simDataPtr->plot_zmax;
+  yhi = options.plot_zmax;
   createLines();
   createLegend();
 }
@@ -119,8 +120,11 @@ void DropletFigure::setLineStyle() {
 }
 
 void DropletFigure::setHistStyle() {
-  hist->SetMinimum(colzMin);
-  hist->SetMaximum(colzMax);
+  // TODO: Set limits from options
+  double colzMin=0.0;
+  double colzMax=1.5;
+  hDroplet->SetMinimum(colzMin);
+  hDroplet->SetMaximum(colzMax);
 }
 
 void DropletFigure::setLegendStyle() {
@@ -140,15 +144,52 @@ void DropletFigure::setStyle() {
   setLegendStyle();
 }
 
+void DropletFigure::setValues(double _bulkEdge, double _monoEdge, double _dropletHeight, double _contactAngle, double* _monoLimits) {
+  bulkEdge = _bulkEdge;
+  monoEdge = _monoEdge;
+  dropletHeight = _dropletHeight;
+  contactAngle = _contactAngle;
+  monoLimits[0] = _monoLimits[0];
+  monoLimits[1] = _monoLimits[1];
+}
+
+void DropletFigure::setLegendText() {
+  // TODO: Do this differently (w/o ss)
+  stringstream ss;
+  //Add data text box
+  ss.str("");
+  ss << "Contact angle: " << contactAngle;
+  cAText->SetText(0,0,ss.str().data());
+  ss.str("");
+  ss << "Droplet height: " << dropletHeight;
+  dHText->SetText(0,0,ss.str().data());
+  ss.str("");
+  ss << "Bulk radius: " << bulkEdge;
+  bEText->SetText(0,0,ss.str().data());
+  ss.str("");
+  ss << "Mono radius: " << monoEdge;
+  mEText->SetText(0,0,ss.str().data());
+}
+
+void DropletFigure::addLegendEntries() {
+  legend->AddEntry(gCirclePoints,"Droplet boundary","lp");
+  legend->AddEntry(bulkEdgeLine,"Bulk radius","l");
+  legend->AddEntry(monoEdgeLine,"Mono radius","l");
+  legend->AddEntry(heightLine,"Droplet height","l");
+  legend->AddEntry(monoHiLine,"Mono top","l");
+  legend->AddEntry(monoLoLine,"Mono bottom","l");
+  legend->AddEntry(tangentLine,"Tangent line","l");
+}
+
 void DropletFigure::drawHist() {
-  hist->Draw("colZ")
+  hDroplet->Draw("colZ");
 }
 
 void DropletFigure::drawLines() {
   // Bulk circle
-  circleEllipse = circle.Draw();
+  circleEllipse = circlePtr->Draw();
   // Contact angle tangent
-  tangentLine = circle.DrawTangentLine();
+  tangentLine = circlePtr->DrawTangentLine();
   // Droplet height
   heightLine->SetY1(dropletHeight);
   heightLine->SetY2(dropletHeight);
@@ -172,44 +213,13 @@ void DropletFigure::drawLines() {
   monoLoLine->Draw();
 
   //Draw circle points graph
-  circlePointsGraph->SetMarkerStyle(20);
-  circlePointsGraph->Draw("same P");
+  gCirclePoints->SetMarkerStyle(20);
+  gCirclePoints->Draw("same P");
 }
 
 void DropletFigure::drawLegend() {
-  hALegend->Draw();
+  legend->Draw();
   textBox->Draw();
-}
-
-void DropletFigure::setLegendText() {
-  // TODO: Do this differently (w/o ss)
-  //Add data text box
-  title.str("");
-  title << "Contact angle: " << contactAngle;
-  cAText->SetText(0,0,title.str().data());
-  title.str("");
-  title << "Droplet height: " << dropletHeight;
-  dHText->SetText(0,0,title.str().data());
-  title.str("");
-  title << "Bulk radius: " << bulkEdge;
-  bEText->SetText(0,0,title.str().data());
-  title.str("");
-  title << "Mono radius: " << monoEdge;
-  mEText->SetText(0,0,title.str().data());
-}
-
-void DropletFigure::addLegendEntries() {
-  hALegend->AddEntry(circlePointsGraph,"Droplet boundary","lp");
-  hALegend->AddEntry(bulkEdgeLine,"Bulk radius","l");
-  hALegend->AddEntry(monoEdgeLine,"Mono radius","l");
-  hALegend->AddEntry(heightLine,"Droplet height","l");
-  hALegend->AddEntry(monoHiLine,"Mono top","l");
-  hALegend->AddEntry(monoLoLine,"Mono bottom","l");
-  hALegend->AddEntry(tangentLine,"Tangent line","l");
-}
-
-void DropletFigure::drawLegend() {
-  //2D Density Hist Legend
 }
 
 void DropletFigure::draw() {
@@ -217,7 +227,7 @@ void DropletFigure::draw() {
   drawLegend();
 }
 
-DensFigure::DensFigure() {
+DensFigure::DensFigure(string _string, string _outFile, SimData &simData) : Figure(_string, _outFile, simData) {
   createLines();
   createLegend();
 }
@@ -228,6 +238,8 @@ DensFigure::~DensFigure() {
 }
 
 void DensFigure::createLines() {
+  monoHiLineDens = new TLine(xlo,ylo,xlo,yhi); //top of monolayer
+  monoLoLineDens = new TLine(xlo,ylo,xlo,yhi); //bottom of monolayer
 }
 
 void DensFigure::createLegend() {
@@ -235,6 +247,8 @@ void DensFigure::createLegend() {
 }
 
 void DensFigure::deleteLines() {
+  delete monoHiLineDens;
+  delete monoLoLineDens;
 }
 
 void DensFigure::deleteLegend() {
@@ -262,6 +276,11 @@ void DensFigure::setLegendStyle() {}
 
 void DensFigure::setStyle() {}
 
+void DensFigure::setValues(double* _monoLimits) {
+  monoLimits[0] = _monoLimits[0];
+  monoLimits[1] = _monoLimits[1];
+}
+
 void DensFigure::drawLines() {
   monoHiLineDens->SetX1(monoLimits[1]);
   monoHiLineDens->SetX2(monoLimits[1]);
@@ -281,25 +300,13 @@ void DensFigure::drawLegend() {
   densLeg->Draw();
 }
 
-// TODO: Remove
 void DensFigure::draw() {
   canvas->cd();
   drawLines();
   drawLegend();
 }
 
-// TODO: Modify for DensFigure from Droplet
-void DensFigure::plotDensity(char* filename) {
-  stringstream ss;
-  ss << options.outLoc << "/" << filename;
-  cDroplet->cd();
-  hDroplet->Draw("colZ");
-  if(options.verbose) {
-    cout << "Saving droplet hist @ '" << ss.str().data() << "'" << endl;
-  }
-}
-
-TanhFigure::TanhFigure() {
+TanhFigure::TanhFigure(string _string, string _outFile, SimData &simData) : Figure(_string, _outFile, simData) {
   // TODO: set xlo, xhi, etc.
   // x = z
   xlo = simDataPtr->simBounds.zlo;
@@ -312,13 +319,9 @@ TanhFigure::TanhFigure() {
 }
 
 TanhFigure::~TanhFigure() {
-  delete monoHiLineDens;
-  delete monoLoLineDens;
 }
 
 void TanhFigure::createLines() {
-  monoHiLineDens = new TLine(xlo,ylo,xlo,yhi); //top of monolayer
-  monoLoLineDens = new TLine(xlo,ylo,xlo,yhi); //bottom of monolayer
 }
 
 void TanhFigure::setStyle() {
@@ -335,7 +338,7 @@ void TanhFigure::draw() {}
 
 // TCanvas* c5 = new TCanvas();
 //  c5->cd();
-// circlePointsGraph->Draw("APL");
+// gCirclePoints->Draw("APL");
 //  c5->SaveAs("test.C");
 //  delete c5;
 

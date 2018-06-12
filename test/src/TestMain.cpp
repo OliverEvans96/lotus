@@ -4,7 +4,7 @@
 #include "Readers.h"
 #include "Droplet.h"
 #include "Substrate.h"
-#include "Visualize.h"
+#include "Visualization.h"
 #include "catch.hpp"
 
 using namespace std;
@@ -66,6 +66,8 @@ TEST_CASE("Readers", "[lotus]") {
 
   char filename[100];
 
+  DropletFigure dropletFigure(droplet.hDroplet, droplet.bulk.gCirclePoints, droplet.bulk.circle, "testHistFig", "out.png", simData);
+
   // Time loop
   while(dumpfileReader.good()) {
     dumpfileReader.readFrame();
@@ -91,16 +93,15 @@ TEST_CASE("Readers", "[lotus]") {
     //       - rm, rb, ca, h, circle points
     // TODO: Add option to enable/disable circle fit
 
-    // TODO: Visualizations
-    DropletFigure dropletFigure(droplet.hDroplet,"testHistFig", "out.png", options);
-    histFigure.draw();
-    REQUIRE(fileExists("out.png"));
+    dropletFigure.setValues(droplet.bulk.radius, droplet.monolayer.radius, droplet.bulk.height, droplet.bulk.contactAngle, droplet.monolayer.zlim);
+    dropletFigure.draw();
+    REQUIRE(file_exists("out.png"));
 
-    sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);
-    substrate.plotDensity(filename);
+    // sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);
+    // substrate.plotDensity(filename);
 
-    sprintf(filename, "droplet_density%d.png", dumpfileReader.frameNum);
-    droplet.plotDensity(filename);
+    // sprintf(filename, "droplet_density%d.png", dumpfileReader.frameNum);
+    // droplet.plotDensity(filename);
 
   }
 }

@@ -635,7 +635,6 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
 Droplet::Droplet(AtomArray &atomArray) {
   setContext(atomArray);
   createHists();
-  createCanvas();
 }
 
 Droplet::~Droplet() {

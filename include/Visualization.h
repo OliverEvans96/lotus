@@ -5,11 +5,14 @@
 #include "TText.h"
 #include "TPaveText.h"
 #include "TLegend.h"
+#include "TEllipse.h"
 #include "TH1D.h"
 
 #include "Utils.h"
+#include "MDBase.h"
 #include "Quiver.h"
 #include "FieldViz.h"
+#include "CircleFit.h"
 
 using namespace std;
 
@@ -18,27 +21,32 @@ using namespace std;
 ///////////////////
 
 
-struct Figure
-{
+struct Figure {
   TCanvas* canvas;
   string outFile;
   string title;
   int width;
   int height;
   SimData* simDataPtr;
+  Options options;
   double xlo, xhi;
   double ylo, yhi;
 
-  Figure(string _string, string _outFile);
+  Figure(string _string, string _outFile, SimData &simData);
   ~Figure();
-  void save();
+
+  void createCanvas();
+  void setCanvasStyle();
+  void saveImage();
   void saveROOT();
+  void save();
 };
 
-struct DropletFigure : Figure
-{
-  TH2D *hDroplet;
-  TEllipse *circleEllipse;
+struct DropletFigure : Figure {
+  TH2D* hDroplet;
+  TEllipse* circleEllipse;
+  TGraph* gCirclePoints;
+  CircleFit* circlePtr;
   TLine *tangentLine;
   TLine* bulkEdgeLine;
   TLine* monoEdgeLine;
@@ -52,7 +60,13 @@ struct DropletFigure : Figure
   TText* bEText;
   TText* mEText;
 
-  DropletFigure(TH2D* _hDroplet, string _title, string _outFile, SimData* _simDataPtr);
+  double bulkEdge;
+  double monoEdge;
+  double dropletHeight;
+  double contactAngle;
+  double *monoLimits;
+
+  DropletFigure(TH2D* _hDroplet, TGraph* _gCirclePoints, CircleFit &circle, string _title, string _outFile, SimData &simData);
   ~DropletFigure();
 
   void createLines();
@@ -65,41 +79,48 @@ struct DropletFigure : Figure
   void setLegendStyle();
   void setStyle();
 
+  void setValues(double _bulkEdge, double _monoEdge, double _dropletHeight, double _contactAngle, double* _monoLimts);
+
+  void setLegendText();
+  void addLegendEntries();
+
   void drawHist();
   void drawLines();
   void drawText();
+  void drawLegend();
   void drawAnnotations();
   void draw();
 };
 
 
-class DensFigure : Figure
-{
+struct DensFigure : Figure {
   TLine* monoHiLineDens;
   TLine* monoLoLineDens;
   TH1D* hLiquidDens;
   TH1D* hSubstrateDens;
   TLegend* densLeg;
+  double* monoLimits;
 
-  DensFigure();
+  DensFigure(string _string, string _outFile, SimData &simData);
   ~DensFigure();
   void setLineStyle();
   void setLegendStyle();
   void setStyle();
+
+  void setValues(double *_monoLimits);
+
   void createLines();
   void createLegend();
+
   void deleteLines();
   void deleteLegend();
+
   void drawLines();
   void drawLegend();
   void draw();
-
-  // TODO: Remove this
-  void plotDensity();
 };
 
-class TanhFigure : Figure
-{
+struct TanhFigure : Figure {
   TLine* ldTanhLine;
   TLine* solTanhLine;
   TLine* x0TanhLine;
@@ -112,7 +133,7 @@ class TanhFigure : Figure
   TText* tanhTexts;
   TText* tanhLines;
 
-  TanhFigure();
+  TanhFigure(string _string, string _outFile, SimData &simData);
   ~TanhFigure();
   void createLines();
   void setStyle();
