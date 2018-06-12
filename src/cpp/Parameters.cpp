@@ -157,6 +157,7 @@ void Options::readConfig(char* _configPath) {
   parseDefaultOption("skipToEnd", skipToEnd, false);
   parseDefaultOption("trackMonoAtoms", trackMonoAtoms, false);
   parseDefaultOption("saveImages", saveImages, false);
+  parseDefaultOption("saveROOT", saveROOT, false);
   parseDefaultOption("plotHist", plotHist, false);
   parseDefaultOption("plotDipole", plotDipole, false);
   parseDefaultOption("plotVr", plotVr, false);
@@ -209,6 +210,7 @@ void Options::printOptions() {
   printOption("skipToEnd", skipToEnd);
   printOption("trackMonoAtoms", trackMonoAtoms);
   printOption("saveImages", saveImages);
+  printOption("saveROOT", saveROOT);
   printOption("plotHist", plotHist);
   printOption("plotDipole", plotDipole);
   printOption("plotVr", plotVr);
