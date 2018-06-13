@@ -9,6 +9,8 @@
 #include "TH1D.h"
 
 #include "Utils.h"
+#include "Substrate.h"
+#include "Droplet.h"
 #include "MDBase.h"
 #include "Quiver.h"
 #include "FieldViz.h"
@@ -33,27 +35,33 @@ struct Figure {
   double xlo, xhi;
   double ylo, yhi;
 
-  Figure(string _string, string _outFile, SimData &simData);
+  // TODO: Don't specify outFile here.
+  Figure(string _title, string _outFile, SimData &simData);
   ~Figure();
 
   void createCanvas();
   void setCanvasStyle();
   void saveImage();
   void saveROOT();
+  // TODO: Specify outFile here
   void save();
 };
 
 struct DropletFigure : Figure {
+  Droplet* dropletPtr;
+
   TH2D* hDroplet;
   TEllipse* circleEllipse;
   TGraph* gCirclePoints;
   CircleFit* circlePtr;
+
   TLine *tangentLine;
   TLine* bulkEdgeLine;
   TLine* monoEdgeLine;
   TLine* heightLine;
   TLine* monoHiLine;
   TLine* monoLoLine;
+
   TPaveText* textBox;
   TText* cAText;
   TText* dHText;
@@ -66,7 +74,7 @@ struct DropletFigure : Figure {
   double contactAngle;
   double *monoLimits;
 
-  DropletFigure(TH2D* _hDroplet, TGraph* _gCirclePoints, CircleFit &circle, string _title, string _outFile, SimData &simData);
+  DropletFigure(string _title, string _outFile, Droplet &droplet);
   ~DropletFigure();
 
   void createLines();
@@ -79,7 +87,7 @@ struct DropletFigure : Figure {
   void setLegendStyle();
   void setStyle();
 
-  void setValues(double _bulkEdge, double _monoEdge, double _dropletHeight, double _contactAngle, double* _monoLimts);
+  void setValues();
 
   void setLegendText();
   void addLegendEntries();
@@ -96,17 +104,22 @@ struct DropletFigure : Figure {
 struct DensFigure : Figure {
   TLine* monoHiLineDens;
   TLine* monoLoLineDens;
-  TH1D* hLiquidDens;
+  // Pointer to pointer in case hLiquidDens changes (from projection)
+  TH1D** hLiquidDensPtr;
   TH1D* hSubstrateDens;
-  double* monoLimits;
+  double monoLimits[2];
 
-  DensFigure(string _string, string _outFile, SimData &simData);
+  Droplet* dropletPtr;
+  Substrate* substratePtr;
+
+  // TODO: Change title/outFile later
+  DensFigure(string _title, string _outFile, Droplet &droplet, Substrate &substrate);
   ~DensFigure();
   void setLineStyle();
   void setLegendStyle();
   void setStyle();
 
-  void setValues(double *_monoLimits);
+  void setValues();
 
   void createLines();
   void createLegend();

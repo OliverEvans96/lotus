@@ -16,3 +16,4 @@ plot_rmax: 80
 plot_zmax: 60
 plot_aspect: 1
 plot_width: 600
+saveImages: true

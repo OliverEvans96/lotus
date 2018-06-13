@@ -34,7 +34,7 @@ TEST_CASE("Readers", "[lotus]") {
   REQUIRE(options.outLoc == "../test/run");
   REQUIRE(options.skipToEnd == false);
   REQUIRE(options.trackMonoAtoms == false);
-  REQUIRE(options.saveImages == false);
+  REQUIRE(options.saveImages == true);
   REQUIRE(options.plotHist == false);
   REQUIRE(options.plotDipole == false);
   REQUIRE(options.plotVr == false);
@@ -66,7 +66,12 @@ TEST_CASE("Readers", "[lotus]") {
 
   char filename[100];
 
-  DropletFigure dropletFigure(droplet.hDroplet, droplet.bulk.gCirclePoints, droplet.bulk.circle, "testHistFig", "out.png", simData);
+  cout << "A" << endl;
+  DensFigure densFigure("testDensFig", "dens.png", droplet, substrate);
+  cout << "B" << endl;
+
+  DropletFigure dropletFigure("testHistFig", "out.png", droplet);
+  cout << "C" << endl;
 
   // Time loop
   while(dumpfileReader.good()) {
@@ -76,7 +81,14 @@ TEST_CASE("Readers", "[lotus]") {
     droplet.fill(atoms);
     REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 1e-3*DROPLET_MASS);
     // TODO: Fill monolayer
+    cout << "----- FM -----" << endl;
     droplet.findMonolayer();
+    cout << "----- FM-out -----" << endl;
+
+    // TODO: Save image
+    densFigure.draw();
+    densFigure.save();
+
     droplet.monolayer.fill(atoms);
     REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
     REQUIRE(droplet.monolayer.zlim[1] - droplet.monolayer.zlim[0] > 0);
@@ -93,8 +105,9 @@ TEST_CASE("Readers", "[lotus]") {
     //       - rm, rb, ca, h, circle points
     // TODO: Add option to enable/disable circle fit
 
-    dropletFigure.setValues(droplet.bulk.radius, droplet.monolayer.radius, droplet.bulk.height, droplet.bulk.contactAngle, droplet.monolayer.zlim);
+    // TODO: Draw droplet figure
     dropletFigure.draw();
+    dropletFigure.save();
     REQUIRE(file_exists("out.png"));
 
     // sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);

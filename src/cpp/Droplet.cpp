@@ -30,7 +30,6 @@ void Monolayer::fillOne(Atom &atom) {
     hMono->Fill(atom.y, mass);
     //cout << "fill mono @ " << atom.r << endl;
   }
-  cout << "Entries: " << hMono->GetEntries() << endl;
 }
 
 void Monolayer::fill(AtomArray &atoms) {
@@ -148,37 +147,37 @@ int Monolayer::monoFlux(vector<double> r,vector<double> z,double* monoLimits,dou
 }
 
 //Find z limits on monolayer
-void Monolayer::findMonoLimits(TH1D *hWaterDens,double *monoLimits)
+void Monolayer::findMonoLimits(TH1D *hLiquidDens,double *monoLimits)
 {
-    int n = hWaterDens->GetNbinsX();
+    int n = hLiquidDens->GetNbinsX();
     bool foundPeak=false;
     bool foundDip=false;
     double dens=0;
 
     for(int i=1;i<=n;i++)
     {
-        dens=hWaterDens->GetBinContent(i);
+        dens=hLiquidDens->GetBinContent(i);
 
         //Find first peak above 1 - this is the beginning of the monolayer
         if(!foundPeak&&dens>1)
         {
             foundPeak=true;
-            //cout << "Beginning monolayer at " << hWaterDens->GetBinLowEdge(i) << endl;
-            monoLimits[0]=hWaterDens->GetBinLowEdge(i);
+            //cout << "Beginning monolayer at " << hLiquidDens->GetBinLowEdge(i) << endl;
+            monoLimits[0]=hLiquidDens->GetBinLowEdge(i);
         }
 
         //if(foundPeak)
-        //    cout << "dens=" << dens << " at " << hWaterDens->GetBinLowEdge(i) << endl;
+        //    cout << "dens=" << dens << " at " << hLiquidDens->GetBinLowEdge(i) << endl;
 
         //if(foundPeak&&dens>1)
-        //    cout << "Still in monolayer at " << hWaterDens->GetBinLowEdge(i) << endl;
+        //    cout << "Still in monolayer at " << hLiquidDens->GetBinLowEdge(i) << endl;
 
         //Find first drop below 1 after peak - this is the end of the monolayer
         if(foundPeak&&dens<=1)
         {
             foundDip=true;
-            //cout << "Monolayer ends at " << hWaterDens->GetBinLowEdge(i) << endl;
-            monoLimits[1]=hWaterDens->GetBinLowEdge(i);
+            //cout << "Monolayer ends at " << hLiquidDens->GetBinLowEdge(i) << endl;
+            monoLimits[1]=hLiquidDens->GetBinLowEdge(i);
             break;
         }
     }
@@ -687,8 +686,12 @@ void Droplet::findMonolayer() {
   double firstxbin = 1;
   double lastxbin = hDroplet->GetXaxis()->FindBin(rDensCyl);
 
-  TH1D* hLiquidDens = hDroplet->ProjectionY("hLiquidDens", firstxbin, lastxbin);
+  cout << "FIND MONOLAYER" << endl;
+
+  hLiquidDens = hDroplet->ProjectionY("hLiquidDens", firstxbin, lastxbin);
   monolayer.findMonoLimits(hLiquidDens, monolayer.zlim);
+
+  cout << "ML: hLD @" << hLiquidDens << endl;
 }
 
 void Droplet::reset() {

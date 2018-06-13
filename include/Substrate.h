@@ -7,8 +7,7 @@
 using namespace std;
 
 struct Substrate {
-  // TODO: Use pointer here, initialize properly
-  TH1D *hSubs;
+  TH1D *hSubstrateDens;
   TCanvas *cSubs;
   Options options;
   SimData *simDataPtr;
@@ -23,8 +22,6 @@ struct Substrate {
   void reset();
   void convertUnits();
   void createHist(double dz);
-  void createCanvas();
-  void plotDensity(char* filename);
   void findLimits();
   double getMass();
 };

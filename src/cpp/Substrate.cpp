@@ -3,11 +3,10 @@
 Substrate::Substrate(AtomArray &atomArray, double dz) {
   setContext(atomArray);
   createHist(dz);
-  createCanvas();
 }
 
 Substrate::~Substrate() {
-  delete hSubs;
+  delete hSubstrateDens;
   delete cSubs;
 }
 
@@ -20,7 +19,7 @@ void Substrate::setContext(AtomArray &atomArray) {
 void Substrate::fillOne(Atom &atom) {
   int mass;
   mass = simDataPtr->masses[atom.type];
-  hSubs->Fill(atom.z, mass);
+  hSubstrateDens->Fill(atom.z, mass);
   // cout << "Filling type " << atom.type << ": " << mass << " @ " << atom.z << endl;
 }
 
@@ -39,21 +38,21 @@ void Substrate::fill(AtomArray &atoms) {
 }
 
 void Substrate::reset() {
-  hSubs->Reset();
+  hSubstrateDens->Reset();
 }
 
 void Substrate::convertUnits() {
   double dx, dy, dz;
 
   // Divide by number of steps per frame
-  hSubs->Scale(1.0/simDataPtr->stepsPerFrame);
+  hSubstrateDens->Scale(1.0/simDataPtr->stepsPerFrame);
   // Divide by volume to get density
   dx = simDataPtr->simBounds.xhi - simDataPtr->simBounds.xlo;
   dy = simDataPtr->simBounds.yhi - simDataPtr->simBounds.ylo;
-  dz = hSubs->GetXaxis()->GetBinWidth(0);
-  hSubs->Scale(1.0/(dx*dy*dz));
+  dz = hSubstrateDens->GetXaxis()->GetBinWidth(0);
+  hSubstrateDens->Scale(1.0/(dx*dy*dz));
   // Convert units from amu/AA^3 to g/cc
-  hSubs->Scale(NANO_DENS_TO_MACRO);
+  hSubstrateDens->Scale(NANO_DENS_TO_MACRO);
 }
 
 void Substrate::createHist(double dz) {
@@ -65,31 +64,7 @@ void Substrate::createHist(double dz) {
   // If dz doesn't evenly divide zhi-zlo, shift zhi up slightly.
   zhi = zlo + nz*dz;
 
-  hSubs = new TH1D("Substrate", "Substrate", nz, zlo, zhi);
-  hSubs->SetLineColor(kOrange+3); //Brown
-  hSubs->SetLineWidth(2);
-  hSubs->SetStats(0);
-}
-
-// TODO: Move to Visualize.cpp
-void Substrate::createCanvas() {
-  int width, height;
-  width = options.plot_width;
-  height = (int) round(width / options.plot_aspect);
-  cSubs = new TCanvas("Substrate", "Substrate", width, height);
-}
-
-// TODO: Move to Visualize.cpp
-void Substrate::plotDensity(char* filename) {
-  stringstream ss;
-  ss << options.outLoc << "/" << filename;
-  gStyle->SetCanvasPreferGL(true);
-  cSubs->cd();
-  hSubs->Draw("L");
-  cSubs->SaveAs(ss.str().data());
-  if(options.verbose) {
-    cout << "Saving density hist @ '" << ss.str().data() << "'" << endl;
-  }
+  hSubstrateDens = new TH1D("Substrate", "Substrate", nz, zlo, zhi);
 }
 
 void Substrate::findLimits() {
@@ -103,10 +78,10 @@ void Substrate::findLimits() {
   int numRequired = 3;
   int numFound = 0;
   // ROOT hists are 1-indexed
-  for(int i=1; i<=hSubs->GetNbinsX(); i++) {
-    dens = hSubs->GetBinContent(i);
+  for(int i=1; i<=hSubstrateDens->GetNbinsX(); i++) {
+    dens = hSubstrateDens->GetBinContent(i);
     if(!foundBottom && dens>cutoff) {
-      zlim[0] = hSubs->GetBinLowEdge(i);
+      zlim[0] = hSubstrateDens->GetBinLowEdge(i);
       printf("Found bottom @ bin %d (z=%.2f)\n", i, zlim[0]);
       foundBottom = true;
     }
@@ -116,7 +91,7 @@ void Substrate::findLimits() {
     if(numFound == numRequired) {
       // If we have seen enough bins below cutoff,
       // then call the first one the top.
-      zlim[1] = hSubs->GetBinLowEdge(i-(numRequired-1));
+      zlim[1] = hSubstrateDens->GetBinLowEdge(i-(numRequired-1));
       printf("Found top @ bin %d (z=%.2f)\n", i, zlim[1]);
       break;
     }
@@ -139,7 +114,7 @@ double Substrate::getMass() {
   // integral gives area density for whole frame
   // multiply by dx, dy to get mass in g/cm^3*AA^3
   // "width" option does integral instead of sum
-  mass = hSubs->Integral("width") * dx * dy;
+  mass = hSubstrateDens->Integral("width") * dx * dy;
   // Convert units to amu
   mass /= NANO_DENS_TO_MACRO;
   return mass;

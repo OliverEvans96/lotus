@@ -4,7 +4,6 @@
 #include "Utils.h"
 #include "Atoms.h"
 #include "CircleFit.h"
-#include "Visualization.h"
 
 using namespace std;
 
@@ -19,8 +18,7 @@ struct Monolayer
   Options options;
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
-  double zlim[2]; //TODO: set
-  // TODO: Use pointer here, initialize properly
+  double zlim[2];
   TH1D *hMono;
 
   Monolayer();
@@ -84,6 +82,7 @@ struct Droplet {
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
   TH2D *hDroplet;
+  TH1D* hLiquidDens;
   TCanvas *cDroplet;
 
   Droplet(AtomArray &atomArray);

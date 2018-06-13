@@ -38,6 +38,8 @@ void Figure::saveROOT() {
   // TODO: save w/ .C extension
 }
 
+// TODO: Take filename argument
+// TODO: Save relative to image directory
 void Figure::save() {
   if(options.saveImages) {
     saveImage();
@@ -48,11 +50,12 @@ void Figure::save() {
   }
 }
 
-// TODO: Constructor
-DropletFigure::DropletFigure(TH2D* _hDroplet, TGraph* _gCirclePoints, CircleFit &circle, string _title, string _outFile, SimData &simData) : Figure(_title, _outFile, simData) {
-  hDroplet = _hDroplet;
-  gCirclePoints = _gCirclePoints;
-  circlePtr = &circle;
+DropletFigure::DropletFigure(string _title, string _outFile, Droplet &droplet) : Figure(_title, _outFile, *droplet.simDataPtr){
+  dropletPtr = &droplet;
+  hDroplet = dropletPtr->hDroplet;
+  gCirclePoints = dropletPtr->bulk.gCirclePoints;
+  circlePtr = &dropletPtr->bulk.circle;
+
   xlo = 0;
   xhi = options.plot_rmax;
   ylo = 0;
@@ -144,13 +147,13 @@ void DropletFigure::setStyle() {
   setLegendStyle();
 }
 
-void DropletFigure::setValues(double _bulkEdge, double _monoEdge, double _dropletHeight, double _contactAngle, double* _monoLimits) {
-  bulkEdge = _bulkEdge;
-  monoEdge = _monoEdge;
-  dropletHeight = _dropletHeight;
-  contactAngle = _contactAngle;
-  monoLimits[0] = _monoLimits[0];
-  monoLimits[1] = _monoLimits[1];
+void DropletFigure::setValues() {
+  bulkEdge = dropletPtr->bulk.radius;
+  monoEdge = dropletPtr->monolayer.radius;
+  dropletHeight = dropletPtr->bulk.height;
+  contactAngle = dropletPtr->bulk.contactAngle;
+  monoLimits[0] = dropletPtr->monolayer.zlim[0];
+  monoLimits[1] = dropletPtr->monolayer.zlim[1];
 }
 
 void DropletFigure::setLegendText() {
@@ -227,12 +230,21 @@ void DropletFigure::drawLegend() {
 }
 
 void DropletFigure::draw() {
+  setValues();
+
   canvas->cd();
   drawLines();
   drawLegend();
 }
 
-DensFigure::DensFigure(string _string, string _outFile, SimData &simData) : Figure(_string, _outFile, simData) {
+DensFigure::DensFigure(string _title, string _outFile, Droplet &droplet, Substrate &substrate) : Figure(_title, _outFile, *droplet.simDataPtr) {
+  dropletPtr = &droplet;
+  substratePtr = &substrate;
+
+  // TODO: Is this the right way?
+  hLiquidDensPtr = &dropletPtr->hLiquidDens;
+  hSubstrateDens = substratePtr->hSubstrateDens;
+
   createLines();
   createLegend();
 }
@@ -266,23 +278,28 @@ void DensFigure::setLineStyle() {
   monoLoLineDens->SetLineWidth(3);
   monoLoLineDens->SetLineColor(kGreen);
 
-  hLiquidDens->SetLineColor(kBlue);
-  hLiquidDens->SetLineWidth(2);
+  cout << "hLD @ " << *hLiquidDensPtr << endl;
+  (*hLiquidDensPtr)->SetLineColor(kBlue);
+  (*hLiquidDensPtr)->SetLineWidth(2);
   hSubstrateDens->SetLineColor(kOrange+3); //Brown
   hSubstrateDens->SetLineWidth(2);
 
   // Axis limits
-  hLiquidDens->GetYaxis()->SetRangeUser(ylo, yhi);
-  hLiquidDens->GetYaxis()->SetRangeUser(xlo, xhi);
+  (*hLiquidDensPtr)->GetYaxis()->SetRangeUser(ylo, yhi);
+  (*hLiquidDensPtr)->GetYaxis()->SetRangeUser(xlo, xhi);
 }
 
+// TODO
 void DensFigure::setLegendStyle() {}
 
-void DensFigure::setStyle() {}
+void DensFigure::setStyle() {
+  setLineStyle();
+  setLegendStyle();
+}
 
-void DensFigure::setValues(double* _monoLimits) {
-  monoLimits[0] = _monoLimits[0];
-  monoLimits[1] = _monoLimits[1];
+void DensFigure::setValues() {
+  monoLimits[0] = dropletPtr->monolayer.zlim[0];
+  monoLimits[1] = dropletPtr->monolayer.zlim[0];
 }
 
 void DensFigure::drawLines() {
@@ -293,11 +310,11 @@ void DensFigure::drawLines() {
   monoLoLineDens->SetX2(monoLimits[0]);
   monoLoLineDens->Draw();
 
-  hLiquidDens->Draw();
+  (*hLiquidDensPtr)->Draw();
   hSubstrateDens->Draw("SAME"); //Same canvas
 }
 void DensFigure::drawLegend() {
-  legend->AddEntry(hLiquidDens,"Water");
+  legend->AddEntry(*hLiquidDensPtr,"Water");
   legend->AddEntry(hSubstrateDens,"Substrate");
   legend->AddEntry(monoLoLineDens,"Mono lower limit","l");
   legend->AddEntry(monoHiLineDens,"Mono upper limit","l");
@@ -305,6 +322,11 @@ void DensFigure::drawLegend() {
 }
 
 void DensFigure::draw() {
+  setValues();
+
+  // TODO: Not sure if this should go here
+  setStyle();
+
   canvas->cd();
   drawLines();
   drawLegend();
