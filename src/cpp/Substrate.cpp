@@ -64,7 +64,7 @@ void Substrate::createHist(double dz) {
   // If dz doesn't evenly divide zhi-zlo, shift zhi up slightly.
   zhi = zlo + nz*dz;
 
-  hSubstrateDens = new TH1D("Substrate", "Substrate", nz, zlo, zhi);
+  hSubstrateDens = new TH1D("hSubstrateDens", "hSubstrateDens", nz, zlo, zhi);
 }
 
 void Substrate::findLimits() {

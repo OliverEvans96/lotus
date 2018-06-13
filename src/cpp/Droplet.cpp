@@ -632,6 +632,9 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
 }
 
 Droplet::Droplet(AtomArray &atomArray) {
+  // TODO: Determine radius from options?
+  rDensCyl = 20;
+
   setContext(atomArray);
   createHists();
 }
@@ -652,13 +655,20 @@ void Droplet::setContext(AtomArray &atomArray) {
 
 void Droplet::fillOne(Atom &atom) {
   double mass, z;
+
   mass = simDataPtr->masses[atom.type];
   // z relative to top of substrate
   z = atom.z - simDataPtr->substrateTop;
   // cout << "atom.z = " << atom.z << endl;
   // cout << "substrateTop = " << simDataPtr->substrateTop << endl;
   // cout << "z = " << z << endl;
+
+  // 2D Density
   hDroplet->Fill(atom.r, z, mass);
+  // 1D Density
+  if(atom.r < rDensCyl) {
+    hLiquidDens->Fill(atom.z, mass);
+  }
 }
 
 void Droplet::fill(AtomArray &atoms) {
@@ -680,15 +690,6 @@ void Droplet::fill(AtomArray &atoms) {
 }
 
 void Droplet::findMonolayer() {
-  // TODO: Determine radius from options?
-  double rDensCyl = 20;
-
-  double firstxbin = 1;
-  double lastxbin = hDroplet->GetXaxis()->FindBin(rDensCyl);
-
-  cout << "FIND MONOLAYER" << endl;
-
-  hLiquidDens = hDroplet->ProjectionY("hLiquidDens", firstxbin, lastxbin);
   monolayer.findMonoLimits(hLiquidDens, monolayer.zlim);
 
   cout << "ML: hLD @" << hLiquidDens << endl;
@@ -696,15 +697,19 @@ void Droplet::findMonolayer() {
 
 void Droplet::reset() {
   hDroplet->Reset();
+  hLiquidDens->Reset();
 }
 
 void Droplet::convertUnits() {
   // Divide by number of steps per frame
   hDroplet->Scale(1.0/simDataPtr->stepsPerFrame);
+  hLiquidDens->Scale(1.0/simDataPtr->stepsPerFrame);
   // Divide by volume to get density
   hDroplet->Scale(1.0/options.dv);
+  hLiquidDens->Scale(1.0/(PI*options.dz*square(rDensCyl)));
   // Convert units from amu/AA^3 to g/cc
   hDroplet->Scale(NANO_DENS_TO_MACRO);
+  hLiquidDens->Scale(NANO_DENS_TO_MACRO);
 }
 
 void Droplet::createHists() {
@@ -712,6 +717,7 @@ void Droplet::createHists() {
   double rlo, rhi;
   // Set limits on histograms
   Grid grid;
+  double nz;
   double dz = options.dz;
   double dv = options.dv;
   zlo = 0;
@@ -746,6 +752,23 @@ void Droplet::createHists() {
   // TODO: This is probably not the way to do this.
   // Maybe pass the grid object instead.
   monolayer.hMono = new TH1D("hMono", "hMono", grid.nr, grid.rVals);
+
+  // TODO: This is pretty messy.
+  // Want to use actual coords for this one
+  // Rather than shifted z coords as above
+  zlo = simDataPtr->simBounds.zlo;
+  zhi = simDataPtr->simBounds.zhi;
+  nz = (int) ceil((zhi - zlo)/dz);
+  // If dz doesn't evenly divide zhi-zlo, shift zhi up slightly.
+  zhi = zlo + nz*dz;
+  cout << "=======" << endl;
+  cout << "Creating hLiquidDens" << endl;
+  cout << "zlo = " << zlo << endl;
+  cout << "zhi = " << zhi << endl;
+  cout << "nz = " << nz << endl;
+  cout << "dz = " << dz << endl;
+  cout << "=======" << endl;
+  hLiquidDens = new TH1D("hLiquidDens", "hLiquidDens", nz, zlo, zhi);
 }
 
 double Droplet::getMass() {

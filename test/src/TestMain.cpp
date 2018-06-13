@@ -87,7 +87,7 @@ TEST_CASE("Readers", "[lotus]") {
 
     // TODO: Save image
     densFigure.draw();
-    densFigure.save();
+    densFigure.save("dens.C");
 
     droplet.monolayer.fill(atoms);
     REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
@@ -107,7 +107,7 @@ TEST_CASE("Readers", "[lotus]") {
 
     // TODO: Draw droplet figure
     dropletFigure.draw();
-    dropletFigure.save();
+    dropletFigure.save("droplet.C");
     REQUIRE(file_exists("out.png"));
 
     // sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);

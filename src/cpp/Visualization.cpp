@@ -40,14 +40,15 @@ void Figure::saveROOT() {
 
 // TODO: Take filename argument
 // TODO: Save relative to image directory
-void Figure::save() {
-  if(options.saveImages) {
-    saveImage();
-  }
+void Figure::save(char* filename) {
+  canvas->SaveAs(filename);
+  // if(options.saveImages) {
+  //   saveImage();
+  // }
 
-  if(options.saveROOT) {
-    saveROOT();
-  }
+  // if(options.saveROOT) {
+  //   saveROOT();
+  // }
 }
 
 DropletFigure::DropletFigure(string _title, string _outFile, Droplet &droplet) : Figure(_title, _outFile, *droplet.simDataPtr){
@@ -60,8 +61,11 @@ DropletFigure::DropletFigure(string _title, string _outFile, Droplet &droplet) :
   xhi = options.plot_rmax;
   ylo = 0;
   yhi = options.plot_zmax;
+
   createLines();
   createLegend();
+
+  setStyle();
 }
 
 DropletFigure::~DropletFigure() {
@@ -241,12 +245,19 @@ DensFigure::DensFigure(string _title, string _outFile, Droplet &droplet, Substra
   dropletPtr = &droplet;
   substratePtr = &substrate;
 
-  // TODO: Is this the right way?
-  hLiquidDensPtr = &dropletPtr->hLiquidDens;
+  hLiquidDens = dropletPtr->hLiquidDens;
   hSubstrateDens = substratePtr->hSubstrateDens;
+
+  // Set bounds
+  xlo = simDataPtr->simBounds.zlo;
+  xhi = simDataPtr->simBounds.zhi;
+  ylo = options.dens_min;
+  yhi = options.dens_max;
+  cout << "--- yhi = " << yhi << "---" << endl;
 
   createLines();
   createLegend();
+  setStyle();
 }
 
 DensFigure::~DensFigure() {
@@ -278,19 +289,25 @@ void DensFigure::setLineStyle() {
   monoLoLineDens->SetLineWidth(3);
   monoLoLineDens->SetLineColor(kGreen);
 
-  cout << "hLD @ " << *hLiquidDensPtr << endl;
-  (*hLiquidDensPtr)->SetLineColor(kBlue);
-  (*hLiquidDensPtr)->SetLineWidth(2);
+  cout << "hLD @ " << hLiquidDens << endl;
+  hLiquidDens->SetLineColor(kBlue);
+  hLiquidDens->SetLineWidth(2);
   hSubstrateDens->SetLineColor(kOrange+3); //Brown
   hSubstrateDens->SetLineWidth(2);
 
   // Axis limits
-  (*hLiquidDensPtr)->GetYaxis()->SetRangeUser(ylo, yhi);
-  (*hLiquidDensPtr)->GetYaxis()->SetRangeUser(xlo, xhi);
+  hLiquidDens->SetAxisRange(xlo, xhi, "X");
+  hLiquidDens->SetAxisRange(ylo, yhi, "Y");
+  hSubstrateDens->SetAxisRange(xlo, xhi, "X");
+  hSubstrateDens->SetAxisRange(ylo, yhi, "Y");
+
+  cout << "Set range to " << ylo << " -> " << yhi << endl;
 }
 
-// TODO
-void DensFigure::setLegendStyle() {}
+void DensFigure::setLegendStyle() {
+  hLiquidDens->SetStats(0);
+  hSubstrateDens->SetStats(0);
+}
 
 void DensFigure::setStyle() {
   setLineStyle();
@@ -305,16 +322,19 @@ void DensFigure::setValues() {
 void DensFigure::drawLines() {
   monoHiLineDens->SetX1(monoLimits[1]);
   monoHiLineDens->SetX2(monoLimits[1]);
-  monoHiLineDens->Draw();
+  //monoHiLineDens->Draw();
   monoLoLineDens->SetX1(monoLimits[0]);
   monoLoLineDens->SetX2(monoLimits[0]);
-  monoLoLineDens->Draw();
+  //monoLoLineDens->Draw("SAME");
 
-  (*hLiquidDensPtr)->Draw();
-  hSubstrateDens->Draw("SAME"); //Same canvas
+  cout << "Drawing" << endl;
+  hLiquidDens->Draw("L SAME");
+  //hSubstrateDens->Draw("L SAME"); //Same canvas
+  cout << "Drawn" << endl;
 }
+
 void DensFigure::drawLegend() {
-  legend->AddEntry(*hLiquidDensPtr,"Water");
+  legend->AddEntry(hLiquidDens,"Water");
   legend->AddEntry(hSubstrateDens,"Substrate");
   legend->AddEntry(monoLoLineDens,"Mono lower limit","l");
   legend->AddEntry(monoHiLineDens,"Mono upper limit","l");
@@ -324,8 +344,9 @@ void DensFigure::drawLegend() {
 void DensFigure::draw() {
   setValues();
 
-  // TODO: Not sure if this should go here
-  setStyle();
+  for(int i=1; i<=hLiquidDens->GetNbinsX(); i++) {
+    cout << "l[" << i << "] = " << hLiquidDens->GetBinContent(i) << endl;
+  }
 
   canvas->cd();
   drawLines();

@@ -44,7 +44,7 @@ struct Figure {
   void saveImage();
   void saveROOT();
   // TODO: Specify outFile here
-  void save();
+  void save(char* filename);
 };
 
 struct DropletFigure : Figure {
@@ -104,8 +104,7 @@ struct DropletFigure : Figure {
 struct DensFigure : Figure {
   TLine* monoHiLineDens;
   TLine* monoLoLineDens;
-  // Pointer to pointer in case hLiquidDens changes (from projection)
-  TH1D** hLiquidDensPtr;
+  TH1D* hLiquidDens;
   TH1D* hSubstrateDens;
   double monoLimits[2];
 

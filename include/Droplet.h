@@ -84,6 +84,7 @@ struct Droplet {
   TH2D *hDroplet;
   TH1D* hLiquidDens;
   TCanvas *cDroplet;
+  double rDensCyl;
 
   Droplet(AtomArray &atomArray);
   ~Droplet();
