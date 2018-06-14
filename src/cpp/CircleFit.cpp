@@ -246,6 +246,7 @@ double CircleFit::Intersect(double c)
 }
 
 //Calculate contact angle
+// TODO: Return something if not intersected
 double CircleFit::ContactAngle()
 {
     if(intersected)
@@ -259,6 +260,7 @@ double CircleFit::ContactAngle()
 }
 
 //Contact angle from points within 5A of the rightmost point.
+// TODO: This doesn't return anything
 double CircleFit::LinearContactAngle()
 {
 	// Cutoff from rightmost point (5A)

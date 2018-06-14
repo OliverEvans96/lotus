@@ -784,6 +784,15 @@ double Droplet::getMass() {
   return mass;
 }
 
+double Droplet::getMass1D() {
+  double mass;
+  // TODO: Check scaling on hLiquidDens.
+  // TODO: This is actually just mass in cylinder, not total
+  mass = hLiquidDens->Integral() * options.dz * PI * square(rDensCyl);
+  mass /= NANO_DENS_TO_MACRO;
+  return mass;
+}
+
 void Droplet::dropletCalculations() {
   // TODO: Set boundary points from options
   double rBulkMax = 200.0;

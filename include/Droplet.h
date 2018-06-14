@@ -96,6 +96,7 @@ struct Droplet {
   void createCanvas();
   void plotDensity(char* filename);
   double getMass();
+  double getMass1D();
   void reset();
   void findMonolayer();
   void dropletCalculations();

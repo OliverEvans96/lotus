@@ -80,6 +80,8 @@ TEST_CASE("Readers", "[lotus]") {
     REQUIRE(abs(substrate.getMass() - SUBSTRATE_MASS) < 1e-3*SUBSTRATE_MASS);
     droplet.fill(atoms);
     REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 1e-3*DROPLET_MASS);
+    // This is just mass in cylinder, not total
+    // REQUIRE(abs(droplet.getMass1D() - DROPLET_MASS) < 1e-3*DROPLET_MASS);
     // TODO: Fill monolayer
     cout << "----- FM -----" << endl;
     droplet.findMonolayer();
@@ -87,7 +89,7 @@ TEST_CASE("Readers", "[lotus]") {
 
     // TODO: Save image
     densFigure.draw();
-    densFigure.save("dens.C");
+    densFigure.save("dens.png");
 
     droplet.monolayer.fill(atoms);
     REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
@@ -107,7 +109,7 @@ TEST_CASE("Readers", "[lotus]") {
 
     // TODO: Draw droplet figure
     dropletFigure.draw();
-    dropletFigure.save("droplet.C");
+    dropletFigure.save("droplet.png");
     REQUIRE(file_exists("out.png"));
 
     // sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);

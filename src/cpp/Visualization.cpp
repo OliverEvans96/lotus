@@ -64,8 +64,6 @@ DropletFigure::DropletFigure(string _title, string _outFile, Droplet &droplet) :
 
   createLines();
   createLegend();
-
-  setStyle();
 }
 
 DropletFigure::~DropletFigure() {
@@ -235,10 +233,11 @@ void DropletFigure::drawLegend() {
 
 void DropletFigure::draw() {
   setValues();
-
   canvas->cd();
+  setStyle();
   drawLines();
   drawLegend();
+  canvas->Update();
 }
 
 DensFigure::DensFigure(string _title, string _outFile, Droplet &droplet, Substrate &substrate) : Figure(_title, _outFile, *droplet.simDataPtr) {
@@ -257,7 +256,6 @@ DensFigure::DensFigure(string _title, string _outFile, Droplet &droplet, Substra
 
   createLines();
   createLegend();
-  setStyle();
 }
 
 DensFigure::~DensFigure() {
@@ -322,14 +320,14 @@ void DensFigure::setValues() {
 void DensFigure::drawLines() {
   monoHiLineDens->SetX1(monoLimits[1]);
   monoHiLineDens->SetX2(monoLimits[1]);
-  //monoHiLineDens->Draw();
+  // monoHiLineDens->Draw();
   monoLoLineDens->SetX1(monoLimits[0]);
   monoLoLineDens->SetX2(monoLimits[0]);
-  //monoLoLineDens->Draw("SAME");
+  // monoLoLineDens->Draw("same");
 
   cout << "Drawing" << endl;
-  hLiquidDens->Draw("L SAME");
-  //hSubstrateDens->Draw("L SAME"); //Same canvas
+  hLiquidDens->Draw("hist");
+  hSubstrateDens->Draw("hist same"); //Same canvas
   cout << "Drawn" << endl;
 }
 
@@ -343,14 +341,11 @@ void DensFigure::drawLegend() {
 
 void DensFigure::draw() {
   setValues();
-
-  for(int i=1; i<=hLiquidDens->GetNbinsX(); i++) {
-    cout << "l[" << i << "] = " << hLiquidDens->GetBinContent(i) << endl;
-  }
-
   canvas->cd();
+  setStyle();
   drawLines();
   drawLegend();
+  canvas->Update();
 }
 
 TanhFigure::TanhFigure(string _string, string _outFile, SimData &simData) : Figure(_string, _outFile, simData) {
@@ -581,9 +576,11 @@ void TanhFigure::drawLegend() {
 
 void TanhFigure::draw() {
   canvas->cd();
+  setStyle();
   drawLines();
   drawPoints();
   drawLegend();
+  canvas->Update();
 }
 
 // TODO: What is this?
