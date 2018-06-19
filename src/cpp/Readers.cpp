@@ -392,16 +392,15 @@ void TimestepReader::resetAtomCounter() {
 }
 
 void TimestepReader::readTimestep(int stepInFrame) {
-  int offset = stepInFrame * atomArrayPtr->numAtoms;
   if(options.verbose)
     cout << "Reading timestep: @" << inputStreamPtr->stream.tellg() << " '" << inputStreamPtr->peekLine() << "'" << endl;
   resetAtomCounter();
   headerReader.readHeader();
-  for(int i=0; i<atomArrayPtr->numAtoms; i++) {
+  for(int atomNum=0; atomNum<atomArrayPtr->numAtoms; atomNum++) {
     lineReader.readLine();
     // All atoms in frame are stored,
     // so step offset must be considered.
-    atomArrayPtr->setAtom(offset + i, lineReader.atom);
+    atomArrayPtr->setAtom(atomNum, stepInFrame, lineReader.atom);
   }
   timestepPtr->stepNum++;
 }
@@ -437,7 +436,6 @@ void FrameReader::updateFrame() {
 }
 
 void FrameReader::readFrame() {
-  int stepsThisFrame;
   // Read first timestep separately to set frame variables
   // to those of the first timestep in the frame.
   if(options.verbose)
@@ -446,20 +444,22 @@ void FrameReader::readFrame() {
   updateFrame();
 
   if(frame.frameNum < simDataPtr->numFrames-1) {
-    stepsThisFrame = stepsPerFrame;
+    frame.stepsThisFrame = stepsPerFrame;
   }
   else {
-    stepsThisFrame = simDataPtr->lastFrame.numSteps;
+    frame.stepsThisFrame = simDataPtr->lastFrame.numSteps;
   }
+
+  frame.atomsThisFrame = simDataPtr->numAtoms * frame.stepsThisFrame;
 
   if(options.verbose) {
     cout << "frameNum = " << frame.frameNum << endl;
     cout << "numFrames = " << simDataPtr->numFrames << endl;
-    cout << "stepsThisFrame = " << stepsThisFrame << endl;
+    cout << "stepsThisFrame = " << frame.stepsThisFrame << endl;
   }
 
   // Then read the rest
-  for(int n=1; n<stepsThisFrame; n++) {
+  for(int n=1; n<frame.stepsThisFrame; n++) {
     if(options.verbose)
       cout << "frameStep " << n << endl;
     timestepReader.readTimestep(n);
@@ -491,9 +491,10 @@ void InitialTimestepReader::setContext(Options _options, AtomArray* _atomArrayPt
 }
 
 void InitialTimestepReader::readFromFile() {
-  for(int i=0; i<simDataPtr->numAtoms; i++) {
+  int stepInFrame = 0;
+  for(int atomNum=0; atomNum<simDataPtr->numAtoms; atomNum++) {
     inputStream.stream >> atom.x >> atom.y >> atom.z;
-    atomArrayPtr->setAtom(i, atom);
+    atomArrayPtr->setAtom(atomNum, stepInFrame, atom);
   }
 }
 
@@ -514,8 +515,9 @@ bool InitialTimestepReader::fileExists() {
 void InitialTimestepReader::writeToFile() {
   FILE* outFile = fopen(initLoc.data(), "w");
 
-  for(int i=0; i<simDataPtr->numAtoms; i++) {
-    atomArrayPtr->getAtom(i, atom);
+  int stepInFrame = 0;
+  for(int atomNum=0; atomNum<simDataPtr->numAtoms; atomNum++) {
+    atomArrayPtr->getAtom(atomNum, stepInFrame, atom);
     fprintf(outFile, "%10.5f %10.5f %10.5f", atom.x, atom.y, atom.z);
     fflush(outFile);
   }

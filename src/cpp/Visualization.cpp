@@ -332,7 +332,7 @@ void DensFigure::drawLines() {
 }
 
 void DensFigure::drawLegend() {
-  legend->AddEntry(hLiquidDens,"Water");
+  legend->AddEntry(hLiquidDens,"Liquid");
   legend->AddEntry(hSubstrateDens,"Substrate");
   legend->AddEntry(monoLoLineDens,"Mono lower limit","l");
   legend->AddEntry(monoHiLineDens,"Mono upper limit","l");

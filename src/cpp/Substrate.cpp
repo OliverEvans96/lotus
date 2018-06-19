@@ -2,7 +2,9 @@
 
 Substrate::Substrate(AtomArray &atomArray, double dz) {
   setContext(atomArray);
-  createHist(dz);
+  createHist();
+  // TODO: Remove or change
+  rDensCyl = 20;
 }
 
 Substrate::~Substrate() {
@@ -17,20 +19,26 @@ void Substrate::setContext(AtomArray &atomArray) {
 }
 
 void Substrate::fillOne(Atom &atom) {
-  int mass;
+  double mass;
   mass = simDataPtr->masses[atom.type];
   hSubstrateDens->Fill(atom.z, mass);
-  // cout << "Filling type " << atom.type << ": " << mass << " @ " << atom.z << endl;
+  cout << "Filling type " << atom.type << ": " << mass << " @ " << atom.z << endl;
 }
 
 void Substrate::fill(AtomArray &atoms) {
   Atom atom;
   reset();
-  for(int i=0; i<simDataPtr->numAtoms; i++) {
-    // If solid
-    if(isIn(atoms.type[i], simDataPtr->solidTypes)) {
-      atoms.getAtom(i, atom);
-      fillOne(atom);
+  for(int stepInFrame=0; stepInFrame<simDataPtr->framePtr->stepsThisFrame; stepInFrame++) {
+    for(int atomNum=0; atomNum<simDataPtr->numAtoms; atomNum++) {
+      atoms.getAtom(atomNum, stepInFrame, atom);
+      // If solid
+      if(isIn(atom.type, simDataPtr->solidTypes)) {
+        atom.calculateNonCartesian();
+        // TODO: Remove or change
+        if(atom.r < rDensCyl) {
+          fillOne(atom);
+        }
+      }
     }
   }
   convertUnits();
@@ -42,22 +50,43 @@ void Substrate::reset() {
 }
 
 void Substrate::convertUnits() {
-  double dx, dy, dz;
+  double dx, dy, dv;
+
+  cout << "~*~*~ Convert Units ~*~*~" << endl;
+  cout << "Pre-convert max: = " << hSubstrateDens->GetMaximum() << endl;
 
   // Divide by number of steps per frame
   hSubstrateDens->Scale(1.0/simDataPtr->stepsPerFrame);
+  cout << "stepsPerFrame = " << simDataPtr->stepsPerFrame << endl;
   // Divide by volume to get density
   dx = simDataPtr->simBounds.xhi - simDataPtr->simBounds.xlo;
   dy = simDataPtr->simBounds.yhi - simDataPtr->simBounds.ylo;
-  dz = hSubstrateDens->GetXaxis()->GetBinWidth(0);
-  hSubstrateDens->Scale(1.0/(dx*dy*dz));
+  // dz already defined as member variable
+  // dv = dx * dy * dz
+  // TODO: Remove or change
+  cout << "rDensCyl = " << rDensCyl << endl;
+  dv = PI * dz * rDensCyl*rDensCyl;
+  hSubstrateDens->Scale(1.0/dv);
   // Convert units from amu/AA^3 to g/cc
   hSubstrateDens->Scale(NANO_DENS_TO_MACRO);
+
+  cout << "xhi = " << simDataPtr->simBounds.xhi << endl;
+  cout << "xlo = " << simDataPtr->simBounds.xlo << endl;
+  cout << "dx = " << dx << endl;
+  cout << "yhi = " << simDataPtr->simBounds.yhi << endl;
+  cout << "ylo = " << simDataPtr->simBounds.ylo << endl;
+  cout << "dy = " << dy << endl;
+  cout << "zhi = " << simDataPtr->simBounds.zhi << endl;
+  cout << "zlo = " << simDataPtr->simBounds.zlo << endl;
+  cout << "dz = " << dz << endl;
+  cout << "dv = " << dv << endl;
+  cout << "SUBSTRATE MAX = " << hSubstrateDens->GetMaximum() << endl;
 }
 
-void Substrate::createHist(double dz) {
+void Substrate::createHist() {
   double zlo, zhi;
   int nz;
+  dz = options.dz;
   zlo = simDataPtr->simBounds.zlo;
   zhi = simDataPtr->simBounds.zhi;
   nz = (int) ceil((zhi - zlo)/dz);
@@ -65,6 +94,7 @@ void Substrate::createHist(double dz) {
   zhi = zlo + nz*dz;
 
   hSubstrateDens = new TH1D("hSubstrateDens", "hSubstrateDens", nz, zlo, zhi);
+  cout << "dz_eff = " << hSubstrateDens->GetXaxis()->GetBinWidth(0) << endl;
 }
 
 void Substrate::findLimits() {
@@ -116,6 +146,7 @@ double Substrate::getMass() {
   // "width" option does integral instead of sum
   mass = hSubstrateDens->Integral("width") * dx * dy;
   // Convert units to amu
+  // TODO: Not right yet?
   mass /= NANO_DENS_TO_MACRO;
   return mass;
 }

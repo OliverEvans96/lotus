@@ -168,7 +168,7 @@ void Options::readConfig(char* _configPath) {
   parseDefaultOption("dz", dz, 1.0);
   parseDefaultOption("dv", dv, 500.0);
   parseDefaultOption("dens_min", dens_min, 0.0);
-  parseDefaultOption("dens_max", dens_max, 6.0);
+  parseDefaultOption("dens_max", dens_max, 5.0);
   parseDefaultOption("plot_rmax", plot_rmax, 150.0);
   parseDefaultOption("plot_zmax", plot_zmax, 100.0);
   parseDefaultOption("plot_aspect", plot_aspect, 1.0);

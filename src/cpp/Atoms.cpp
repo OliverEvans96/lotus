@@ -87,7 +87,12 @@ void AtomArray::setNumAtoms(int _numAtoms) {
   numAtoms = _numAtoms;
 }
 
-void AtomArray::setAtom(int i, Atom &atom) {
+int AtomArray::getIndex(int atomNum, int stepInFrame) {
+  return stepInFrame * numAtoms + atomNum;
+}
+
+void AtomArray::setAtom(int atomNum, int stepInFrame, Atom &atom) {
+  int i = getIndex(atomNum, stepInFrame);
   type[i] = atom.type;
 
   x[i] = atom.x;
@@ -103,7 +108,8 @@ void AtomArray::setAtom(int i, Atom &atom) {
   // vp[i] = atom.vp;
 }
 
-void AtomArray::getAtom(int i, Atom &atom) {
+void AtomArray::getAtom(int atomNum, int stepInFrame, Atom &atom) {
+  int i = getIndex(atomNum, stepInFrame);
   atom.type = type[i];
 
   atom.x = x[i];

@@ -13,6 +13,8 @@ struct Substrate {
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
   double zlim[2]; //TODO: Set
+  double dz;
+  double rDensCyl;
 
   Substrate(AtomArray &atomArray, double dz=0.5);
   ~Substrate();
@@ -21,7 +23,7 @@ struct Substrate {
   void fill(AtomArray &atoms);
   void reset();
   void convertUnits();
-  void createHist(double dz);
+  void createHist();
   void findLimits();
   double getMass();
 };

@@ -27,8 +27,8 @@
 using namespace std;
 
 const double PI = 3.141592653589793;
-// Multiply amu/AA by this number to get g/cc
-const double NANO_DENS_TO_MACRO = 0.60221409;
+// Multiply amu/AA^3 by this number to get g/cc
+const double NANO_DENS_TO_MACRO = 1.0/0.60221409;
 
 //Choose the highest value from a vector
 double max(vector<double> v);

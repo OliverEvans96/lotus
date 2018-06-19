@@ -17,8 +17,12 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
   atomArrayPtr = _atomArrayPtr;
 }
 
+void Monolayer::reset() {
+  hMono->Reset();
+}
+
 void Monolayer::fillOne(Atom &atom) {
-  int mass;
+  double mass;
   mass = simDataPtr->masses[atom.type];
   // TODO: Make this more efficient by calculating
   // only the necessary "radius" (y or r).
@@ -30,16 +34,21 @@ void Monolayer::fillOne(Atom &atom) {
     hMono->Fill(atom.y, mass);
     //cout << "fill mono @ " << atom.r << endl;
   }
+  cout << "Filling type " << atom.type << " (mono): " << mass << " @ " << atom.z << endl;
 }
 
 void Monolayer::fill(AtomArray &atoms) {
   Atom atom;
+  // TODO: Is this necessary?
+  reset();
   // Add to monolayer
-  for(int i=0; i<simDataPtr->numAtoms; i++) {
-    atoms.getAtom(i, atom);
-    if(isIn(atoms.type[i], simDataPtr->liquidTypes)) {
-      if(inMonolayer(atom)) {
-        fillOne(atom);
+  for(int stepInFrame=0; stepInFrame<simDataPtr->framePtr->stepsThisFrame; stepInFrame++) {
+    for(int atomNum=0; atomNum<simDataPtr->numAtoms; atomNum++) {
+      atoms.getAtom(atomNum, stepInFrame, atom);
+      if(isIn(atom.type, simDataPtr->liquidTypes)) {
+        if(inMonolayer(atom)) {
+          fillOne(atom);
+        }
       }
     }
   }
@@ -633,7 +642,7 @@ double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, i
 
 Droplet::Droplet(AtomArray &atomArray) {
   // TODO: Determine radius from options?
-  rDensCyl = 20;
+  rDensCyl = 10;
 
   setContext(atomArray);
   createHists();
@@ -669,6 +678,8 @@ void Droplet::fillOne(Atom &atom) {
   if(atom.r < rDensCyl) {
     hLiquidDens->Fill(atom.z, mass);
   }
+
+  cout << "Filling type " << atom.type << " (droplet): " << mass << " @ " << atom.z << endl;
 }
 
 void Droplet::fill(AtomArray &atoms) {
@@ -676,12 +687,17 @@ void Droplet::fill(AtomArray &atoms) {
   reset();
   cout << "Filling w.r.t. z=" << simDataPtr->substrateTop << endl;
   cout << "monoLimits: " << monolayer.zlim[0] << " " << monolayer.zlim[1] << endl;
-  for(int i=0; i<simDataPtr->numAtoms; i++) {
-    // If liquid
-    if(isIn(atoms.type[i], simDataPtr->liquidTypes)) {
-      atoms.getAtom(i, atom);
-      atom.calculateNonCartesian();
-      fillOne(atom);
+  cout << "FILL DROPLET: " << endl;
+  cout << "stepsThisFrame = " << simDataPtr->framePtr->stepsThisFrame << endl;
+  cout << "numAtoms = " << simDataPtr->numAtoms << endl;
+  for(int stepInFrame=0; stepInFrame<simDataPtr->framePtr->stepsThisFrame; stepInFrame++) {
+    for(int atomNum=0; atomNum<simDataPtr->numAtoms; atomNum++) {
+      atoms.getAtom(atomNum, stepInFrame, atom);
+      // If liquid
+      if(isIn(atom.type, simDataPtr->liquidTypes)) {
+        atom.calculateNonCartesian();
+        fillOne(atom);
+      }
     }
   }
 
@@ -706,10 +722,14 @@ void Droplet::convertUnits() {
   hLiquidDens->Scale(1.0/simDataPtr->stepsPerFrame);
   // Divide by volume to get density
   hDroplet->Scale(1.0/options.dv);
+  cout << "*-*-Droplet Convert Units-*-*" << endl;
+  cout << "Using dz = " << options.dz << endl;
+  cout << "NDTM = " << NANO_DENS_TO_MACRO << endl;
   hLiquidDens->Scale(1.0/(PI*options.dz*square(rDensCyl)));
   // Convert units from amu/AA^3 to g/cc
   hDroplet->Scale(NANO_DENS_TO_MACRO);
   hLiquidDens->Scale(NANO_DENS_TO_MACRO);
+  cout << "hLD Entries: " << hLiquidDens->GetEntries() << endl;
 }
 
 void Droplet::createHists() {

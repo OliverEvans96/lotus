@@ -60,6 +60,8 @@ struct Frame
   int time; // 1 fs (time of 1st timestep in frame)
   int frameNum; // 10 ps
   int frameStep; // stepNum (index of first timestep in frame)
+  int stepsThisFrame; // same for all but last frame
+  int atomsThisFrame; // numAtoms * stepsThisFrame
 
   Frame();
 };

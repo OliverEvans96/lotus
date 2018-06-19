@@ -42,9 +42,10 @@ class AtomArray
   AtomArray(SimData &simData);
   ~AtomArray();
   void setSimData(SimData &simData);
-  void setAtom(int i, Atom &atom);
-  void getAtom(int i, Atom &atom);
   void setNumAtoms(int _numAtoms);
+  int getIndex(int atomNum, int stepInFrame);
+  void setAtom(int atomNum, int stepInFrame, Atom &atom);
+  void getAtom(int atomNum, int stepInFrame, Atom &atom);
 };
 
 #endif

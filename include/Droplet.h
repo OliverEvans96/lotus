@@ -25,6 +25,7 @@ struct Monolayer
   ~Monolayer();
   void setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr);
   void calculateRadius();
+  void reset();
   void fillOne(Atom &atom);
   void fill(AtomArray &atoms);
   bool inMonolayer(Atom &atom);
