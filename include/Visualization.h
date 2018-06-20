@@ -14,7 +14,7 @@
 #include "MDBase.h"
 #include "Quiver.h"
 #include "FieldViz.h"
-#include "CircleFit.h"
+#include "Fitting.h"
 
 using namespace std;
 

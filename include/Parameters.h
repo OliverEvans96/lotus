@@ -42,6 +42,7 @@ struct Options
   double plot_zmax;
   double plot_aspect;
   int plot_width;
+  double expectedLiquidDensity;
 
   vector<int> liquidTypes, solidTypes;
 

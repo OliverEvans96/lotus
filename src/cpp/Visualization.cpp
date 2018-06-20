@@ -154,7 +154,9 @@ void DropletFigure::setValues() {
   monoEdge = dropletPtr->monolayer.radius;
   dropletHeight = dropletPtr->bulk.height;
   contactAngle = dropletPtr->bulk.contactAngle;
+  cout << "setting ML0 = " << dropletPtr->monolayer.zlim[0] << endl;
   monoLimits[0] = dropletPtr->monolayer.zlim[0];
+  cout << "setting ML1 = " << dropletPtr->monolayer.zlim[1] << endl;
   monoLimits[1] = dropletPtr->monolayer.zlim[1];
 }
 
@@ -317,10 +319,9 @@ void DensFigure::setValues() {
   monoLimits[1] = dropletPtr->monolayer.zlim[0];
 }
 
-
 void DensFigure::drawHists() {
   cout << "Drawing" << endl;
-  hLiquidDens->Draw("hist");
+  hLiquidDens->Draw("hist same");
   hSubstrateDens->Draw("hist same"); //Same canvas
   cout << "Drawn" << endl;
 }

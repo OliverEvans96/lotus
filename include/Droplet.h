@@ -3,7 +3,7 @@
 
 #include "Utils.h"
 #include "Atoms.h"
-#include "CircleFit.h"
+#include "Fitting.h"
 
 using namespace std;
 
@@ -20,6 +20,7 @@ struct Monolayer
   AtomArray *atomArrayPtr;
   double zlim[2];
   TH1D *hMono;
+  TanhFit tanhFit;
 
   Monolayer();
   ~Monolayer();
@@ -62,18 +63,12 @@ struct CircularBulk
   void calculateSphericalVolume();
   void calculateCylindricalVolume();
 
-  double guessRowBoundary(TH2D* hist,int j);
-
+  // TODO: Clean this up
   //Find boundary points by tanh fitting for each row
   void findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,double &bulkEdge,int frameStep,TLegend* tanhLegend,TLine** tanhLines,TText **tanhTexts,TPaveText *tanhTextBox);
 
   //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points
   double fitCircle(TGraph* circlePointsGraph,CircleFit &circle,double xMax,int timestep);
-
-  //Guess boundary of water molecule by counting for a single column
-  void guessTanhFit(TH1D* hist,double* fitBounds,double &ld, double &width,double &boundary,double &xlo,double &xhi);
-
-  double solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, int startBin, int frameStep, double bulkEdge, string fitType, double pos, TLegend* tanhLegend, TLine** tanhLines, TText **tanhTexts, TPaveText *tanhTextBox);
 };
 
 struct Droplet {

@@ -15,6 +15,16 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
   options = _options;
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
+
+  tanhFit.setContext(options);
+  // TODO: This is probably a good place for this,
+  // but it doesn't work now since hMono is created later.
+  // tanhFit.setHist(hMono);
+}
+
+void Monolayer::calculateRadius() {
+  tanhFit.solve();
+  radius = tanhFit.getBoundary();
 }
 
 void Monolayer::reset() {
@@ -34,7 +44,7 @@ void Monolayer::fillOne(Atom &atom) {
     hMono->Fill(atom.y, mass);
     //cout << "fill mono @ " << atom.r << endl;
   }
-  cout << "Filling type " << atom.type << " (mono): " << mass << " @ " << atom.z << endl;
+  // cout << "Filling type " << atom.type << " (mono): " << mass << " @ " << atom.z << endl;
 }
 
 void Monolayer::fill(AtomArray &atoms) {
@@ -171,15 +181,15 @@ void Monolayer::findMonoLimits(TH1D *hLiquidDens,double *monoLimits)
         if(!foundPeak&&dens>1)
         {
             foundPeak=true;
-            //cout << "Beginning monolayer at " << hLiquidDens->GetBinLowEdge(i) << endl;
+            cout << "Beginning monolayer at " << hLiquidDens->GetBinLowEdge(i) << endl;
             monoLimits[0]=hLiquidDens->GetBinLowEdge(i);
         }
 
         //if(foundPeak)
         //    cout << "dens=" << dens << " at " << hLiquidDens->GetBinLowEdge(i) << endl;
 
-        //if(foundPeak&&dens>1)
-        //    cout << "Still in monolayer at " << hLiquidDens->GetBinLowEdge(i) << endl;
+        if(foundPeak&&dens>1)
+            cout << "Still in monolayer at " << hLiquidDens->GetBinLowEdge(i) << endl;
 
         //Find first drop below 1 after peak - this is the end of the monolayer
         if(foundPeak&&dens<=1)
@@ -212,185 +222,154 @@ void CircularBulk::setContext(Options _options, SimData *_simDataPtr, AtomArray 
   atomArrayPtr = _atomArrayPtr;
 }
 
-//Guess boundary of water molecule by counting for a single row
-double CircularBulk::guessRowBoundary(TH2D* hist,int j)
-{
-  //Guess - static in case none is found for a particular row - use last guess
-  static double guess=0;
-
-  //Boundary is where density=0.5
-
-  //Number of bins
-  int nx=hist->GetNbinsX();
-
-  //Scan columns from right to left
-  for(int i=nx;i>0;i--)
-    {
-      if(hist->GetBinContent(i,j)>=0.5)
-        {
-          guess=hist->GetXaxis()->GetBinCenter(i);
-          break;
-        }
-    }
-
-  return guess;
-}
-//Find the edge of droplet by tanh fitting for each row given TH2D
-void CircularBulk::findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,double &bulkEdge,int frameStep,TLegend* tanhLegend,TLine** tanhLines,TText **tanhTexts,TPaveText *tanhTextBox)
-{
-    cout << endl;
-    cout << "FINDBOUNDARYPOINTS" << endl;
-
-    //Best guess for parameters
-    double guess;
-
-    //Number of bins
-    int nx=hist->GetNbinsX();
-    int ny=hist->GetNbinsY();
-
-    //Parameters: liquid density,interface width,center
-    double ld,w,c;
-
-    //Temporary values returned from solveTanhFit before saving
-    double tmpx,tmpy;
-
-    // bulkEdge, to be updated at the end of this function.
-    double tmpBulkEdge;
-
-    //Number of rows+columns containing the droplet
-    int n=0;
-
-    //Reset points graph
-    circlePointsGraph->Set(0);
-    //circlePointsGraph->Set(nx+ny);
-
-    //Fitting tanh function
-    // TODO: Set function limits from options, not hard coded
-    TF1* tanhFit = new TF1("tanhFit","[0]/2*(1-tanh(4*(x-[2])/([1])))",0,300);
-
-    //Set Bounds on parameters
-    // TODO: Set bounds from options
-    double fitBounds[6]={0.2,2.0,2,20,0,300};
-    tanhFit->SetParLimits(0,fitBounds[0],fitBounds[1]); //ld
-    tanhFit->SetParLimits(1,fitBounds[2],fitBounds[3]); //w
-    tanhFit->SetParLimits(2,fitBounds[4],fitBounds[5]); //x0
-
-    //Projections of hA
-    TH1D *px,*py;
-
-    //Bin center on axis perpendicular to projection
-    double center=0;
-
-
-    //Number of first z bin of hA above the monolayer
-    py=hist->ProjectionY("py",1,1);
-    int nz=py->GetNbinsX();
-    double dz=py->GetBinWidth(1);
-    double zlo=py->GetBinLowEdge(1);
-    double zhi=py->GetBinLowEdge(nz)+dz;
-    cout << "ZLO: " << zlo << " ZHI: " << zhi << endl;
-    int firstBulkBin = (int) ceil((monoLimits[1]-zlo)*nz/(zhi-zlo))+1;
-    cout << "FirstBulkBin=" << firstBulkBin << " : " << py->GetBinLowEdge(firstBulkBin) << endl;
-
-    //Find monolayer edge
-    //Fit hMono with tanh, find where density=0.5
-    //Here we're passing monoEdge instead of bulkEdge because we're trying to find the monolayer, not bulk, radius.
-    cout << "mono tanh fit" << endl;
-    monoEdge=solveTanhFit(hMono,tanhFit,fitBounds,1,frameStep,monoEdge,"mono",center,tanhLegend,tanhLines,tanhTexts,tanhTextBox);
-
-    //Only update monoEdge if point is good. Otherwise, use previous
-    /*
-    if(tmpx>0)
-    {
-        monoEdge=tmpx;
-    }
-    else
-    {
-        cout << "Mono Fit failed!!!" << endl;
-        monoEdge=0;
-    }*/
-    cout << "Mono Radius: " << monoEdge << endl;
-
-    //Row and column tanh fitting
-
-    cout << "Row fits" << endl;
-    //For each row
-    for(int j=firstBulkBin+1;j<=ny;j++)
-    {
-        cout << "RF j = " << j << endl;
-        //Create projection
-        px = hist->ProjectionX("px",j,j);
-        center = hist->GetYaxis()->GetBinCenter(j);
-
-        //Solve for x coordinate where tanhFit(x)=0.5
-        //Include all bins
-        tmpx=solveTanhFit(px,tanhFit,fitBounds,1,frameStep,bulkEdge,"row",center,tanhLegend,tanhLines,tanhTexts,tanhTextBox);
-        cout << "tmpx = " << tmpx << endl;
-        //cout << "Row " << j << ": tmpx=" << tmpx << endl;
-        if(tmpx>0)
-        {
-            //Found another row containing droplet
-            tmpy=hist->GetYaxis()->GetBinCenter(j);
-            circlePointsGraph->SetPoint(n,tmpx,tmpy);
-            printf("CPG Set %d @ (%.2f, %.2f).\n", n, tmpx, tmpy);
-
-            //Choose the value from the row above the monolayer to be the x coordinate after which to discard points for circle fitting to determine the bulk-monolayer interface
-            if(j==firstBulkBin)
-                rBulkMax=tmpx;
-            n++;
-
-            // If this is the first bulk row, save this value as bulkEdge
-            if(j == firstBulkBin + 1)
-                tmpBulkEdge = tmpx;
-
-        }
-    }
-
-    cout << "column fits" << endl;
-    //For each column
-    for(int i=1;i<=nx;i++)
-    {
-        //Create projection
-        py = hist->ProjectionY("py",i,i);
-        center = hist->GetXaxis()->GetBinCenter(i);
-
-        //Solve for y coordinate where the tanhFit(y)=0.5
-        //Ignore first few bins in monolayer
-        tmpy=solveTanhFit(py,tanhFit,fitBounds,firstBulkBin+1,frameStep,bulkEdge,"col",center,tanhLegend,tanhLines,tanhTexts,tanhTextBox);
-        //cout << "Col " << i << ": tmpy=" << tmpy << endl;
-        if(tmpy>=0)
-        {
-            //Found another column containing droplet
-            tmpx=hist->GetXaxis()->GetBinCenter(i);
-            circlePointsGraph->SetPoint(n,tmpx,tmpy);
-            n++;
-        }
-    }
-    cout << n << " points on graph" << endl;
-
-    //Update graph properties
-    circlePointsGraph->Set(n);
-    circlePointsGraph->Sort();
-    circlePointsGraph->SetName(aOrR);
-    circlePointsGraph->SetTitle(aOrR);
-
-    //cout << endl << "circlePointsGraph:" << endl;
-    /*
-    for(int i=0;i<n;i++)
-    {
-        //circlePointsGraph->GetPoint(i,tmpx,tmpy);
-        tmpx=circlePointsGraph->GetX()[i];
-        tmpy=circlePointsGraph->GetY()[i];
-        //cout << "    (" << tmpx << "," << tmpy << ")" << endl;
-    }
-    */
-
-
-    // Update bulkEdge
-    bulkEdge = tmpBulkEdge;
-
-    delete tanhFit;
-}
+// //Guess boundary of water molecule by counting for a single row
+// //Find the edge of droplet by tanh fitting for each row given TH2D
+// void CircularBulk::findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,double &bulkEdge,int frameStep,TLegend* tanhLegend,TLine** tanhLines,TText **tanhTexts,TPaveText *tanhTextBox)
+// {
+//     cout << endl;
+//     cout << "FINDBOUNDARYPOINTS" << endl;
+// 
+//     //Best guess for parameters
+//     double guess;
+// 
+//     //Number of bins
+//     int nx=hist->GetNbinsX();
+//     int ny=hist->GetNbinsY();
+// 
+//     //Parameters: liquid density,interface width,center
+//     double ld,w,c;
+// 
+//     //Temporary values returned from solveTanhFit before saving
+//     double tmpx,tmpy;
+// 
+//     // bulkEdge, to be updated at the end of this function.
+//     double tmpBulkEdge;
+// 
+//     //Number of rows+columns containing the droplet
+//     int n=0;
+// 
+//     //Reset points graph
+//     circlePointsGraph->Set(0);
+//     //circlePointsGraph->Set(nx+ny);
+// 
+//     //Projections of hA
+//     TH1D *px,*py;
+// 
+//     //Bin center on axis perpendicular to projection
+//     double center=0;
+// 
+// 
+//     //Number of first z bin of hA above the monolayer
+//     py=hist->ProjectionY("py",1,1);
+//     int nz=py->GetNbinsX();
+//     double dz=py->GetBinWidth(1);
+//     double zlo=py->GetBinLowEdge(1);
+//     double zhi=py->GetBinLowEdge(nz)+dz;
+//     cout << "ZLO: " << zlo << " ZHI: " << zhi << endl;
+//     int firstBulkBin = (int) ceil((monoLimits[1]-zlo)*nz/(zhi-zlo))+1;
+//     cout << "FirstBulkBin=" << firstBulkBin << " : " << py->GetBinLowEdge(firstBulkBin) << endl;
+// 
+//     //Find monolayer edge
+//     //Fit hMono with tanh, find where density=0.5
+//     //Here we're passing monoEdge instead of bulkEdge because we're trying to find the monolayer, not bulk, radius.
+//     cout << "mono tanh fit" << endl;
+//     // monoEdge=solveTanhFit(hMono,tanhFit,fitBounds,1,frameStep,monoEdge,"mono",center,tanhLegend,tanhLines,tanhTexts,tanhTextBox);
+// 
+//     //Only update monoEdge if point is good. Otherwise, use previous
+//     /*
+//     if(tmpx>0)
+//     {
+//         monoEdge=tmpx;
+//     }
+//     else
+//     {
+//         cout << "Mono Fit failed!!!" << endl;
+//         monoEdge=0;
+//     }*/
+//     cout << "Mono Radius: " << monoEdge << endl;
+// 
+//     //Row and column tanh fitting
+// 
+//     // TODO: Use TanhFit object.
+// 
+//     cout << "Row fits" << endl;
+//     //For each row
+//     for(int j=firstBulkBin+1;j<=ny;j++)
+//     {
+//         cout << "RF j = " << j << endl;
+//         //Create projection
+//         px = hist->ProjectionX("px",j,j);
+//         center = hist->GetYaxis()->GetBinCenter(j);
+// 
+//         //Solve for x coordinate where tanhFit(x)=0.5
+//         //Include all bins
+//         tmpx=solveTanhFit(px,tanhFit,fitBounds,1,frameStep,bulkEdge,"row",center,tanhLegend,tanhLines,tanhTexts,tanhTextBox);
+//         cout << "tmpx = " << tmpx << endl;
+//         //cout << "Row " << j << ": tmpx=" << tmpx << endl;
+//         if(tmpx>0)
+//         {
+//             //Found another row containing droplet
+//             tmpy=hist->GetYaxis()->GetBinCenter(j);
+//             circlePointsGraph->SetPoint(n,tmpx,tmpy);
+//             printf("CPG Set %d @ (%.2f, %.2f).\n", n, tmpx, tmpy);
+// 
+//             //Choose the value from the row above the monolayer to be the x coordinate after which to discard points for circle fitting to determine the bulk-monolayer interface
+//             if(j==firstBulkBin)
+//                 rBulkMax=tmpx;
+//             n++;
+// 
+//             // If this is the first bulk row, save this value as bulkEdge
+//             if(j == firstBulkBin + 1)
+//                 tmpBulkEdge = tmpx;
+// 
+//         }
+//     }
+// 
+//     cout << "column fits" << endl;
+//     //For each column
+//     for(int i=1;i<=nx;i++)
+//     {
+//         //Create projection
+//         py = hist->ProjectionY("py",i,i);
+//         center = hist->GetXaxis()->GetBinCenter(i);
+// 
+//         //Solve for y coordinate where the tanhFit(y)=0.5
+//         //Ignore first few bins in monolayer
+//         tmpy=solveTanhFit(py,tanhFit,fitBounds,firstBulkBin+1,frameStep,bulkEdge,"col",center,tanhLegend,tanhLines,tanhTexts,tanhTextBox);
+//         //cout << "Col " << i << ": tmpy=" << tmpy << endl;
+//         if(tmpy>=0)
+//         {
+//             //Found another column containing droplet
+//             tmpx=hist->GetXaxis()->GetBinCenter(i);
+//             circlePointsGraph->SetPoint(n,tmpx,tmpy);
+//             n++;
+//         }
+//     }
+//     cout << n << " points on graph" << endl;
+// 
+//     //Update graph properties
+//     circlePointsGraph->Set(n);
+//     circlePointsGraph->Sort();
+//     circlePointsGraph->SetName(aOrR);
+//     circlePointsGraph->SetTitle(aOrR);
+// 
+//     //cout << endl << "circlePointsGraph:" << endl;
+//     /*
+//     for(int i=0;i<n;i++)
+//     {
+//         //circlePointsGraph->GetPoint(i,tmpx,tmpy);
+//         tmpx=circlePointsGraph->GetX()[i];
+//         tmpy=circlePointsGraph->GetY()[i];
+//         //cout << "    (" << tmpx << "," << tmpy << ")" << endl;
+//     }
+//     */
+// 
+// 
+//     // Update bulkEdge
+//     bulkEdge = tmpBulkEdge;
+// 
+//     delete tanhFit;
+// }
 
 //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points and find the intersection of the circle with the substrate interface. The result is the bulk-monolayer interface
 double CircularBulk::fitCircle(TGraph* gCirclePoints,CircleFit &circle,double xMax,int timestep) {
@@ -453,193 +432,6 @@ double CircularBulk::fitCircle(TGraph* gCirclePoints,CircleFit &circle,double xM
     return circle.GetChi2s();
 }
 
-//Guess boundary location and width of water molecule for a single row or column
-void CircularBulk::guessTanhFit(TH1D* hist,double* fitBounds,double &ld,double &width,double &boundary,double &xlo,double &xhi)
-{
-    //f(x)=ld/2*(1-tanh(4*(x-x0)/w))
-    //x=xlo=boundary+width/2 => yc=ld/2*(1-tanh(2))
-    //x=xhi=boundary-width/2 => yc=ld/2*(1+tanh(2))
-    //We will find these x values: xlo and xhi
-    //From there, calculate width = hi-low
-    //Since we are fitting ld, though, we don't yet know it.
-    //We will use a value of 1, the ideal bulk density of water
-
-    //Number of bins
-    int n=hist->GetNbinsX();
-    //Bin content (y value)
-    double yc;
-
-    //Assume ld=1
-    ld=1;
-
-    //Temporary variable for checking whether parameters are within limits
-    double tmp;
-
-    //Lower and upper edges for width
-    double ylo=ld/2*(1-tanh(2));
-    double yhi=ld/2*(1+tanh(2));
-
-    //Whether edges and boundary have been found
-    bool foundLower=false;
-    bool foundUpper=false;
-    bool foundBoundary=false;
-
-    //Scan rows from top to bottom to find the boundary and width
-    for(int i=n;i>0;i--)
-    {
-        yc=hist->GetBinContent(i);
-        //Find the first bin with boundary density (0.5) then draw a line between this bin and the previous (above) and solve for where the line=0.5
-        if( yc>0.5 && !foundBoundary )
-        {
-            tmp=solveLinear(hist,i,i+1,0.5);
-            foundBoundary=true;
-            if(fitBounds[4]<tmp && tmp<fitBounds[5])
-                boundary=tmp;
-        }
-
-        //Look for lower edge
-        if( yc>ylo && !foundLower )
-        {
-            xlo=solveLinear(hist,i,i+1,ylo);
-            foundLower=true;
-        }
-
-        //Look for upper edge
-        if( yc>yhi && !foundUpper )
-        {
-            xhi=solveLinear(hist,i,i+1,yhi);
-            foundUpper=true;
-        }
-    }
-
-    //Guess width if within bounds. Otherwise, revert to default guess (5)
-    tmp=xlo-xhi;
-    if(fitBounds[2]<tmp && tmp<fitBounds[3])
-        width=tmp;
-}
-
-
-//Fit TH1D to tanh function, solve for x where f(x)=0.5
-//Only take bins after and including startBin
-//fitType should be "row", "col", or "mono"
-double CircularBulk::solveTanhFit(TH1D* hist, TF1* tanhFit, double* fitBounds, int startBin, int frameStep, double bulkEdge, string fitType, double pos, TLegend* tanhLegend, TLine** tanhLines, TText **tanhTexts, TPaveText *tanhTextBox)
-{
-    double val;
-    int n=hist->GetNbinsX();
-    double *x = new double[n-startBin+1];
-    double *y = new double[n-startBin+1];
-    double startPoint=hist->GetBinCenter(startBin);
-    bool draw=false;
-
-    //Plot bounds
-    double tanhRangeUser[4] = {0,120,0,3};
-
-    //Initial guesses for width and boundary location in case they cannot be guessed for frame #1
-    double ldGuess=1;
-    double width=5;
-    double boundary=bulkEdge;
-
-    //Row or col?
-    static int fitNum=0;
-    static string prevFitType=fitType;
-    //Reset counter when changing types
-    if(fitType!=prevFitType)
-        fitNum=0;
-
-    //cout << "solveTanhFit" << endl;
-    //cout << endl;
-    //cout << "n=" << n << endl;
-    //cout << "startBin=" << startBin << endl;
-    //cout << "startPoint=" << startPoint << endl;
-
-    cout << "THF" << endl;
-    //Best guess based on counting, not fitting
-    double lowGuess,hiGuess;
-    guessTanhFit(hist,fitBounds,ldGuess,width,boundary,lowGuess,hiGuess);
-    cout << "Guess:" << endl;
-    cout << "ldGuess = " << ldGuess << endl;
-    cout << "width = " << width << endl;
-    cout << "boundary = " << boundary << endl;
-    cout << "lowGuess = " << lowGuess << endl;
-    cout << "hiGuess = " << hiGuess << endl;
-    /*
-    cout << endl;
-    cout << "Guessed fit to be: " << endl;
-    cout << "ldGuess=" << ldGuess << endl;
-    cout << "width=" << width << endl;
-    cout << "boundary=" << boundary << endl;
-    cout << endl;
-    */
-    tanhFit->SetParameters(ldGuess,width,boundary);
-
-    //Add hist values to vector, including only those after and including startBin
-    for(int i=startBin;i<=n;i++)
-    {
-        x[i-startBin]=hist->GetBinCenter(i);
-        y[i-startBin]=hist->GetBinContent(i);
-        if(y[i-startBin] != 0) {
-          cout << "(nonzero Point) " << i-startBin << ": (" << x[i-startBin] << "," << y[i-startBin] << ")" << endl;
-        }
-    }
-    //cout << "Points done!" << endl << endl;
-
-    //Create graph
-    TGraph* tanhPointsGraph = new TGraph(n-startBin,x,y);
-    //cout << "tanhPointsGraph->GetN()=" << tanhPointsGraph->GetN() << endl;
-
-    tanhPointsGraph->Fit(tanhFit,"Q");
-
-    //Get Parameters
-    double ld=tanhFit->GetParameter(0);
-    double w=tanhFit->GetParameter(1);
-    double x0=tanhFit->GetParameter(2);
-
-    cout << "Fit Params:" << endl;
-    cout << "ld = " << ld << endl;
-    cout << "w = " << w << endl;
-    cout << "x0 = " << x0 << endl;
-
-    /*
-    cout << endl;
-    cout << "Calculated fit to be: " << endl;
-    cout << "ldGuess=" << ld << endl;
-    cout << "width=" << w << endl;
-    cout << "boundary=" << x0 << endl;
-    cout << endl;
-    */
-
-    //ld>0.5 =>fit is valid and intersects 0.5=>column contains droplet
-    //Otherwise => failure
-    // TODO: Set max in options
-    if(abs(x0)<1000 && ld>0.0)
-    {
-      // Use point where dens = ld/2.
-      val = x0;
-
-      //If successful but too low, call it a failure
-      if(val<=startPoint)
-          val=-1;
-    }
-    else
-    {
-      //Histogram doesn't contain bulk water
-      val=-1;
-      //cout << "TanhFit failed for " << fitType << " " << fitNum << endl;
-    }
-
-    cout << "val = " << val << endl;
-
-    //Update variables
-    fitNum++;
-    prevFitType=fitType;
-
-    delete [] x;
-    delete [] y;
-
-    delete tanhPointsGraph;
-    return val;
-}
-
 Droplet::Droplet(AtomArray &atomArray) {
   // TODO: Determine radius from options?
   rDensCyl = 10;
@@ -679,7 +471,7 @@ void Droplet::fillOne(Atom &atom) {
     hLiquidDens->Fill(atom.z, mass);
   }
 
-  cout << "Filling type " << atom.type << " (droplet): " << mass << " @ " << atom.z << endl;
+  // cout << "Filling type " << atom.type << " (droplet): " << mass << " @ " << atom.z << endl;
 }
 
 void Droplet::fill(AtomArray &atoms) {
@@ -709,6 +501,7 @@ void Droplet::findMonolayer() {
   monolayer.findMonoLimits(hLiquidDens, monolayer.zlim);
 
   cout << "ML: hLD @" << hLiquidDens << endl;
+  cout << "monolayer.zlim: " << monolayer.zlim[0] << " " << monolayer.zlim[1] << endl;
 }
 
 void Droplet::reset() {
@@ -772,6 +565,8 @@ void Droplet::createHists() {
   // TODO: This is probably not the way to do this.
   // Maybe pass the grid object instead.
   monolayer.hMono = new TH1D("hMono", "hMono", grid.nr, grid.rVals);
+  // TODO: This seems like the wrong place to do this
+  monolayer.tanhFit.setHist(monolayer.hMono);
 
   // TODO: This is pretty messy.
   // Want to use actual coords for this one
@@ -820,7 +615,7 @@ void Droplet::dropletCalculations() {
 
   // TODO: Why is monoLimits necessary here?
   // Get circle
-  bulk.findBoundaryPoints(hDroplet, bulk.gCirclePoints, "a", monolayer.zlim, monolayer.hMono, rBulkMax, monolayer.radius, bulk.radius, /*unnecessary*/simDataPtr->framePtr->frameStep, /*legend*/(TLegend*)NULL, (TLine**)/*tanhLines*/NULL, (TText**)/*tanhTexts*/NULL, (TPaveText*)/*tanhTextBox*/NULL);
+  // bulk.findBoundaryPoints(hDroplet, bulk.gCirclePoints, "a", monolayer.zlim, monolayer.hMono, rBulkMax, monolayer.radius, bulk.radius, /*unnecessary*/simDataPtr->framePtr->frameStep, /*legend*/(TLegend*)NULL, (TLine**)/*tanhLines*/NULL, (TText**)/*tanhTexts*/NULL, (TPaveText*)/*tanhTextBox*/NULL);
   chi2 = bulk.fitCircle(bulk.gCirclePoints, bulk.circle, rBulkMax, simDataPtr->framePtr->time);
 
   // Calculate quantities

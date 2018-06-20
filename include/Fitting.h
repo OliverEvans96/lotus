@@ -1,5 +1,5 @@
-#ifndef CIRCLEFIT_H
-#define CIRCLEFIT_H
+#ifndef FITTING_H
+#define FITTING_H
 
 #include <iostream>
 #include <iomanip>
@@ -17,10 +17,11 @@
 #include "TMinuitMinimizer.h"
 #include "Math/Functor.h"
 
+#include "Parameters.h"
+
 using namespace std;
 
-class CircleFit
-{
+class CircleFit {
 public:
   CircleFit();
 	CircleFit(char* filename,TH2D *givenHist);
@@ -108,6 +109,35 @@ private:
 	double stddev(vector<double> x);
 	double atanh(double x);
 	bool inGraph(TGraph *g,double xCheck,double yCheck);
+};
+
+// TODO: Finish this
+class TanhFit {
+  TF1 *fTanh;
+  TH1D *hTanh;
+  Options options;
+  char fitOptions[16];
+
+  double ld;
+  double w;
+  double x0;
+
+  double fitBounds[6];
+
+  //Set Bounds on parameters
+  // TODO: Set bounds from options
+
+public:
+  TanhFit();
+  ~TanhFit();
+
+  void setContext(Options _options);
+  void createFunction();
+  void setHist(TH1D* _hTanh);
+  void setFitBounds();
+  void initialGuess(double _ld=1.0, double _w=1.0, double _x0=1.0);
+  void solve();
+  double getBoundary();
 };
 
 #endif

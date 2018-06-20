@@ -22,7 +22,7 @@ void Substrate::fillOne(Atom &atom) {
   double mass;
   mass = simDataPtr->masses[atom.type];
   hSubstrateDens->Fill(atom.z, mass);
-  cout << "Filling type " << atom.type << ": " << mass << " @ " << atom.z << endl;
+  // cout << "Filling type " << atom.type << ": " << mass << " @ " << atom.z << endl;
 }
 
 void Substrate::fill(AtomArray &atoms) {

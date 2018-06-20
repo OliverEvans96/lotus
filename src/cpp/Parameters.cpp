@@ -173,6 +173,7 @@ void Options::readConfig(char* _configPath) {
   parseDefaultOption("plot_zmax", plot_zmax, 100.0);
   parseDefaultOption("plot_aspect", plot_aspect, 1.0);
   parseDefaultOption("plot_width", plot_width, 800);
+  parseDefaultOption("expectedLiquidDensity", expectedLiquidDensity, 1.0);
 
   // Set ROOT verbosity
   if(verbose) {
@@ -231,6 +232,7 @@ void Options::printOptions() {
   printOption("plot_zmax", plot_zmax);
   printOption("plot_aspect", plot_aspect);
   printOption("plot_width", plot_width);
+  printOption("expectedLiquidDensity", expectedLiquidDensity);
 }
 
 CommandLineParser::CommandLineParser(int argc, char* argv[]) {

@@ -1,20 +1,18 @@
-//From "A Few Methods for Fitting Circles to Data"
+//CircleFit from "A Few Methods for Fitting Circles to Data"
 //By Dale Umbach & Kerry N. Jones
 
 //g++ `root-config --glibs --cflags` CircleFitClass.cpp circletest.cpp -o circletest.out && ./circletest.out
 
-#include "CircleFit.h"
+#include "Fitting.h"
 
 //Constructors
-CircleFit::CircleFit()
-{
+CircleFit::CircleFit() {
     intersected=false;
     dataOut.open("CircleData.txt");
     dataOut << "x | y " << endl;
 }
 
-CircleFit::CircleFit(char* filename,TH2D* givenHist)
-{
+CircleFit::CircleFit(char* filename,TH2D* givenHist) {
     ifstream inFile(filename);
     countLines(inFile);
     x.resize(n);
@@ -36,8 +34,7 @@ CircleFit::CircleFit(char* filename,TH2D* givenHist)
         */
 }
 
-CircleFit::CircleFit(char* givenName,vector<double> xCoords,vector<double> yCoords)
-{
+CircleFit::CircleFit(char* givenName,vector<double> xCoords,vector<double> yCoords) {
     name=givenName;
     x=xCoords;
     y=yCoords;
@@ -51,8 +48,7 @@ CircleFit::CircleFit(char* givenName,vector<double> xCoords,vector<double> yCoor
 }
 
 //Destructor
-CircleFit::~CircleFit()
-{
+CircleFit::~CircleFit() {
     //Save density histogram
     TCanvas *cCircDens = new TCanvas();
     cCircDens->cd();
@@ -69,8 +65,7 @@ void CircleFit::setHist(TH2D *givenHist) {
 
 
 //Give name & points - same as constructor
-void CircleFit::Define(char* givenName,vector<double> xCoords,vector<double> yCoords)
-{
+void CircleFit::Define(char* givenName,vector<double> xCoords,vector<double> yCoords) {
     name=givenName;
     x=xCoords;
     y=yCoords;
@@ -102,22 +97,19 @@ void CircleFit::Define(char* givenName,vector<double> xCoords,vector<double> yCo
 }
 
 //Get fitting error
-double CircleFit::GetChi2s()
-{
+double CircleFit::GetChi2s() {
     return chi2s;
 }
 
 //Print the size of the arrays
-void CircleFit::GetSize()
-{
+void CircleFit::GetSize() {
     cout << "n=" << n << endl;
     cout << "x.size()=" << x.size() << endl;
     cout << "y.size()=" << y.size() << endl;
 }
 
 //Fill coordinate vectors from file
-void CircleFit::Fill(char* filename)
-{
+void CircleFit::Fill(char* filename) {
     ifstream inFile(filename);
     inFile.ignore(256,'\n');
     for(int i=0;i<n;i++)
@@ -129,8 +121,7 @@ void CircleFit::Fill(char* filename)
     inFile.close();
 }
 
-double CircleFit::LinearResidual(const double *X)
-{
+double CircleFit::LinearResidual(const double *X) {
 	// X = [m, b]
 	sumsq = 0;
 	// nLinFit is number of points to fit
@@ -141,8 +132,7 @@ double CircleFit::LinearResidual(const double *X)
 }
 
 //Function to minimize
-double CircleFit::SumOfSquares(const double *X)
-{
+double CircleFit::SumOfSquares(const double *X) {
     //X={x0,y0,r}
     sumsq=0;
     for(int i=0;i<n;i++)
@@ -155,8 +145,7 @@ double CircleFit::SumOfSquares(const double *X)
 }
 
 //Fit circle to points with equal weights using MLS
-void CircleFit::GuessFit()
-{
+void CircleFit::GuessFit() {
     A=n*sum(mult(x,x))-square(sum(x));
     B=n*sum(mult(x,y))-sum(x)*sum(y);
     C=n*sum(mult(y,y))-square(sum(y));
@@ -185,8 +174,7 @@ void CircleFit::GuessFit()
 }
 
 //Fit circle to points using numerical minimization
-void CircleFit::Fit()
-{
+void CircleFit::Fit() {
 
     cout << "Points:" << endl;
      for(int i=0;i<x.size();i++)
@@ -236,8 +224,7 @@ void CircleFit::Fit()
 }
 
 //Find the largest x value at which the circle intersects a constant c
-double CircleFit::Intersect(double c)
-{
+double CircleFit::Intersect(double c) {
     y1=c;
     intersected=true;
     x1=sqrt(square(r)-square(c-y0))+x0;
@@ -247,8 +234,7 @@ double CircleFit::Intersect(double c)
 
 //Calculate contact angle
 // TODO: Return something if not intersected
-double CircleFit::ContactAngle()
-{
+double CircleFit::ContactAngle() {
     if(intersected)
     {
         cosTheta=(y1-y0)/r;
@@ -261,8 +247,7 @@ double CircleFit::ContactAngle()
 
 //Contact angle from points within 5A of the rightmost point.
 // TODO: This doesn't return anything
-double CircleFit::LinearContactAngle()
-{
+double CircleFit::LinearContactAngle() {
 	// Cutoff from rightmost point (5A)
 	double cutoff = 5;
 	// Points within cutoff
@@ -307,8 +292,7 @@ double CircleFit::LinearContactAngle()
 }
 
 //Draw tangent line
-TLine* CircleFit::DrawTangentLine()
-{
+TLine* CircleFit::DrawTangentLine() {
     if(intersected)
     {
         //Calculate slope & y-intercept
@@ -357,8 +341,7 @@ TLine* CircleFit::DrawTangentLine()
 }
 
 //Calculate the height of the circle at x=0
-double CircleFit::Height()
-{
+double CircleFit::Height() {
     //Take the best of two definitions of height
     double h1,h2;
 
@@ -381,8 +364,7 @@ double CircleFit::Height()
 }
 
 //Draw points and fitted circle
-TEllipse* CircleFit::Draw(bool drawPoints)
-{
+TEllipse* CircleFit::Draw(bool drawPoints) {
     //PI
     PI = 3.141592653589793;
 
@@ -451,8 +433,7 @@ TEllipse* CircleFit::Draw(bool drawPoints)
 //     delete c1,g,e;
 }
 
-double CircleFit::sum(vector<double> v)
-{
+double CircleFit::sum(vector<double> v) {
     double sum=0;
     int n=v.size();
     for(int i=0;i<n;i++)
@@ -461,14 +442,12 @@ double CircleFit::sum(vector<double> v)
 }
 
 //Square
-double CircleFit::square(double x)
-{
+double CircleFit::square(double x) {
     return x*x;
 }
 
 //Elementwise vector addition
-vector<double> CircleFit::add(vector<double> u,vector<double> v)
-{
+vector<double> CircleFit::add(vector<double> u,vector<double> v) {
     vector<double> w=u;
     int n=v.size();
     for(int i=0;i<n;i++)
@@ -477,8 +456,7 @@ vector<double> CircleFit::add(vector<double> u,vector<double> v)
 }
 
 //Elementwise vector multiplication
-vector<double> CircleFit::mult(vector<double> u,vector<double> v)
-{
+vector<double> CircleFit::mult(vector<double> u,vector<double> v) {
     vector<double> w=u;
     int n=v.size();
     for(int i=0;i<n;i++)
@@ -487,8 +465,7 @@ vector<double> CircleFit::mult(vector<double> u,vector<double> v)
 }
 
 //Calculate mean
-double CircleFit::mean(vector<double> x)
-{
+double CircleFit::mean(vector<double> x) {
     double sum=0;
     for(int i=0;i<x.size();i++)
         sum+=x[i];
@@ -496,8 +473,7 @@ double CircleFit::mean(vector<double> x)
 }
 
 //Calculate standard deviation
-double CircleFit::stddev(vector<double> x)
-{
+double CircleFit::stddev(vector<double> x) {
     double m = mean(x);
     double sum=0;
     for(int i=0;i<x.size();i++)
@@ -506,14 +482,12 @@ double CircleFit::stddev(vector<double> x)
 }
 
 //Arctanh
-double CircleFit::atanh(double x)
-{
+double CircleFit::atanh(double x) {
     return log((1+x)/(1-x))/2;
 }
 
 //Find radius from points and center
-void CircleFit::findRadius()
-{
+void CircleFit::findRadius() {
     int n=x.size();
     r=0;
 
@@ -522,26 +496,22 @@ void CircleFit::findRadius()
 }
 
 ///Get x center
-double CircleFit::GetXCenter()
-{
+double CircleFit::GetXCenter() {
     return x0;
 }
 
 //Get y center
-double CircleFit::GetYCenter()
-{
+double CircleFit::GetYCenter() {
     return y0;
 }
 
 //Get radius
-double CircleFit::GetRadius()
-{
+double CircleFit::GetRadius() {
     return r;
 }
 
 //Print x & y centers & radius
-void CircleFit::Print()
-{
+void CircleFit::Print() {
     cout << "X Center: " << x0 << endl;
     cout << "Y Center: " << y0 << endl;
     cout << "Radius: " << r << endl;
@@ -553,8 +523,7 @@ int CircleFit::GetNumPoints() {
 }
 
 //Count number of lines in file
-void CircleFit::countLines(ifstream &inFile)
-{
+void CircleFit::countLines(ifstream &inFile) {
     //Beginning of file
     inFile.seekg(0,ios::beg);
 
@@ -584,8 +553,7 @@ void CircleFit::countLines(ifstream &inFile)
 }
 
 //Check whether point is already in graph
-bool CircleFit::inGraph(TGraph *g,double xCheck,double yCheck)
-{
+bool CircleFit::inGraph(TGraph *g,double xCheck,double yCheck) {
     bool in=false;
     double *xGraph=g->GetX();
     double *yGraph=g->GetY();
@@ -597,4 +565,88 @@ bool CircleFit::inGraph(TGraph *g,double xCheck,double yCheck)
     }
 
     return in;
+}
+
+// Hyperbolic tangent fitting
+// Boundary detection curve
+// for droplet bulk and monolayer
+
+TanhFit::TanhFit() {}
+
+TanhFit::~TanhFit() {
+  delete fTanh;
+}
+
+void TanhFit::setContext(Options _options) {
+  options = _options;
+  if(options.verbose) {
+    strcpy(fitOptions, " ");
+  }
+  else {
+    // Quiet - non-verbose TMinuit fitting output
+    strcpy(fitOptions, "Q");
+  }
+  createFunction();
+  setFitBounds();
+  initialGuess();
+}
+
+void TanhFit::setHist(TH1D* _hTanh) {
+  hTanh = _hTanh;
+}
+
+void TanhFit::createFunction() {
+  double xmin, xmax;
+  // TODO: Set bounds from options
+  xmin = 0;
+  xmax = 300;
+  // TODO: Get rid of "4*"
+  fTanh = new TF1("tanhFit","[0]/2*(1-tanh(4*(x-[2])/([1])))",xmin, xmax);
+}
+
+void TanhFit::setFitBounds() {
+  // TODO: Set from options?
+  fitBounds[0] = 0.2;
+  fitBounds[1] = 10.0;
+  fitBounds[2] = 2.0;
+  fitBounds[3] = 20.0;
+  fitBounds[4] = 0.0;
+  fitBounds[5] = 300.0;
+  fTanh->SetParLimits(0,fitBounds[0],fitBounds[1]); //ld
+  fTanh->SetParLimits(1,fitBounds[2],fitBounds[3]); //w
+  fTanh->SetParLimits(2,fitBounds[4],fitBounds[5]); //x0
+}
+
+void TanhFit::initialGuess(double _ld, double _w, double _x0) {
+  // Initial guess doesn't have to be very good.
+  ld = _ld;
+  w = _w;
+  x0 = _x0;
+
+  // Set initial guess
+  fTanh->SetParameters(ld, w, x0);
+}
+
+//Fit TH1D to tanh function, solve for x where f(x)=0.5
+//Only take bins after and including startBin
+//fitType should be "row", "col", or "mono"
+void TanhFit::solve() {
+  initialGuess();
+
+  cout << "PREFIT ENTRIES = " << hTanh->GetEntries() << endl;
+  cout << "PREFIT ld = " << fTanh->GetParameter(0) << endl;
+  cout << "PREFIT w = " << fTanh->GetParameter(1) << endl;
+  cout << "PREFIT x0 = " << fTanh->GetParameter(1) << endl;
+  hTanh->Fit(fTanh, fitOptions);
+  cout << "POSTFIT ld = " << fTanh->GetParameter(0) << endl;
+  cout << "POSTFIT w = " << fTanh->GetParameter(1) << endl;
+  cout << "POSTFIT x0 = " << fTanh->GetParameter(1) << endl;
+
+  ld = fTanh->GetParameter(0);
+  w = fTanh->GetParameter(1);
+  x0 = fTanh->GetParameter(2);
+}
+
+double TanhFit::getBoundary() {
+  return x0;
 }

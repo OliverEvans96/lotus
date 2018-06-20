@@ -93,9 +93,10 @@ TEST_CASE("Readers", "[lotus]") {
     droplet.monolayer.fill(atoms);
     REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
     REQUIRE(droplet.monolayer.zlim[1] - droplet.monolayer.zlim[0] > 0);
+    droplet.monolayer.calculateRadius();
     REQUIRE(droplet.monolayer.radius > 0);
 
-    droplet.dropletCalculations();
+    // droplet.dropletCalculations();
     REQUIRE(droplet.bulk.gCirclePoints->GetN() > 0);
     REQUIRE(droplet.bulk.circle.GetNumPoints() > 0);
     REQUIRE(droplet.bulk.circle.intersected);
