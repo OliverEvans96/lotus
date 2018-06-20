@@ -5,9 +5,8 @@
 // Visualization //
 ///////////////////
 
-Figure::Figure(string _title, string _outFile, SimData &simData) {
+Figure::Figure(string _title, SimData &simData) {
   title = _title;
-  outFile = _outFile;
   simDataPtr = &simData;
   options = simDataPtr->options;
 
@@ -30,28 +29,12 @@ void Figure::setCanvasStyle() {
   gStyle->SetCanvasPreferGL(true);
 }
 
-void Figure::saveImage() {
-  canvas->SaveAs(outFile.data());
-}
-
-void Figure::saveROOT() {
-  // TODO: save w/ .C extension
-}
-
-// TODO: Take filename argument
 // TODO: Save relative to image directory
 void Figure::save(char* filename) {
   canvas->SaveAs(filename);
-  // if(options.saveImages) {
-  //   saveImage();
-  // }
-
-  // if(options.saveROOT) {
-  //   saveROOT();
-  // }
 }
 
-DropletFigure::DropletFigure(string _title, string _outFile, Droplet &droplet) : Figure(_title, _outFile, *droplet.simDataPtr){
+DropletFigure::DropletFigure(string _title, Droplet &droplet) : Figure(_title, *droplet.simDataPtr){
   dropletPtr = &droplet;
   hDroplet = dropletPtr->hDroplet;
   gCirclePoints = dropletPtr->bulk.gCirclePoints;
@@ -242,7 +225,7 @@ void DropletFigure::draw() {
   canvas->Update();
 }
 
-DensFigure::DensFigure(string _title, string _outFile, Droplet &droplet, Substrate &substrate) : Figure(_title, _outFile, *droplet.simDataPtr) {
+DensFigure::DensFigure(string _title, Droplet &droplet, Substrate &substrate) : Figure(_title, *droplet.simDataPtr) {
   dropletPtr = &droplet;
   substratePtr = &substrate;
 
@@ -340,7 +323,7 @@ void DensFigure::drawLegend() {
   legend->AddEntry(hSubstrateDens,"Substrate");
   legend->AddEntry(monoLoLineDens,"Mono lower limit","l");
   legend->AddEntry(monoHiLineDens,"Mono upper limit","l");
-  legend->Draw();
+  legend->Draw("same");
 }
 
 void DensFigure::draw() {
@@ -353,7 +336,9 @@ void DensFigure::draw() {
   canvas->Update();
 }
 
-TanhFigure::TanhFigure(string _string, string _outFile, SimData &simData) : Figure(_string, _outFile, simData) {
+TanhFigure::TanhFigure(string _title, TanhFit &tanhFit) : Figure(_title, *tanhFit.simDataPtr) {
+  tanhFitPtr = &tanhFit;
+
   // x = z
   xlo = simDataPtr->simBounds.zlo;
   xhi = simDataPtr->simBounds.zhi;
@@ -362,25 +347,26 @@ TanhFigure::TanhFigure(string _string, string _outFile, SimData &simData) : Figu
   yhi = simDataPtr->options.dens_min;
 
   createLines();
-  createGraph();
+  // createGraph();
   createLegend();
+  addLegendEntries();
 }
 
 TanhFigure::~TanhFigure() {
   deleteLines();
-  deleteGraph();
+  // deleteGraph();
   deleteLegend();
 }
 
 void TanhFigure::createLines() {
   //Lines (There are 7)
-  ldLine = new TLine(xlo,ylo,xhi,ylo); //Liquid density (horizontal)
-  solLine = new TLine(xlo,ylo,xlo,yhi); //Final solution
-  x0Line = new TLine(xlo,ylo,xlo,yhi); //x0 final
-  x0guessLine = new TLine(xlo,ylo,xlo,yhi); //x0 guess
-  lowGuessLine = new TLine(xlo,ylo,xlo,yhi); //Lower edge of boundary
-  hiGuessLine = new TLine(xlo,ylo,xlo,yhi); //Upper edge of boundary
-  lowBinLine = new TLine(xlo,ylo,xlo,yhi); //Lowest bin used
+  ldLine = new TLine(xlo,ylo,xhi,ylo); // Liquid density (horizontal)
+  halfLdLine = new TLine(xlo,ylo,xhi,ylo); // HalfLiquid density (horizontal)
+  x0Line = new TLine(xlo,ylo,xlo,yhi); // x0 final
+
+  tanhLines[0] = ldLine;
+  tanhLines[1] = halfLdLine;
+  tanhLines[2] = x0Line;
 }
 
 void TanhFigure::createGraph() {
@@ -392,18 +378,14 @@ void TanhFigure::createLegend() {
   tanhTextBox = new TPaveText();
 }
 
-void TanhFigure::deleteGraph() {
-  delete gPoints;
-}
-
 void TanhFigure::deleteLines() {
   delete ldLine;
-  delete solLine;
+  delete halfLdLine;
   delete x0Line;
-  delete x0guessLine;
-  delete lowGuessLine;
-  delete hiGuessLine;
-  delete lowBinLine;
+}
+
+void TanhFigure::deleteGraph() {
+  delete gPoints;
 }
 
 void TanhFigure::deleteLegend() {
@@ -413,20 +395,14 @@ void TanhFigure::deleteLegend() {
 
 void TanhFigure::addLegendEntries() {
   legend->AddEntry(ldLine,"ld","l");
-  legend->AddEntry(solLine,"sol","l");
+  legend->AddEntry(halfLdLine,"ld/2","l");
   legend->AddEntry(x0Line,"x0","l");
-  legend->AddEntry(x0guessLine,"x0guess","l");
-  legend->AddEntry(lowGuessLine,"lowGuess","l");
-  legend->AddEntry(hiGuessLine,"hiGuess","l");
-  legend->AddEntry(lowBinLine,"lowBin","l");
 }
 
-void TanhFigure::setValues(double _ld, double _w_guess, double _w, double _x0_guess, double _x0) {
-  ld = _ld;
-  w_guess = _w_guess;
-  w = _w;
-  x0_guess = _x0_guess;
-  x0 = _x0;
+void TanhFigure::setValues() {
+  ld = tanhFitPtr->getLiquidDensity();
+  w = tanhFitPtr->getWidth();
+  x0 = tanhFitPtr->getBoundary();
 }
 
 void TanhFigure::setText() {
@@ -434,9 +410,7 @@ void TanhFigure::setText() {
 
   //Text lines (There are 5)
   tanhTexts[0]=tanhTextBox->AddText("ld: ");
-  tanhTexts[1]=tanhTextBox->AddText("w_guess: ");
   tanhTexts[2]=tanhTextBox->AddText("w: ");
-  tanhTexts[3]=tanhTextBox->AddText("x0_guess: ");
   tanhTexts[4]=tanhTextBox->AddText("x0: ");
 
   //Text - Where is this bin located?
@@ -453,18 +427,10 @@ void TanhFigure::setText() {
   ss.str("");
   ss << "ld: " << ld;
   tanhTexts[0]->SetText(0,0,ss.str().data());
-  //w_guess
-  ss.str("");
-  ss << "w_guess: " << width;
-  tanhTexts[1]->SetText(0,0,ss.str().data());
   //w
   ss.str("");
   ss << "w: " << w;
   tanhTexts[2]->SetText(0,0,ss.str().data());
-  //x0_guess
-  ss.str("");
-  ss << "x0_guess: " << x0_guess;
-  tanhTexts[3]->SetText(0,0,ss.str().data());
   //x0
   ss.str("");
   ss << "x0: " << x0;
@@ -472,39 +438,19 @@ void TanhFigure::setText() {
   ss.str("");
 }
 
-void TanhFigure::setLinePosition() {
+void TanhFigure::setLinePositions() {
   //Set lines to span plot box
   //ld (horizontal)
-  tanhLines[0]->SetY1(ld);
-  tanhLines[0]->SetY2(ld);
-  tanhLines[0]->Draw();
+  ldLine->SetY1(ld);
+  ldLine->SetY2(ld);
+  //ld/2 (horizontal)
+  halfLdLine->SetY1(ld/2);
+  halfLdLine->SetY2(ld/2);
   //x0
-  tanhLines[2]->SetX1(x0);
-  tanhLines[2]->SetX2(x0);
-  tanhLines[3]->Draw();
-  //x0guess
-  tanhLines[3]->SetX1(x0_guess);
-  tanhLines[3]->SetX2(x0_guess);
-  tanhLines[3]->Draw();
-  //lowGuess
-  tanhLines[4]->SetX1(lowGuess);
-  tanhLines[4]->SetX2(lowGuess);
-  tanhLines[4]->Draw();
-  //hiGuess
-  tanhLines[5]->SetX1(hiGuess);
-  tanhLines[5]->SetX2(hiGuess);
-  tanhLines[5]->Draw();
-  //lowBin
-  tanhLines[6]->SetX1(startPoint);
-  tanhLines[6]->SetX2(startPoint);
-  tanhLines[6]->Draw();
-  //sol
-  tanhLines[1]->SetX1(val);
-  tanhLines[1]->SetX2(val);
-  tanhLines[1]->Draw();
+  x0Line->SetX1(x0);
+  x0Line->SetX2(x0);
 
-  // TODO: Use variable instead of 7
-  for(int i=1;i<7;i++)
+  for(int i=1;i<numLines;i++)
     {
       //Vertical lines have identical x coordinates
       if(tanhLines[i]->GetX1()==tanhLines[i]->GetX2())
@@ -521,24 +467,20 @@ void TanhFigure::setLinePosition() {
     }
 }
 
+void TanhFigure::setHistStyle() {
+  tanhFitPtr->hTanh->SetStats(0);
+}
+
 void TanhFigure::setLineStyle() {
   ldLine->SetLineColor(kYellow);
   ldLine->SetLineWidth(3);
-  solLine->SetLineColor(kBlack);
-  solLine->SetLineWidth(3);
+  halfLdLine->SetLineColor(kBlack);
+  halfLdLine->SetLineWidth(3);
   x0Line->SetLineColor(kBlue);
   x0Line->SetLineWidth(3);
-  x0guessLine->SetLineColor(kCyan);
-  x0guessLine->SetLineWidth(3);
-  lowGuessLine->SetLineColor(kViolet);
-  lowGuessLine->SetLineWidth(3);
-  hiGuessLine->SetLineColor(kGreen);
-  hiGuessLine->SetLineWidth(3);
-  lowBinLine->SetLineColor(kOrange+7);
-  lowBinLine->SetLineWidth(3);
 }
 
-void TanhFigure::setPointStyle() {
+void TanhFigure::setGraphStyle() {
   gPoints->SetMarkerStyle(20);
 }
 
@@ -554,83 +496,50 @@ void TanhFigure::setLegendStyle() {
 }
 
 void TanhFigure::setStyle() {
+  setHistStyle();
   setLineStyle();
-  setPointStyle();
+  // setGraphStyle();
   setLegendStyle();
 }
 
-void TanhFigure::drawLines() {
-  for(int i=0; i<7; i++) {
-    tanhLines[i]->Draw();
-  }
+void TanhFigure::drawHist() {
+  tanhFitPtr->hTanh->Draw("hist");
 
-  //Draw solution
-  TLine *solLine= new TLine(val,0,val,1);
-  solLine->SetLineWidth(3);
-  solLine->SetLineColor(kOrange);
-  solLine->Draw();
+  for(int i=1; i<=tanhFitPtr->hTanh->GetXaxis()->GetNbins(); i++) {
+    cout << "hTanh " << i << " " << tanhFitPtr->hTanh->GetBinContent(i) << endl;
+  }
 }
 
-void TanhFigure::drawPoints() {
+void TanhFigure::drawFunction() {
+  tanhFitPtr->fTanh->Draw("same");
+}
+
+void TanhFigure::drawLines() {
+  for(int i=0; i<numLines; i++) {
+    tanhLines[i]->Draw("same");
+  }
+}
+
+void TanhFigure::drawGraph() {
   gPoints->Draw("same p");
 }
 
 void TanhFigure::drawLegend() {
-  legend->Draw();
+  legend->Draw("same");
 }
 
 void TanhFigure::draw() {
+  setValues();
+  setText();
+  setLinePositions();
+
   canvas->cd();
   setStyle();
+
+  drawHist();
+  drawFunction();
   drawLines();
-  drawPoints();
+  // drawGraph();
   drawLegend();
   canvas->Update();
-}
-
-// TODO: What is this?
-TGraph *horizontalHist(TH1D* hist)
-{
-    char *title, *xLabel, *yLabel;
-    int n;
-    double *x,*y, xlo, xhi;
-
-    //Copy points
-    TGraph* g = new TGraph(hist);
-    n=g->GetN();
-    x=g->GetX();
-    y=g->GetY();
-    xlo=hist->GetXaxis()->GetXmin();
-    xhi=hist->GetXaxis()->GetXmax();
-
-    //Copy title and axis labels
-    title=(char*) hist->GetTitle();
-    xLabel=(char*) hist->GetXaxis()->GetTitle();
-    yLabel=(char*) hist->GetYaxis()->GetTitle();
-
-    //Flip x & y
-    TGraph* g1 = new TGraph(n,y,x);
-
-    //Copy titles
-    g1->SetTitle(title);
-    g1->GetXaxis()->SetTitle(yLabel);
-    g1->GetYaxis()->SetTitle(xLabel);
-
-    //Copy line attributes
-    g1->SetLineStyle(g->GetLineStyle());
-    g1->SetLineWidth(g->GetLineWidth());
-    g1->SetLineColor(g->GetLineColor());
-
-    //Copy fill attributes
-    g1->SetFillStyle(g->GetFillStyle());
-    g1->SetFillColor(g->GetFillColor());
-
-    //Draw
-    g1->Draw("AL");
-    g1->GetYaxis()->SetRangeUser(xlo,xhi);
-    g1->Draw("AL");
-
-    //Delete
-    delete g;
-    return g1;
 }

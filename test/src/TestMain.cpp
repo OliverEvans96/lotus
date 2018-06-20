@@ -67,11 +67,14 @@ TEST_CASE("Readers", "[lotus]") {
   char filename[100];
 
   cout << "A" << endl;
-  DensFigure densFigure("testDensFig", "dens.png", droplet, substrate);
+  DensFigure densFigure("testDensFig", droplet, substrate);
   cout << "B" << endl;
 
-  DropletFigure dropletFigure("testHistFig", "out.png", droplet);
+  DropletFigure dropletFigure("testHistFig", droplet);
   cout << "C" << endl;
+
+  TanhFigure tanhFigure("tanhFigure", droplet.monolayer.tanhFit);
+  cout << "D" << endl;
 
   // Time loop
   while(dumpfileReader.good()) {
@@ -94,6 +97,10 @@ TEST_CASE("Readers", "[lotus]") {
     REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
     REQUIRE(droplet.monolayer.zlim[1] - droplet.monolayer.zlim[0] > 0);
     droplet.monolayer.calculateRadius();
+
+    tanhFigure.draw();
+    tanhFigure.save("mono_tanh.png");
+
     REQUIRE(droplet.monolayer.radius > 0);
 
     // droplet.dropletCalculations();
@@ -110,6 +117,7 @@ TEST_CASE("Readers", "[lotus]") {
     // TODO: Draw droplet figure
     dropletFigure.draw();
     dropletFigure.save("droplet.png");
+
     REQUIRE(file_exists("out.png"));
 
     // sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);

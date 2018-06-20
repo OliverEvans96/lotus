@@ -23,10 +23,10 @@ using namespace std;
 ///////////////////
 
 
-struct Figure {
+class Figure {
+ protected:
   TCanvas* canvas;
   TLegend* legend;
-  string outFile;
   string title;
   int width;
   int height;
@@ -35,19 +35,18 @@ struct Figure {
   double xlo, xhi;
   double ylo, yhi;
 
-  // TODO: Don't specify outFile here.
-  Figure(string _title, string _outFile, SimData &simData);
+ public:
+  Figure(string _title, SimData &simData);
   ~Figure();
 
   void createCanvas();
   void setCanvasStyle();
   void saveImage();
   void saveROOT();
-  // TODO: Specify outFile here
   void save(char* filename);
 };
 
-struct DropletFigure : Figure {
+class DropletFigure : public Figure {
   Droplet* dropletPtr;
 
   TH2D* hDroplet;
@@ -74,7 +73,8 @@ struct DropletFigure : Figure {
   double contactAngle;
   double *monoLimits;
 
-  DropletFigure(string _title, string _outFile, Droplet &droplet);
+ public:
+  DropletFigure(string _title, Droplet &droplet);
   ~DropletFigure();
 
   void createLines();
@@ -101,7 +101,7 @@ struct DropletFigure : Figure {
 };
 
 
-struct DensFigure : Figure {
+class DensFigure : public Figure {
   TLine* monoHiLineDens;
   TLine* monoLoLineDens;
   TH1D* hLiquidDens;
@@ -111,8 +111,9 @@ struct DensFigure : Figure {
   Droplet* dropletPtr;
   Substrate* substratePtr;
 
-  // TODO: Change title/outFile later
-  DensFigure(string _title, string _outFile, Droplet &droplet, Substrate &substrate);
+ public:
+  // TODO: Set title later
+  DensFigure(string _title, Droplet &droplet, Substrate &substrate);
   ~DensFigure();
   void setLineStyle();
   void setLegendStyle();
@@ -132,16 +133,12 @@ struct DensFigure : Figure {
   void draw();
 };
 
-struct TanhFigure : Figure {
+class TanhFigure : public Figure {
   TGraph* gPoints;
 
   TLine* ldLine;
-  TLine* solLine;
+  TLine* halfLdLine;
   TLine* x0Line;
-  TLine* x0guessLine;
-  TLine* lowGuessLine;
-  TLine* hiGuessLine;
-  TLine* lowBinLine;
 
   TPaveText* tanhTextBox;
   TText* posText;
@@ -156,18 +153,20 @@ struct TanhFigure : Figure {
   double startPoint;
   double val;
 
-  TText* tanhTexts[5];
-  TLine* tanhLines[7] = {
+  static const int numLines = 3;
+  static const int numTexts = 5;
+
+  TText* tanhTexts[numTexts];
+  TLine* tanhLines[numLines] = {
     ldLine,
-    solLine,
+    halfLdLine,
     x0Line,
-    x0guessLine,
-    lowGuessLine,
-    hiGuessLine,
-    lowBinLine
   };
 
-  TanhFigure(string _string, string _outFile, SimData &simData);
+  TanhFit* tanhFitPtr;
+
+ public:
+  TanhFigure(string _string, TanhFit &tanhFit);
   ~TanhFigure();
 
   void createLines();
@@ -178,24 +177,22 @@ struct TanhFigure : Figure {
   void deleteLegend();
 
   void addLegendEntries();
-  void setValues(double _ld, double _width, double _w, double _boundary, double _x0);
+  void setValues();
   void setText();
-  void setLinePosition();
+  void setLinePositions();
 
+  void setHistStyle();
   void setLineStyle();
-  void setPointStyle();
+  void setGraphStyle();
   void setLegendStyle();
   void setStyle();
 
+  void drawHist();
+  void drawFunction();
   void drawLines();
-  void drawPoints();
+  void drawGraph();
   void drawLegend();
   void draw();
 };
-
-
-// TODO: What is this?
-//Draw a TH1D horizontally, returning a TGraph which should probably be deleted
-TGraph *horizontalHist(TH1D* hist);
 
 #endif

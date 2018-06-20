@@ -577,17 +577,19 @@ TanhFit::~TanhFit() {
   delete fTanh;
 }
 
-void TanhFit::setContext(Options _options) {
-  options = _options;
+void TanhFit::setContext(SimData &simData) {
+  simDataPtr = &simData;
+  options = simDataPtr->options;
   if(options.verbose) {
-    strcpy(fitOptions, " ");
+    // W sets weights equal for all points
+    strcpy(fitOptions, "W");
   }
   else {
     // Quiet - non-verbose TMinuit fitting output
-    strcpy(fitOptions, "Q");
+    strcpy(fitOptions, "WQ");
   }
   createFunction();
-  setFitBounds();
+  // setFitBounds();
   initialGuess();
 }
 
@@ -606,15 +608,9 @@ void TanhFit::createFunction() {
 
 void TanhFit::setFitBounds() {
   // TODO: Set from options?
-  fitBounds[0] = 0.2;
-  fitBounds[1] = 10.0;
-  fitBounds[2] = 2.0;
-  fitBounds[3] = 20.0;
-  fitBounds[4] = 0.0;
-  fitBounds[5] = 300.0;
-  fTanh->SetParLimits(0,fitBounds[0],fitBounds[1]); //ld
-  fTanh->SetParLimits(1,fitBounds[2],fitBounds[3]); //w
-  fTanh->SetParLimits(2,fitBounds[4],fitBounds[5]); //x0
+  fTanh->SetParLimits(0, 0.1, 20.0); //ld
+  fTanh->SetParLimits(1,0.1, 20.0); //w
+  fTanh->SetParLimits(2,0.0, 300.0); //x0
 }
 
 void TanhFit::initialGuess(double _ld, double _w, double _x0) {
@@ -649,4 +645,12 @@ void TanhFit::solve() {
 
 double TanhFit::getBoundary() {
   return x0;
+}
+
+double TanhFit::getWidth() {
+  return w;
+}
+
+double TanhFit::getLiquidDensity() {
+  return ld;
 }

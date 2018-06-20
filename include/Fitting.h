@@ -17,6 +17,7 @@
 #include "TMinuitMinimizer.h"
 #include "Math/Functor.h"
 
+#include "MDBase.h"
 #include "Parameters.h"
 
 using namespace std;
@@ -113,16 +114,12 @@ private:
 
 // TODO: Finish this
 class TanhFit {
-  TF1 *fTanh;
-  TH1D *hTanh;
   Options options;
   char fitOptions[16];
 
   double ld;
   double w;
   double x0;
-
-  double fitBounds[6];
 
   //Set Bounds on parameters
   // TODO: Set bounds from options
@@ -131,13 +128,19 @@ public:
   TanhFit();
   ~TanhFit();
 
-  void setContext(Options _options);
+  void setContext(SimData &simData);
   void createFunction();
   void setHist(TH1D* _hTanh);
   void setFitBounds();
-  void initialGuess(double _ld=1.0, double _w=1.0, double _x0=1.0);
+  void initialGuess(double _ld=1.0, double _w=20.0, double _x0=50.0);
   void solve();
   double getBoundary();
+  double getWidth();
+  double getLiquidDensity();
+  SimData *simDataPtr;
+
+  TF1 *fTanh;
+  TH1D *hTanh;
 };
 
 #endif

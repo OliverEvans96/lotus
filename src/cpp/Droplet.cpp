@@ -16,7 +16,8 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
 
-  tanhFit.setContext(options);
+  tanhFit.setContext(*simDataPtr);
+
   // TODO: This is probably a good place for this,
   // but it doesn't work now since hMono is created later.
   // tanhFit.setHist(hMono);
@@ -34,6 +35,7 @@ void Monolayer::reset() {
 void Monolayer::fillOne(Atom &atom) {
   double mass;
   mass = simDataPtr->masses[atom.type];
+  atom.calculateNonCartesian();
   // TODO: Make this more efficient by calculating
   // only the necessary "radius" (y or r).
   if(options.geometry == "spherical") {
@@ -44,13 +46,13 @@ void Monolayer::fillOne(Atom &atom) {
     hMono->Fill(atom.y, mass);
     //cout << "fill mono @ " << atom.r << endl;
   }
-  // cout << "Filling type " << atom.type << " (mono): " << mass << " @ " << atom.z << endl;
+  // cout << "Filling type " << atom.type << " (mono): " << mass << " @ " << atom.r << endl;
 }
 
 void Monolayer::fill(AtomArray &atoms) {
   Atom atom;
-  // TODO: Is this necessary?
   reset();
+  cout << "Filling w/ zlim: " << zlim[0] << " " << zlim[1] << endl;
   // Add to monolayer
   for(int stepInFrame=0; stepInFrame<simDataPtr->framePtr->stepsThisFrame; stepInFrame++) {
     for(int atomNum=0; atomNum<simDataPtr->numAtoms; atomNum++) {
@@ -58,10 +60,16 @@ void Monolayer::fill(AtomArray &atoms) {
       if(isIn(atom.type, simDataPtr->liquidTypes)) {
         if(inMonolayer(atom)) {
           fillOne(atom);
+          cout << "in mono " << atom.z << endl;
+        }
+        else {
+          cout << "NOT in mono " << atom.z << endl;
         }
       }
     }
   }
+
+  convertUnits();
 }
 
 void Monolayer::convertUnits() {
@@ -69,19 +77,33 @@ void Monolayer::convertUnits() {
   double dv;
 
   // Divide by number of steps per frame
-  hMono->Scale(1.0/simDataPtr->stepsPerFrame);
+  cout << "Integral A = " << hMono->Integral("width") << endl;
+  hMono->Scale(1.0/simDataPtr->framePtr->stepsThisFrame);
+  cout << "Integral B = " << hMono->Integral("width") << endl;
   // Calculate monolayer bin volume
   // options.dv is for hDroplet, which uses options.dz.
   dv = options.dv * (zlim[1] - zlim[0])/options.dz;
+  cout << "\\\\ droplet dv = " << options.dv << "////" << endl;
+  cout << "\\\\ monolayer dv = " << dv << "////" << endl;
+  cout << "zlim[0] = " << zlim[0] << endl;
+  cout << "zlim[1] = " << zlim[1] << endl;
+  cout << "droplet dz = " << options.dz << endl;
+  cout << "monolayer dz = " << (zlim[1] - zlim[0]) << endl;
+  cout << "rVals" << endl;
+  for(int i=1; i<=10; i++) {
+    cout << "i=" << i << ": " << hMono->GetXaxis()->GetBinLowEdge(i) << endl;
+  }
   // Divide by volume to get density
   hMono->Scale(1.0/dv);
+  cout << "Integral A = " << hMono->Integral("width") << endl;
   // Convert units from amu/AA to g/cc
   hMono->Scale(NANO_DENS_TO_MACRO);
+  cout << "Integral D = " << hMono->Integral("width") << endl;
 }
 
 // Whether an atom is in the monolayer
 bool Monolayer::inMonolayer(Atom &atom) {
-  return ((zlim[0] < atom.z) && (atom.z > zlim[1]));
+  return ((zlim[0] < atom.z) && (atom.z < zlim[1]));
 }
 
 //Keep track of which atoms join the monolayer, and save their radius scaled by the base radius to the vector rScaledJoin
@@ -494,7 +516,6 @@ void Droplet::fill(AtomArray &atoms) {
   }
 
   convertUnits();
-  monolayer.convertUnits();
 }
 
 void Droplet::findMonolayer() {
@@ -511,8 +532,8 @@ void Droplet::reset() {
 
 void Droplet::convertUnits() {
   // Divide by number of steps per frame
-  hDroplet->Scale(1.0/simDataPtr->stepsPerFrame);
-  hLiquidDens->Scale(1.0/simDataPtr->stepsPerFrame);
+  hDroplet->Scale(1.0/simDataPtr->framePtr->stepsThisFrame);
+  hLiquidDens->Scale(1.0/simDataPtr->framePtr->stepsThisFrame);
   // Divide by volume to get density
   hDroplet->Scale(1.0/options.dv);
   cout << "*-*-Droplet Convert Units-*-*" << endl;
