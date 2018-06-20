@@ -317,18 +317,21 @@ void DensFigure::setValues() {
   monoLimits[1] = dropletPtr->monolayer.zlim[0];
 }
 
-void DensFigure::drawLines() {
-  monoHiLineDens->SetX1(monoLimits[1]);
-  monoHiLineDens->SetX2(monoLimits[1]);
-  // monoHiLineDens->Draw();
-  monoLoLineDens->SetX1(monoLimits[0]);
-  monoLoLineDens->SetX2(monoLimits[0]);
-  // monoLoLineDens->Draw("same");
 
+void DensFigure::drawHists() {
   cout << "Drawing" << endl;
   hLiquidDens->Draw("hist");
   hSubstrateDens->Draw("hist same"); //Same canvas
   cout << "Drawn" << endl;
+}
+
+void DensFigure::drawLines() {
+  monoHiLineDens->SetX1(monoLimits[1]);
+  monoHiLineDens->SetX2(monoLimits[1]);
+  monoHiLineDens->Draw("same");
+  monoLoLineDens->SetX1(monoLimits[0]);
+  monoLoLineDens->SetX2(monoLimits[0]);
+  monoLoLineDens->Draw("same");
 }
 
 void DensFigure::drawLegend() {
@@ -343,6 +346,7 @@ void DensFigure::draw() {
   setValues();
   canvas->cd();
   setStyle();
+  drawHists();
   drawLines();
   drawLegend();
   canvas->Update();

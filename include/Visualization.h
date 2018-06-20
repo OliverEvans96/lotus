@@ -126,6 +126,7 @@ struct DensFigure : Figure {
   void deleteLines();
   void deleteLegend();
 
+  void drawHists();
   void drawLines();
   void drawLegend();
   void draw();
