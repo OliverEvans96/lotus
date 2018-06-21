@@ -24,8 +24,12 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
 }
 
 void Monolayer::calculateRadius() {
-  tanhFit.solve();
-  radius = tanhFit.getBoundary();
+  if(tanhFit.solve()) {
+    radius = tanhFit.getBoundary();
+  }
+  else {
+    cout << "MONOLAYER RADIUS FIT FAILED" << endl;
+  }
 }
 
 void Monolayer::reset() {
@@ -60,10 +64,6 @@ void Monolayer::fill(AtomArray &atoms) {
       if(isIn(atom.type, simDataPtr->liquidTypes)) {
         if(inMonolayer(atom)) {
           fillOne(atom);
-          cout << "in mono " << atom.z << endl;
-        }
-        else {
-          cout << "NOT in mono " << atom.z << endl;
         }
       }
     }
@@ -77,28 +77,14 @@ void Monolayer::convertUnits() {
   double dv;
 
   // Divide by number of steps per frame
-  cout << "Integral A = " << hMono->Integral("width") << endl;
   hMono->Scale(1.0/simDataPtr->framePtr->stepsThisFrame);
-  cout << "Integral B = " << hMono->Integral("width") << endl;
   // Calculate monolayer bin volume
   // options.dv is for hDroplet, which uses options.dz.
   dv = options.dv * (zlim[1] - zlim[0])/options.dz;
-  cout << "\\\\ droplet dv = " << options.dv << "////" << endl;
-  cout << "\\\\ monolayer dv = " << dv << "////" << endl;
-  cout << "zlim[0] = " << zlim[0] << endl;
-  cout << "zlim[1] = " << zlim[1] << endl;
-  cout << "droplet dz = " << options.dz << endl;
-  cout << "monolayer dz = " << (zlim[1] - zlim[0]) << endl;
-  cout << "rVals" << endl;
-  for(int i=1; i<=10; i++) {
-    cout << "i=" << i << ": " << hMono->GetXaxis()->GetBinLowEdge(i) << endl;
-  }
   // Divide by volume to get density
   hMono->Scale(1.0/dv);
-  cout << "Integral A = " << hMono->Integral("width") << endl;
   // Convert units from amu/AA to g/cc
   hMono->Scale(NANO_DENS_TO_MACRO);
-  cout << "Integral D = " << hMono->Integral("width") << endl;
 }
 
 // Whether an atom is in the monolayer
@@ -242,6 +228,51 @@ void CircularBulk::setContext(Options _options, SimData *_simDataPtr, AtomArray 
   options = _options;
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
+  tanhFit.setContext(*simDataPtr);
+}
+
+void CircularBulk::setHist(TH2D *_hDroplet) {
+  hDroplet = _hDroplet;
+}
+
+void CircularBulk::findBoundaryPoints() {
+  int nx, ny;
+  double x, y;
+  int pointNum;
+
+  nx = hDroplet->GetNbinsX();
+  ny = hDroplet->GetNbinsY();
+
+  gCirclePoints->Clear();
+  pointNum = 0;
+
+  cout << "+++++++++++++++firstBulkBin+++++++++++++ = " << firstBulkBin << " @ " << &firstBulkBin << endl;
+
+  // Row fits (start at first row above monolayer)
+  for(int j=firstBulkBin; j<=ny; j++) {
+    cout << "j = " << j << endl;
+    tanhFit.setHist(hDroplet->ProjectionX("px", j, j));
+    // Solve fails if droplet is not present in this row.
+    if(tanhFit.solve()) {
+      x = tanhFit.getBoundary();
+      y = hDroplet->GetYaxis()->GetBinCenter(j);
+      gCirclePoints->SetPoint(pointNum++, x, y);
+    }
+  }
+
+  // Column fits
+  for(int i=1; i<=nx; i++) {
+    cout << "i = " << i << endl;
+    tanhFit.setHist(hDroplet->ProjectionY("py", i, i));
+    // Solve fails if droplet is not present in this row.
+    if(tanhFit.solve()) {
+      x = hDroplet->GetXaxis()->GetBinCenter(i);
+      y = tanhFit.getBoundary();
+      gCirclePoints->SetPoint(pointNum++, x, y);
+      cout << "good" << endl;
+    }
+    cout << "bad" << endl;
+  }
 }
 
 // //Guess boundary of water molecule by counting for a single row
@@ -464,7 +495,6 @@ Droplet::Droplet(AtomArray &atomArray) {
 
 Droplet::~Droplet() {
   delete hDroplet;
-  delete cDroplet;
 }
 
 void Droplet::setContext(AtomArray &atomArray) {
@@ -500,10 +530,6 @@ void Droplet::fill(AtomArray &atoms) {
   Atom atom;
   reset();
   cout << "Filling w.r.t. z=" << simDataPtr->substrateTop << endl;
-  cout << "monoLimits: " << monolayer.zlim[0] << " " << monolayer.zlim[1] << endl;
-  cout << "FILL DROPLET: " << endl;
-  cout << "stepsThisFrame = " << simDataPtr->framePtr->stepsThisFrame << endl;
-  cout << "numAtoms = " << simDataPtr->numAtoms << endl;
   for(int stepInFrame=0; stepInFrame<simDataPtr->framePtr->stepsThisFrame; stepInFrame++) {
     for(int atomNum=0; atomNum<simDataPtr->numAtoms; atomNum++) {
       atoms.getAtom(atomNum, stepInFrame, atom);
@@ -519,9 +545,15 @@ void Droplet::fill(AtomArray &atoms) {
 }
 
 void Droplet::findMonolayer() {
+  double monoTop;
   monolayer.findMonoLimits(hLiquidDens, monolayer.zlim);
+  // Determine first bulk row to use for row fits
+  // TODO: replace with member variable?
+  monoTop = monolayer.zlim[1]-simDataPtr->substrateTop;
+  cout << "monoTop1 = " << monoTop << endl;
+  bulk.firstBulkBin = hDroplet->GetYaxis()->FindBin(monoTop)+1;
+  cout << "firstBulkBin = " << bulk.firstBulkBin << " @ " << &bulk.firstBulkBin << endl;
 
-  cout << "ML: hLD @" << hLiquidDens << endl;
   cout << "monolayer.zlim: " << monolayer.zlim[0] << " " << monolayer.zlim[1] << endl;
 }
 
@@ -536,14 +568,10 @@ void Droplet::convertUnits() {
   hLiquidDens->Scale(1.0/simDataPtr->framePtr->stepsThisFrame);
   // Divide by volume to get density
   hDroplet->Scale(1.0/options.dv);
-  cout << "*-*-Droplet Convert Units-*-*" << endl;
-  cout << "Using dz = " << options.dz << endl;
-  cout << "NDTM = " << NANO_DENS_TO_MACRO << endl;
   hLiquidDens->Scale(1.0/(PI*options.dz*square(rDensCyl)));
   // Convert units from amu/AA^3 to g/cc
   hDroplet->Scale(NANO_DENS_TO_MACRO);
   hLiquidDens->Scale(NANO_DENS_TO_MACRO);
-  cout << "hLD Entries: " << hLiquidDens->GetEntries() << endl;
 }
 
 void Droplet::createHists() {
@@ -582,6 +610,7 @@ void Droplet::createHists() {
   hDroplet->SetStats(0);
   hDroplet->SetMinimum(0);
   hDroplet->SetMaximum(2.0);
+  bulk.setHist(hDroplet);
 
   // TODO: This is probably not the way to do this.
   // Maybe pass the grid object instead.
@@ -597,13 +626,6 @@ void Droplet::createHists() {
   nz = (int) ceil((zhi - zlo)/dz);
   // If dz doesn't evenly divide zhi-zlo, shift zhi up slightly.
   zhi = zlo + nz*dz;
-  cout << "=======" << endl;
-  cout << "Creating hLiquidDens" << endl;
-  cout << "zlo = " << zlo << endl;
-  cout << "zhi = " << zhi << endl;
-  cout << "nz = " << nz << endl;
-  cout << "dz = " << dz << endl;
-  cout << "=======" << endl;
   hLiquidDens = new TH1D("hLiquidDens", "hLiquidDens", nz, zlo, zhi);
 }
 
@@ -633,14 +655,24 @@ void Droplet::dropletCalculations() {
   // TODO: Set boundary points from options
   double rBulkMax = 200.0;
   double chi2;
+  double monoTop;
 
-  // TODO: Why is monoLimits necessary here?
+  cout << "-+-+-+ dropletCalculations +-+-+-" << endl;
   // Get circle
+  bulk.findBoundaryPoints();
+  cout << "found BPs: " << bulk.gCirclePoints->GetN() << endl;
   // bulk.findBoundaryPoints(hDroplet, bulk.gCirclePoints, "a", monolayer.zlim, monolayer.hMono, rBulkMax, monolayer.radius, bulk.radius, /*unnecessary*/simDataPtr->framePtr->frameStep, /*legend*/(TLegend*)NULL, (TLine**)/*tanhLines*/NULL, (TText**)/*tanhTexts*/NULL, (TPaveText*)/*tanhTextBox*/NULL);
   chi2 = bulk.fitCircle(bulk.gCirclePoints, bulk.circle, rBulkMax, simDataPtr->framePtr->time);
+  cout << "chi2 = " << chi2 << endl;
 
-  // Calculate quantities
-  bulk.radius = bulk.circle.Intersect(monolayer.zlim[1]);
+  // Bulk radius is the intersection of circle with top of monolayer
+  // (relative to top of substrate)
+  monoTop = monolayer.zlim[1] - simDataPtr->substrateTop;
+  cout << "monoTop = " << monoTop << endl;
+  bulk.radius = bulk.circle.Intersect(monoTop);
+  cout << "radius = " << bulk.radius << endl;
   bulk.contactAngle = bulk.circle.ContactAngle();
+  cout << "contactAngle = " << bulk.contactAngle << endl;
   bulk.height = bulk.circle.Height();
+  cout << "height = " << bulk.height << endl;
 }

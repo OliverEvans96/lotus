@@ -71,7 +71,7 @@ class DropletFigure : public Figure {
   double monoEdge;
   double dropletHeight;
   double contactAngle;
-  double *monoLimits;
+  double monoLimits[2];
 
  public:
   DropletFigure(string _title, Droplet &droplet);

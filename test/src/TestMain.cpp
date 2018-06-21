@@ -103,9 +103,15 @@ TEST_CASE("Readers", "[lotus]") {
 
     REQUIRE(droplet.monolayer.radius > 0);
 
-    // droplet.dropletCalculations();
+    droplet.dropletCalculations();
+
     REQUIRE(droplet.bulk.gCirclePoints->GetN() > 0);
     REQUIRE(droplet.bulk.circle.GetNumPoints() > 0);
+
+    // TODO: Draw droplet figure
+    dropletFigure.draw();
+    dropletFigure.save("droplet.png");
+
     REQUIRE(droplet.bulk.circle.intersected);
     REQUIRE(droplet.bulk.height > 0);
     REQUIRE(droplet.bulk.radius > 0);
@@ -113,10 +119,6 @@ TEST_CASE("Readers", "[lotus]") {
     // TODO: Write frame quantities to file
     //       - rm, rb, ca, h, circle points
     // TODO: Add option to enable/disable circle fit
-
-    // TODO: Draw droplet figure
-    dropletFigure.draw();
-    dropletFigure.save("droplet.png");
 
     REQUIRE(file_exists("out.png"));
 

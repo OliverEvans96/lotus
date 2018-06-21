@@ -132,8 +132,9 @@ public:
   void createFunction();
   void setHist(TH1D* _hTanh);
   void setFitBounds();
-  void initialGuess(double _ld=1.0, double _w=20.0, double _x0=50.0);
-  void solve();
+  void initialGuess(double _ld=2.0, double _w=20.0, double _x0=50.0);
+  bool isEmpty();
+  bool solve();
   double getBoundary();
   double getWidth();
   double getLiquidDensity();

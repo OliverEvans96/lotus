@@ -83,10 +83,10 @@ void DropletFigure::deleteLines() {
 void DropletFigure::deleteLegend() {
   delete legend;
   delete textBox;
-  delete cAText;
-  delete dHText;
-  delete bEText;
-  delete mEText;
+  // delete cAText;
+  // delete dHText;
+  // delete bEText;
+  // delete mEText;
 }
 
 void DropletFigure::setLineStyle() {
@@ -183,43 +183,44 @@ void DropletFigure::drawLines() {
   // Droplet height
   heightLine->SetY1(dropletHeight);
   heightLine->SetY2(dropletHeight);
-  heightLine->Draw();
+  heightLine->Draw("same");
 
   // Bulk radius
   bulkEdgeLine->SetX1(bulkEdge);
   bulkEdgeLine->SetX2(bulkEdge);
-  bulkEdgeLine->Draw();
+  bulkEdgeLine->Draw("same");
   // Monolayer radius
   monoEdgeLine->SetX1(monoEdge);
   monoEdgeLine->SetX2(monoEdge);
-  monoEdgeLine->Draw();
+  monoEdgeLine->Draw("same");
 
   // Monolayer
   monoHiLine->SetY1(monoLimits[1]);
   monoHiLine->SetY2(monoLimits[1]);
-  monoHiLine->Draw();
+  monoHiLine->Draw("same");
   monoLoLine->SetY1(monoLimits[0]);
   monoLoLine->SetY2(monoLimits[0]);
-  monoLoLine->Draw();
+  monoLoLine->Draw("same");
 
   //Draw circle points graph
   gCirclePoints->SetMarkerStyle(20);
   gCirclePoints->Draw("same P");
   // Draw circle through graph
-  circleEllipse->Draw();
+  circleEllipse->Draw("same");
   circleEllipse->SetLineWidth(2);
   circleEllipse->SetFillStyle(0);
 }
 
 void DropletFigure::drawLegend() {
-  legend->Draw();
-  textBox->Draw();
+  legend->Draw("same");
+  textBox->Draw("same");
 }
 
 void DropletFigure::draw() {
   setValues();
   canvas->cd();
   setStyle();
+  drawHist();
   drawLines();
   drawLegend();
   canvas->Update();
@@ -272,7 +273,6 @@ void DensFigure::setLineStyle() {
   monoLoLineDens->SetLineWidth(3);
   monoLoLineDens->SetLineColor(kGreen);
 
-  cout << "hLD @ " << hLiquidDens << endl;
   hLiquidDens->SetLineColor(kBlue);
   hLiquidDens->SetLineWidth(2);
   hSubstrateDens->SetLineColor(kOrange+3); //Brown
@@ -305,8 +305,9 @@ void DensFigure::setValues() {
 void DensFigure::drawHists() {
   cout << "Drawing" << endl;
   hLiquidDens->Draw("hist same");
+  cout << "liquid Drawn" << endl;
   hSubstrateDens->Draw("hist same"); //Same canvas
-  cout << "Drawn" << endl;
+  cout << "substrate Drawn" << endl;
 }
 
 void DensFigure::drawLines() {
@@ -504,10 +505,6 @@ void TanhFigure::setStyle() {
 
 void TanhFigure::drawHist() {
   tanhFitPtr->hTanh->Draw("hist");
-
-  for(int i=1; i<=tanhFitPtr->hTanh->GetXaxis()->GetNbins(); i++) {
-    cout << "hTanh " << i << " " << tanhFitPtr->hTanh->GetBinContent(i) << endl;
-  }
 }
 
 void TanhFigure::drawFunction() {

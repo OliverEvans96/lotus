@@ -166,7 +166,7 @@ void Options::readConfig(char* _configPath) {
   parseDefaultOption("verbose", verbose, false);
   parseDefaultOption("onlyFindInterface", onlyFindInterface, false);
   parseDefaultOption("dz", dz, 1.0);
-  parseDefaultOption("dv", dv, 500.0);
+  parseDefaultOption("dv", dv, 250.0);
   parseDefaultOption("dens_min", dens_min, 0.0);
   parseDefaultOption("dens_max", dens_max, 5.0);
   parseDefaultOption("plot_rmax", plot_rmax, 150.0);

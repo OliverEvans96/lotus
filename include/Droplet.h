@@ -45,17 +45,21 @@ struct CircularBulk
   CircularBulk();
   ~CircularBulk();
 
+  double firstBulkBin;
   double height;
   double radius;
   double volume;
   double contactAngle;
   CircleFit circle;
+  TanhFit tanhFit;
   Options options;
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
   TGraph *gCirclePoints;
+  TH2D *hDroplet;
 
-  void setContext(Options options, SimData *simDataPtr, AtomArray *atomArrayPtr);
+  void setContext(Options options, SimData *_simDataPtr, AtomArray *_atomArrayPtr);
+  void setHist(TH2D *_hDroplet);
   void fillOne(Atom &atom);
   void calculateHeight();
   void calculateRadius();
@@ -65,7 +69,8 @@ struct CircularBulk
 
   // TODO: Clean this up
   //Find boundary points by tanh fitting for each row
-  void findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,double &bulkEdge,int frameStep,TLegend* tanhLegend,TLine** tanhLines,TText **tanhTexts,TPaveText *tanhTextBox);
+  void findBoundaryPoints();
+  //void findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,double &bulkEdge,int frameStep,TLegend* tanhLegend,TLine** tanhLines,TText **tanhTexts,TPaveText *tanhTextBox);
 
   //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points
   double fitCircle(TGraph* circlePointsGraph,CircleFit &circle,double xMax,int timestep);

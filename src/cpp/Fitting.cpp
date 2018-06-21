@@ -360,6 +360,8 @@ double CircleFit::Height() {
     else
         height=h1;
 
+    cout << "HEIGHT = " << height << endl;
+
     return height;
 }
 
@@ -623,24 +625,40 @@ void TanhFit::initialGuess(double _ld, double _w, double _x0) {
   fTanh->SetParameters(ld, w, x0);
 }
 
+bool TanhFit::isEmpty() {
+  return (hTanh->GetEntries() == 0);
+}
+
 //Fit TH1D to tanh function, solve for x where f(x)=0.5
 //Only take bins after and including startBin
 //fitType should be "row", "col", or "mono"
-void TanhFit::solve() {
+bool TanhFit::solve() {
+  int err;
+  bool success;
+
   initialGuess();
 
-  cout << "PREFIT ENTRIES = " << hTanh->GetEntries() << endl;
-  cout << "PREFIT ld = " << fTanh->GetParameter(0) << endl;
-  cout << "PREFIT w = " << fTanh->GetParameter(1) << endl;
-  cout << "PREFIT x0 = " << fTanh->GetParameter(1) << endl;
-  hTanh->Fit(fTanh, fitOptions);
-  cout << "POSTFIT ld = " << fTanh->GetParameter(0) << endl;
-  cout << "POSTFIT w = " << fTanh->GetParameter(1) << endl;
-  cout << "POSTFIT x0 = " << fTanh->GetParameter(1) << endl;
+  // Check whether histogram contains points
+  if(!isEmpty()) {
+    err = hTanh->Fit(fTanh, fitOptions);
+    success = (err == 0);
+    cout << "nonempty" << endl;
 
-  ld = fTanh->GetParameter(0);
-  w = fTanh->GetParameter(1);
-  x0 = fTanh->GetParameter(2);
+    // Extract parameters if fit is successful
+    if(success) {
+      ld = fTanh->GetParameter(0);
+      w = fTanh->GetParameter(1);
+      x0 = fTanh->GetParameter(2);
+      cout << "success" << endl;
+    }
+  }
+
+  else {
+    cout << "empty" << endl;
+    success = false;
+  }
+
+  return success;
 }
 
 double TanhFit::getBoundary() {
