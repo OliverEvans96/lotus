@@ -46,9 +46,9 @@ public:
 	void AddBadPoint(double xp,double yp);
 	TEllipse* Draw(bool drawPoints=false);
 	TLine* DrawTangentLine();
-	double GetXCenter();
-	double GetYCenter();
-	double GetRadius();
+	double getXCenter();
+	double getYCenter();
+	double getRadius();
 	void Print();
   int GetNumPoints();
 
@@ -112,17 +112,19 @@ private:
 	bool inGraph(TGraph *g,double xCheck,double yCheck);
 };
 
-// TODO: Finish this
 class TanhFit {
   Options options;
   char fitOptions[16];
+
+  //Set Bounds on parameters
+  // TODO: Set bounds from options
+  double fitBounds[6];
 
   double ld;
   double w;
   double x0;
 
-  //Set Bounds on parameters
-  // TODO: Set bounds from options
+  int err;
 
 public:
   TanhFit();
@@ -134,7 +136,9 @@ public:
   void setFitBounds();
   void initialGuess(double _ld=2.0, double _w=20.0, double _x0=50.0);
   bool isEmpty();
-  bool solve();
+  void solve();
+  bool good();
+
   double getBoundary();
   double getWidth();
   double getLiquidDensity();

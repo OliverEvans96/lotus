@@ -12,6 +12,7 @@ Monolayer::~Monolayer() {
 }
 
 void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr) {
+  cout << "Monolayer::setContext in" << endl;
   options = _options;
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
@@ -21,10 +22,12 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
   // TODO: This is probably a good place for this,
   // but it doesn't work now since hMono is created later.
   // tanhFit.setHist(hMono);
+  cout << "Monolayer::setContext out" << endl;
 }
 
 void Monolayer::calculateRadius() {
-  if(tanhFit.solve()) {
+  tanhFit.solve();
+  if(tanhFit.good()) {
     radius = tanhFit.getBoundary();
   }
   else {
@@ -85,6 +88,10 @@ void Monolayer::convertUnits() {
   hMono->Scale(1.0/dv);
   // Convert units from amu/AA to g/cc
   hMono->Scale(NANO_DENS_TO_MACRO);
+  // Reset error created by scaling
+  for(int i=1; i<=hMono->GetNbinsX(); i++) {
+    hMono->SetBinError(i, 0.0);
+  }
 }
 
 // Whether an atom is in the monolayer
@@ -225,10 +232,12 @@ CircularBulk::~CircularBulk() {
 }
 
 void CircularBulk::setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr) {
+  cout << "CircularBulk::setContext in" << endl;
   options = _options;
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
   tanhFit.setContext(*simDataPtr);
+  cout << "CircularBulk::setContext out" << endl;
 }
 
 void CircularBulk::setHist(TH2D *_hDroplet) {
@@ -252,10 +261,12 @@ void CircularBulk::findBoundaryPoints() {
   for(int j=firstBulkBin; j<=ny; j++) {
     cout << "j = " << j << endl;
     tanhFit.setHist(hDroplet->ProjectionX("px", j, j));
+    tanhFit.solve();
     // Solve fails if droplet is not present in this row.
-    if(tanhFit.solve()) {
+    if(tanhFit.good()) {
       x = tanhFit.getBoundary();
       y = hDroplet->GetYaxis()->GetBinCenter(j);
+      cout << "Found @ (" << x << "," << y << ")" << endl;
       gCirclePoints->SetPoint(pointNum++, x, y);
     }
   }
@@ -265,13 +276,13 @@ void CircularBulk::findBoundaryPoints() {
     cout << "i = " << i << endl;
     tanhFit.setHist(hDroplet->ProjectionY("py", i, i));
     // Solve fails if droplet is not present in this row.
-    if(tanhFit.solve()) {
+    tanhFit.solve();
+    if(tanhFit.good()) {
       x = hDroplet->GetXaxis()->GetBinCenter(i);
       y = tanhFit.getBoundary();
       gCirclePoints->SetPoint(pointNum++, x, y);
-      cout << "good" << endl;
+      cout << "Found @ (" << x << "," << y << ")" << endl;
     }
-    cout << "bad" << endl;
   }
 }
 
@@ -498,12 +509,14 @@ Droplet::~Droplet() {
 }
 
 void Droplet::setContext(AtomArray &atomArray) {
+  cout << "Droplet::setContext in" << endl;
   atomArrayPtr = &atomArray;
   simDataPtr = atomArrayPtr->simDataPtr;
   options = simDataPtr->options;
 
   bulk.setContext(options, simDataPtr, atomArrayPtr);
   monolayer.setContext(options, simDataPtr, atomArrayPtr);
+  cout << "Droplet::setContext out" << endl;
 }
 
 void Droplet::fillOne(Atom &atom) {
@@ -572,6 +585,15 @@ void Droplet::convertUnits() {
   // Convert units from amu/AA^3 to g/cc
   hDroplet->Scale(NANO_DENS_TO_MACRO);
   hLiquidDens->Scale(NANO_DENS_TO_MACRO);
+  // Reset error created by scaling
+  for(int i=1; i<=hLiquidDens->GetNbinsX(); i++) {
+    hLiquidDens->SetBinError(i, 0.0);
+  }
+  for(int i=1; i<=hDroplet->GetNbinsY(); i++) {
+    for(int j=1; j<=hDroplet->GetNbinsX(); j++) {
+      hDroplet->SetBinError(i, j, 0.0);
+    }
+  }
 }
 
 void Droplet::createHists() {
@@ -599,24 +621,36 @@ void Droplet::createHists() {
     cout << "nz = " << grid.nz << endl;
     cout << "zlo = " << grid.zlo << endl;
     cout << "zhi = " << grid.zhi << endl;
-    cout << "rVals = ";
+    cout << "rVals @ " << grid.rVals << " = ";
     for(int i=0; i<grid.nr; i++) {
       cout << grid.rVals[i] << ", ";
     }
     cout << endl;
   }
 
+  cout << "A" << endl;
+  cout << "grid.nr = " << grid.nr << endl;
+  cout << "grid.rVals = " << grid.rVals << endl;
+  cout << "grid.nz = " << grid.nz << endl;
+  cout << "grid.zlo = " << grid.zlo << endl;
+  cout << "grid.zhi = " << grid.zhi << endl;
   hDroplet = new TH2D("hDroplet","hDroplet",grid.nr,grid.rVals,grid.nz,grid.zlo,grid.zhi);
+  cout << "A.1" << endl;
   hDroplet->SetStats(0);
   hDroplet->SetMinimum(0);
   hDroplet->SetMaximum(2.0);
+  cout << "A.2" << endl;
   bulk.setHist(hDroplet);
+  cout << "B" << endl;
 
   // TODO: This is probably not the way to do this.
   // Maybe pass the grid object instead.
   monolayer.hMono = new TH1D("hMono", "hMono", grid.nr, grid.rVals);
   // TODO: This seems like the wrong place to do this
+  cout << "in Droplet::createHists" << endl;
+  cout << "monolayer.tanhFit.setHist(" << monolayer.hMono << ")" << endl;
   monolayer.tanhFit.setHist(monolayer.hMono);
+  cout << "monolayer.tanhFit.hTanh = " << monolayer.tanhFit.hTanh << endl;
 
   // TODO: This is pretty messy.
   // Want to use actual coords for this one
@@ -627,6 +661,7 @@ void Droplet::createHists() {
   // If dz doesn't evenly divide zhi-zlo, shift zhi up slightly.
   zhi = zlo + nz*dz;
   hLiquidDens = new TH1D("hLiquidDens", "hLiquidDens", nz, zlo, zhi);
+  cout << "C" << endl;
 }
 
 double Droplet::getMass() {

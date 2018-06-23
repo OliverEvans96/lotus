@@ -66,15 +66,15 @@ TEST_CASE("Readers", "[lotus]") {
 
   char filename[100];
 
-  cout << "A" << endl;
-  DensFigure densFigure("testDensFig", droplet, substrate);
-  cout << "B" << endl;
+  cout << "*A" << endl;
+  // DensFigure densFigure("testDensFig", droplet, substrate);
+  cout << "*B" << endl;
 
-  DropletFigure dropletFigure("testHistFig", droplet);
-  cout << "C" << endl;
+  // DropletFigure dropletFigure("testHistFig", droplet);
+  cout << "*C" << endl;
 
-  TanhFigure tanhFigure("tanhFigure", droplet.monolayer.tanhFit);
-  cout << "D" << endl;
+  // TanhFigure tanhFigure("tanhFigure", droplet.monolayer.tanhFit);
+  cout << "*D" << endl;
 
   // Time loop
   while(dumpfileReader.good()) {
@@ -90,16 +90,16 @@ TEST_CASE("Readers", "[lotus]") {
     cout << "----- FM-out -----" << endl;
 
     // TODO: Save image
-    densFigure.draw();
-    densFigure.save("dens.png");
+    // densFigure.draw();
+    // densFigure.save("dens.png");
 
     droplet.monolayer.fill(atoms);
     REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
     REQUIRE(droplet.monolayer.zlim[1] - droplet.monolayer.zlim[0] > 0);
     droplet.monolayer.calculateRadius();
 
-    tanhFigure.draw();
-    tanhFigure.save("mono_tanh.png");
+    // tanhFigure.draw();
+    // tanhFigure.save("mono_tanh.png");
 
     REQUIRE(droplet.monolayer.radius > 0);
 
@@ -109,8 +109,8 @@ TEST_CASE("Readers", "[lotus]") {
     REQUIRE(droplet.bulk.circle.GetNumPoints() > 0);
 
     // TODO: Draw droplet figure
-    dropletFigure.draw();
-    dropletFigure.save("droplet.png");
+    // dropletFigure.draw();
+    // dropletFigure.save("droplet.png");
 
     REQUIRE(droplet.bulk.circle.intersected);
     REQUIRE(droplet.bulk.height > 0);

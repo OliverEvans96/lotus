@@ -82,6 +82,7 @@ void CircleFit::Define(char* givenName,vector<double> xCoords,vector<double> yCo
         {
             x[n+i]=-x[i];
             y[n+i]=y[i];
+            cout << "(" << x[i] << "," << y[i] << ")" << endl;
         }
 
         //Double number of points
@@ -332,7 +333,7 @@ TLine* CircleFit::DrawTangentLine() {
         TLine *tangentLine = new TLine(x2,y2,x3,y3);
         tangentLine->SetLineColor(kViolet);
         tangentLine->SetLineWidth(3);
-        tangentLine->Draw();
+        tangentLine->Draw("same");
 
         return tangentLine;
     }
@@ -367,9 +368,6 @@ double CircleFit::Height() {
 
 //Draw points and fitted circle
 TEllipse* CircleFit::Draw(bool drawPoints) {
-    //PI
-    PI = 3.141592653589793;
-
     //Get margins
     margins[0]=gPad->GetLeftMargin();
     margins[1]=gPad->GetBottomMargin();
@@ -391,9 +389,9 @@ TEllipse* CircleFit::Draw(bool drawPoints) {
     yhi -= (yhi-ylo)*margins[3];
     */
     xlo=hist->GetXaxis()->GetXmin();
-    ylo=hist->GetYaxis()->GetXmin();
+    ylo=hist->GetMinimum();
     xhi=hist->GetXaxis()->GetXmax();
-    yhi=hist->GetYaxis()->GetXmax();
+    yhi=hist->GetMaximum();
 
     //Copy vectors to arrays
     double* xA=&x[0];
@@ -405,7 +403,7 @@ TEllipse* CircleFit::Draw(bool drawPoints) {
         TGraph* g = new TGraph(n,xA,yA);
         g->SetMarkerStyle(20);
         g->SetMarkerSize(1);
-        g->Draw("AP");
+        g->Draw("same AP");
     }
 
     //minAngle=0;
@@ -498,17 +496,17 @@ void CircleFit::findRadius() {
 }
 
 ///Get x center
-double CircleFit::GetXCenter() {
+double CircleFit::getXCenter() {
     return x0;
 }
 
 //Get y center
-double CircleFit::GetYCenter() {
+double CircleFit::getYCenter() {
     return y0;
 }
 
 //Get radius
-double CircleFit::GetRadius() {
+double CircleFit::getRadius() {
     return r;
 }
 
@@ -579,20 +577,38 @@ TanhFit::~TanhFit() {
   delete fTanh;
 }
 
+// double tanhFunc(double x, double *p) {
+//   // TODO
+// }
+// 
+// void resid(double *x, double *y, double *p, int n) {
+//   double res = 0;
+//   for(int i=0; i<n; i++) {
+//     res += pow(tanhFunc(x[i])-y[i], 2);
+//   }
+//   return res;
+// }
+// 
+// void TanhFit::fit(double *x, double *y, double *p, int n) {
+//    
+// }
+
 void TanhFit::setContext(SimData &simData) {
+  cout << "TanhFit::setContext in" << endl;
   simDataPtr = &simData;
   options = simDataPtr->options;
   if(options.verbose) {
     // W sets weights equal for all points
-    strcpy(fitOptions, "W");
+    strcpy(fitOptions, " ");
   }
   else {
     // Quiet - non-verbose TMinuit fitting output
-    strcpy(fitOptions, "WQ");
+    strcpy(fitOptions, " Q");
   }
   createFunction();
-  // setFitBounds();
+  setFitBounds();
   initialGuess();
+  cout << "TanhFit::setContext out" << endl;
 }
 
 void TanhFit::setHist(TH1D* _hTanh) {
@@ -605,14 +621,26 @@ void TanhFit::createFunction() {
   xmin = 0;
   xmax = 300;
   // TODO: Get rid of "4*"
+  cout << "allocating fTanh" << endl;
   fTanh = new TF1("tanhFit","[0]/2*(1-tanh(4*(x-[2])/([1])))",xmin, xmax);
+  cout << "allocated fTanh @ " << fTanh << endl;
 }
 
 void TanhFit::setFitBounds() {
   // TODO: Set from options?
-  fTanh->SetParLimits(0, 0.1, 20.0); //ld
-  fTanh->SetParLimits(1,0.1, 20.0); //w
-  fTanh->SetParLimits(2,0.0, 300.0); //x0
+  //ld min max
+  fitBounds[0] = 0.1;
+  fitBounds[1] = 20.0;
+  //w min max
+  fitBounds[2] = 0.1;
+  fitBounds[3] = 100.0;
+  //x0 min max
+  fitBounds[4] = 0.0;
+  fitBounds[5] = 500.0;
+
+  fTanh->SetParLimits(0, fitBounds[0], fitBounds[1]); //ld
+  fTanh->SetParLimits(1, fitBounds[2], fitBounds[3]); //w
+  fTanh->SetParLimits(2, fitBounds[4], fitBounds[5]); //x0
 }
 
 void TanhFit::initialGuess(double _ld, double _w, double _x0) {
@@ -632,32 +660,56 @@ bool TanhFit::isEmpty() {
 //Fit TH1D to tanh function, solve for x where f(x)=0.5
 //Only take bins after and including startBin
 //fitType should be "row", "col", or "mono"
-bool TanhFit::solve() {
-  int err;
-  bool success;
-
+void TanhFit::solve() {
   initialGuess();
 
   // Check whether histogram contains points
   if(!isEmpty()) {
-    err = hTanh->Fit(fTanh, fitOptions);
-    success = (err == 0);
-    cout << "nonempty" << endl;
-
-    // Extract parameters if fit is successful
-    if(success) {
-      ld = fTanh->GetParameter(0);
-      w = fTanh->GetParameter(1);
-      x0 = fTanh->GetParameter(2);
-      cout << "success" << endl;
+    cout << "fTanh @ " << fTanh << endl;
+    cout << "fName = '" << fTanh->GetName() << "'" << endl;
+    cout << "hTanh @ " << hTanh << endl;
+    cout << "hName = '" << hTanh->GetName() << "'" << endl;
+    cout << "fitOptions = '" << fitOptions << "'" << endl;
+    cout << hTanh->GetNbinsX() << " Points:" << endl;
+    for(int i=1; i<=hTanh->GetNbinsX(); i++) {
+      cout << i << ": (" << hTanh->GetBinCenter(i) << ", " << hTanh->GetBinContent(i) << "," << hTanh->GetBinError(i) << ")" << endl;
     }
+    cout << hTanh->GetNbinsX() << " over." << endl;
+    cout << "Test eval: " << fTanh->Eval(1.0) << endl;
+    cout << "evaled." << endl;
+    // TODO: SIGSEV here. Not sure why. Everything is allocated.
+    // err = hTanh->Fit(fTanh, fitOptions);
+    err = hTanh->Fit("gaus", fitOptions);
+    cout << "fitted." << endl;
+    cout << "err = " << err << endl;
+    ld = fTanh->GetParameter(0);
+    w = fTanh->GetParameter(1);
+    x0 = fTanh->GetParameter(2);
+    cout << "success" << endl;
   }
+}
 
-  else {
-    cout << "empty" << endl;
-    success = false;
-  }
+// Whether fitting was successful
+bool TanhFit::good() {
+  bool success = true;
 
+  if(err != 0) success = false;
+  // Disallow equality to insist that minimum is on interior
+  // since bounds are mostly arbitrary
+  if(ld <= fitBounds[0]) success = false;
+  else cout << "ld = " << ld << ">" << fitBounds[0] << endl;
+  if(ld >= fitBounds[1]) success = false;
+  else cout << "ld = " << ld << "<" << fitBounds[1] << endl;
+  if(w <= fitBounds[2]) success = false;
+  else cout << "w = " << ld << ">" << fitBounds[2] << endl;
+  if(w >= fitBounds[3]) success = false;
+  else cout << "w = " << ld << "<" << fitBounds[3] << endl;
+  if(x0 <= fitBounds[4]) success = false;
+  else cout << "x0 = " << ld << ">" << fitBounds[4] << endl;
+  if(x0 >= fitBounds[5]) success = false;
+  else cout << "x0 = " << ld << "<" << fitBounds[5] << endl;
+
+  cout << "success?" << success << endl;
   return success;
 }
 

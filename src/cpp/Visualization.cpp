@@ -10,8 +10,11 @@ Figure::Figure(string _title, SimData &simData) {
   simDataPtr = &simData;
   options = simDataPtr->options;
 
+  cout << "fig.CC" << endl;
   createCanvas();
+  cout << "fig.SCS" << endl;
   setCanvasStyle();
+  cout << "fig out" << endl;
 }
 
 Figure::~Figure() {
@@ -19,9 +22,15 @@ Figure::~Figure() {
 }
 
 void Figure::createCanvas() {
+  char str[64];
   width = options.plot_width;
   height = (int) round(width / options.plot_aspect);
-  canvas = new TCanvas(title.data(), title.data(), width, height);
+  cout << "title = " << title.data() << endl;
+  cout << "width = " << width << endl;
+  cout << "height = " << height << endl;
+  strcpy(str, title.data());
+  canvas = new TCanvas(str, str, width, height);
+  cout << "canvas created" << endl;
 }
 
 void Figure::setCanvasStyle() {
@@ -31,26 +40,44 @@ void Figure::setCanvasStyle() {
 
 // TODO: Save relative to image directory
 void Figure::save(char* filename) {
+  cout << "saving canvas " << canvas << " @ " << filename << endl;
   canvas->SaveAs(filename);
+  cout << "saved." << endl;
 }
 
 DropletFigure::DropletFigure(string _title, Droplet &droplet) : Figure(_title, *droplet.simDataPtr){
+  cout << "..a" << endl;
   dropletPtr = &droplet;
+  cout << "..b" << endl;
   hDroplet = dropletPtr->hDroplet;
+  cout << "..c" << endl;
   gCirclePoints = dropletPtr->bulk.gCirclePoints;
+  cout << "..d" << endl;
   circlePtr = &dropletPtr->bulk.circle;
+  cout << "..e" << endl;
 
+  cout << "..f" << endl;
   xlo = 0;
+  cout << "..g" << endl;
   xhi = options.plot_rmax;
+  cout << "..h" << endl;
   ylo = 0;
+  cout << "..i" << endl;
   yhi = options.plot_zmax;
+  cout << "..j" << endl;
 
+  cout << "..k" << endl;
   createLines();
+  cout << "..l" << endl;
+  createCircle();
+  cout << "..m" << endl;
   createLegend();
+  cout << "..n" << endl;
 }
 
 DropletFigure::~DropletFigure() {
   deleteLines();
+  deleteCircle();
   deleteLegend();
 }
 
@@ -61,6 +88,10 @@ void DropletFigure::createLines() {
   heightLine = new TLine(xlo,ylo,xlo,yhi); //Droplet height
   monoHiLine = new TLine(xlo,ylo,xlo,yhi); //top of monolayer
   monoLoLine = new TLine(xlo,ylo,xlo,yhi); //bottom of monolayer
+}
+
+void DropletFigure::createCircle() {
+  eCircle = new TEllipse();
 }
 
 void DropletFigure::createLegend() {
@@ -78,6 +109,10 @@ void DropletFigure::deleteLines() {
   delete heightLine;
   delete monoHiLine;
   delete monoLoLine;
+}
+
+void DropletFigure::deleteCircle() {
+  delete eCircle;
 }
 
 void DropletFigure::deleteLegend() {
@@ -115,6 +150,15 @@ void DropletFigure::setHistStyle() {
   hDroplet->SetMaximum(colzMax);
 }
 
+void DropletFigure::setCircleStyle() {
+  eCircle->SetLineWidth(2);
+  eCircle->SetFillStyle(0);
+}
+
+void DropletFigure::setGraphStyle() {
+  gCirclePoints->SetMarkerStyle(20);
+}
+
 void DropletFigure::setLegendStyle() {
   //Text to show data
   textBox->SetX1NDC(.65);
@@ -127,8 +171,10 @@ void DropletFigure::setLegendStyle() {
 }
 
 void DropletFigure::setStyle() {
-  setLineStyle();
   setHistStyle();
+  setLineStyle();
+  setCircleStyle();
+  setGraphStyle();
   setLegendStyle();
 }
 
@@ -177,8 +223,8 @@ void DropletFigure::drawHist() {
 
 void DropletFigure::drawLines() {
   // Bulk circle
-  circleEllipse = circlePtr->Draw();
   // Contact angle tangent
+  // TODO: This is weird
   tangentLine = circlePtr->DrawTangentLine();
   // Droplet height
   heightLine->SetY1(dropletHeight);
@@ -201,14 +247,18 @@ void DropletFigure::drawLines() {
   monoLoLine->SetY1(monoLimits[0]);
   monoLoLine->SetY2(monoLimits[0]);
   monoLoLine->Draw("same");
+}
 
-  //Draw circle points graph
-  gCirclePoints->SetMarkerStyle(20);
+void DropletFigure::drawCircle() {
+  eCircle->SetR1(circlePtr->getRadius());
+  eCircle->SetR2(circlePtr->getRadius());
+  eCircle->SetX1(circlePtr->getXCenter());
+  eCircle->SetY1(circlePtr->getYCenter());
+  eCircle->Draw("same");
+}
+
+void DropletFigure::drawGraph() {
   gCirclePoints->Draw("same P");
-  // Draw circle through graph
-  circleEllipse->Draw("same");
-  circleEllipse->SetLineWidth(2);
-  circleEllipse->SetFillStyle(0);
 }
 
 void DropletFigure::drawLegend() {
@@ -217,31 +267,54 @@ void DropletFigure::drawLegend() {
 }
 
 void DropletFigure::draw() {
+  cout << "Draw DF" << endl;
   setValues();
+  cout << "1" << endl;
   canvas->cd();
+  cout << "2" << endl;
   setStyle();
+  cout << "3" << endl;
   drawHist();
+  cout << "4" << endl;
   drawLines();
+  cout << "5" << endl;
+  drawCircle();
+  cout << "6" << endl;
+  drawGraph();
+  cout << "7" << endl;
   drawLegend();
+  cout << "8" << endl;
+  cout << "Update canvas @ " << canvas << endl;
   canvas->Update();
+  cout << "9" << endl;
 }
 
 DensFigure::DensFigure(string _title, Droplet &droplet, Substrate &substrate) : Figure(_title, *droplet.simDataPtr) {
+  cout << ".a" << endl;
   dropletPtr = &droplet;
+  cout << ".b" << endl;
   substratePtr = &substrate;
+  cout << ".c" << endl;
 
   hLiquidDens = dropletPtr->hLiquidDens;
+  cout << ".d" << endl;
   hSubstrateDens = substratePtr->hSubstrateDens;
+  cout << ".e" << endl;
 
   // Set bounds
   xlo = simDataPtr->simBounds.zlo;
+  cout << ".f" << endl;
   xhi = simDataPtr->simBounds.zhi;
+  cout << ".g" << endl;
   ylo = options.dens_min;
+  cout << ".h" << endl;
   yhi = options.dens_max;
   cout << "--- yhi = " << yhi << "---" << endl;
 
   createLines();
+  cout << ".i" << endl;
   createLegend();
+  cout << ".j" << endl;
 }
 
 DensFigure::~DensFigure() {
@@ -255,7 +328,9 @@ void DensFigure::createLines() {
 }
 
 void DensFigure::createLegend() {
+  cout << "leg before = " << legend << endl;
   legend = new TLegend(.75,.75,.85,.85);
+  cout << "leg after = " << legend << endl;
 }
 
 void DensFigure::deleteLines() {
@@ -328,17 +403,30 @@ void DensFigure::drawLegend() {
 }
 
 void DensFigure::draw() {
+  cout << "Draw DENS" << endl;
   setValues();
+  cout << "a" << endl;
   canvas->cd();
+  cout << "b" << endl;
   setStyle();
-  drawHists();
-  drawLines();
-  drawLegend();
+  cout << "c" << endl;
+  // drawHists();
+  cout << "d" << endl;
+  // drawLines();
+  cout << "e" << endl;
+  // drawLegend();
+  cout << "f" << endl;
+  cout << "updating canvas @ " << canvas << endl;
   canvas->Update();
+  cout << "g" << endl;
 }
 
 TanhFigure::TanhFigure(string _title, TanhFit &tanhFit) : Figure(_title, *tanhFit.simDataPtr) {
+  cout << "THF constructor in" << endl;
+
+  cout << "tanhFit = " << tanhFitPtr << endl;
   tanhFitPtr = &tanhFit;
+  cout << "after tanhFit = " << tanhFitPtr << endl;
 
   // x = z
   xlo = simDataPtr->simBounds.zlo;
@@ -347,10 +435,15 @@ TanhFigure::TanhFigure(string _title, TanhFit &tanhFit) : Figure(_title, *tanhFi
   ylo = simDataPtr->options.dens_max;
   yhi = simDataPtr->options.dens_min;
 
+  cout << "1." << endl;
   createLines();
+  cout << "2." << endl;
   // createGraph();
+  //cout << "1." << endl;
   createLegend();
+  cout << "3." << endl;
   addLegendEntries();
+  cout << "4." << endl;
 }
 
 TanhFigure::~TanhFigure() {

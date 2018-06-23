@@ -69,6 +69,10 @@ void Substrate::convertUnits() {
   hSubstrateDens->Scale(1.0/dv);
   // Convert units from amu/AA^3 to g/cc
   hSubstrateDens->Scale(NANO_DENS_TO_MACRO);
+  // Reset error created by scaling
+  for(int i=1; i<=hSubstrateDens->GetNbinsX(); i++) {
+    hSubstrateDens->SetBinError(i, 0.0);
+  }
 
   cout << "xhi = " << simDataPtr->simBounds.xhi << endl;
   cout << "xlo = " << simDataPtr->simBounds.xlo << endl;

@@ -25,12 +25,12 @@ using namespace std;
 
 class Figure {
  protected:
-  TCanvas* canvas;
-  TLegend* legend;
+  TCanvas* canvas = NULL;
+  TLegend* legend = NULL;
   string title;
   int width;
   int height;
-  SimData* simDataPtr;
+  SimData* simDataPtr = NULL;
   Options options;
   double xlo, xhi;
   double ylo, yhi;
@@ -47,25 +47,25 @@ class Figure {
 };
 
 class DropletFigure : public Figure {
-  Droplet* dropletPtr;
+  Droplet* dropletPtr = NULL;
 
-  TH2D* hDroplet;
-  TEllipse* circleEllipse;
-  TGraph* gCirclePoints;
-  CircleFit* circlePtr;
+  TH2D* hDroplet = NULL;
+  TEllipse* eCircle = NULL;
+  TGraph* gCirclePoints = NULL;
+  CircleFit* circlePtr = NULL;
 
-  TLine *tangentLine;
-  TLine* bulkEdgeLine;
-  TLine* monoEdgeLine;
-  TLine* heightLine;
-  TLine* monoHiLine;
-  TLine* monoLoLine;
+  TLine* tangentLine = NULL;
+  TLine* bulkEdgeLine = NULL;
+  TLine* monoEdgeLine = NULL;
+  TLine* heightLine = NULL;
+  TLine* monoHiLine = NULL;
+  TLine* monoLoLine = NULL;
 
-  TPaveText* textBox;
-  TText* cAText;
-  TText* dHText;
-  TText* bEText;
-  TText* mEText;
+  TPaveText* textBox = NULL;
+  TText* cAText = NULL;
+  TText* dHText = NULL;
+  TText* bEText = NULL;
+  TText* mEText = NULL;
 
   double bulkEdge;
   double monoEdge;
@@ -78,12 +78,17 @@ class DropletFigure : public Figure {
   ~DropletFigure();
 
   void createLines();
+  void createCircle();
   void createLegend();
+
   void deleteLines();
+  void deleteCircle();
   void deleteLegend();
 
   void setLineStyle();
   void setHistStyle();
+  void setCircleStyle();
+  void setGraphStyle();
   void setLegendStyle();
   void setStyle();
 
@@ -94,6 +99,8 @@ class DropletFigure : public Figure {
 
   void drawHist();
   void drawLines();
+  void drawCircle();
+  void drawGraph();
   void drawText();
   void drawLegend();
   void drawAnnotations();
@@ -102,14 +109,14 @@ class DropletFigure : public Figure {
 
 
 class DensFigure : public Figure {
-  TLine* monoHiLineDens;
-  TLine* monoLoLineDens;
-  TH1D* hLiquidDens;
-  TH1D* hSubstrateDens;
+  TLine* monoHiLineDens = NULL;
+  TLine* monoLoLineDens = NULL;
+  TH1D* hLiquidDens = NULL;
+  TH1D* hSubstrateDens = NULL;
   double monoLimits[2];
 
-  Droplet* dropletPtr;
-  Substrate* substratePtr;
+  Droplet* dropletPtr = NULL;
+  Substrate* substratePtr = NULL;
 
  public:
   // TODO: Set title later
@@ -134,14 +141,14 @@ class DensFigure : public Figure {
 };
 
 class TanhFigure : public Figure {
-  TGraph* gPoints;
+  TGraph* gPoints = NULL;
 
-  TLine* ldLine;
-  TLine* halfLdLine;
-  TLine* x0Line;
+  TLine* ldLine = NULL;
+  TLine* halfLdLine = NULL;
+  TLine* x0Line = NULL;
 
-  TPaveText* tanhTextBox;
-  TText* posText;
+  TPaveText* tanhTextBox = NULL;
+  TText* posText = NULL;
 
   double ld;
   double w_guess;
@@ -163,7 +170,7 @@ class TanhFigure : public Figure {
     x0Line,
   };
 
-  TanhFit* tanhFitPtr;
+  TanhFit* tanhFitPtr = NULL;
 
  public:
   TanhFigure(string _string, TanhFit &tanhFit);
