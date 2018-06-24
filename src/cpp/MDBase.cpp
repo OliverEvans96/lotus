@@ -121,7 +121,7 @@ void Grid::allocateBins() {
 }
 
 void Grid::calculateBins() {
-  for(int i=0;i<=nv;i++) {
+  for(int i=0;i<nv;i++) {
     rVals[i]=sqrt(i*dv/(PI*dz));
     // pVals[i]=pow(((3*vVals[i])/(4*PI)),1.0/3);
   }
