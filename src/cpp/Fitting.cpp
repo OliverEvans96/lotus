@@ -82,7 +82,7 @@ void CircleFit::Define(char* givenName,vector<double> xCoords,vector<double> yCo
         {
             x[n+i]=-x[i];
             y[n+i]=y[i];
-            cout << "(" << x[i] << "," << y[i] << ")" << endl;
+            // cout << "(" << x[i] << "," << y[i] << ")" << endl;
         }
 
         //Double number of points
@@ -179,7 +179,7 @@ void CircleFit::Fit() {
 
     cout << "Points:" << endl;
      for(int i=0;i<x.size();i++)
-         cout << "("<< x[i] << "," << y[i] << ")" << endl;
+       // cout << "("<< x[i] << "," << y[i] << ")" << endl;
 
     //Initialize minimizer
     minimizer.SetMaxFunctionCalls((int)1e7);
@@ -599,11 +599,11 @@ void TanhFit::setContext(SimData &simData) {
   options = simDataPtr->options;
   if(options.verbose) {
     // W sets weights equal for all points
-    strcpy(fitOptions, " ");
+    strcpy(fitOptions, "W");
   }
   else {
     // Quiet - non-verbose TMinuit fitting output
-    strcpy(fitOptions, " Q");
+    strcpy(fitOptions, "WQ");
   }
   createFunction();
   setFitBounds();
@@ -654,7 +654,9 @@ void TanhFit::initialGuess(double _ld, double _w, double _x0) {
 }
 
 bool TanhFit::isEmpty() {
-  return (hTanh->GetEntries() == 0);
+  // TODO: GetEntries returns floats, doesn't seem to work as expected.
+  empty = (hTanh->GetEntries() == 0);
+  return empty;
 }
 
 //Fit TH1D to tanh function, solve for x where f(x)=0.5
@@ -665,27 +667,30 @@ void TanhFit::solve() {
 
   // Check whether histogram contains points
   if(!isEmpty()) {
-    cout << "fTanh @ " << fTanh << endl;
-    cout << "fName = '" << fTanh->GetName() << "'" << endl;
-    cout << "hTanh @ " << hTanh << endl;
-    cout << "hName = '" << hTanh->GetName() << "'" << endl;
-    cout << "fitOptions = '" << fitOptions << "'" << endl;
-    cout << hTanh->GetNbinsX() << " Points:" << endl;
-    for(int i=1; i<=hTanh->GetNbinsX(); i++) {
-      cout << i << ": (" << hTanh->GetBinCenter(i) << ", " << hTanh->GetBinContent(i) << "," << hTanh->GetBinError(i) << ")" << endl;
-    }
-    cout << hTanh->GetNbinsX() << " over." << endl;
-    cout << "Test eval: " << fTanh->Eval(1.0) << endl;
-    cout << "evaled." << endl;
-    // TODO: SIGSEV here. Not sure why. Everything is allocated.
-    // err = hTanh->Fit(fTanh, fitOptions);
-    err = hTanh->Fit("gaus", fitOptions);
+    cout << "not empty" << endl;
+    cout << "(" << hTanh->GetEntries() << " entries)" << endl;
+    // cout << "fTanh @ " << fTanh << endl;
+    // cout << "fName = '" << fTanh->GetName() << "'" << endl;
+    // cout << "hTanh @ " << hTanh << endl;
+    // cout << "hName = '" << hTanh->GetName() << "'" << endl;
+    // cout << "fitOptions = '" << fitOptions << "'" << endl;
+    // cout << hTanh->GetNbinsX() << " Points:" << endl;
+    // for(int i=1; i<=hTanh->GetNbinsX(); i++) {
+    //   cout << i << ": (" << hTanh->GetBinCenter(i) << ", " << hTanh->GetBinContent(i) << "," << hTanh->GetBinError(i) << ")" << endl;
+    // }
+    // cout << hTanh->GetNbinsX() << " over." << endl;
+    // cout << "Test eval: " << fTanh->Eval(1.0) << endl;
+    // cout << "evaled." << endl;
+    err = hTanh->Fit(fTanh, fitOptions);
     cout << "fitted." << endl;
     cout << "err = " << err << endl;
     ld = fTanh->GetParameter(0);
     w = fTanh->GetParameter(1);
     x0 = fTanh->GetParameter(2);
     cout << "success" << endl;
+  }
+  else {
+    cout << "empty." << endl;
   }
 }
 
@@ -696,20 +701,21 @@ bool TanhFit::good() {
   if(err != 0) success = false;
   // Disallow equality to insist that minimum is on interior
   // since bounds are mostly arbitrary
+  // TODO: Remove print statements
   if(ld <= fitBounds[0]) success = false;
-  else cout << "ld = " << ld << ">" << fitBounds[0] << endl;
+  // else cout << "ld = " << ld << ">" << fitBounds[0] << endl;
   if(ld >= fitBounds[1]) success = false;
-  else cout << "ld = " << ld << "<" << fitBounds[1] << endl;
+  // else cout << "ld = " << ld << "<" << fitBounds[1] << endl;
   if(w <= fitBounds[2]) success = false;
-  else cout << "w = " << ld << ">" << fitBounds[2] << endl;
+  // else cout << "w = " << ld << ">" << fitBounds[2] << endl;
   if(w >= fitBounds[3]) success = false;
-  else cout << "w = " << ld << "<" << fitBounds[3] << endl;
+  // else cout << "w = " << ld << "<" << fitBounds[3] << endl;
   if(x0 <= fitBounds[4]) success = false;
-  else cout << "x0 = " << ld << ">" << fitBounds[4] << endl;
+  // else cout << "x0 = " << ld << ">" << fitBounds[4] << endl;
   if(x0 >= fitBounds[5]) success = false;
-  else cout << "x0 = " << ld << "<" << fitBounds[5] << endl;
+  // else cout << "x0 = " << ld << "<" << fitBounds[5] << endl;
+  if(empty) success = false;
 
-  cout << "success?" << success << endl;
   return success;
 }
 

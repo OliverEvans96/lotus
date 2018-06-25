@@ -255,13 +255,15 @@ void CircularBulk::findBoundaryPoints() {
   gCirclePoints->Clear();
   pointNum = 0;
 
-  cout << "+++++++++++++++firstBulkBin+++++++++++++ = " << firstBulkBin << " @ " << &firstBulkBin << endl;
+  // cout << "+++++++++++++++firstBulkBin+++++++++++++ = " << firstBulkBin << " @ " << &firstBulkBin << endl;
 
   // Row fits (start at first row above monolayer)
   for(int j=firstBulkBin; j<=ny; j++) {
-    cout << "j = " << j << endl;
+    // cout << "j = " << j << endl;
     tanhFit.setHist(hDroplet->ProjectionX("px", j, j));
+    // cout << "solve" << endl;
     tanhFit.solve();
+    // cout << "verify" << endl;
     // Solve fails if droplet is not present in this row.
     if(tanhFit.good()) {
       x = tanhFit.getBoundary();
@@ -273,7 +275,6 @@ void CircularBulk::findBoundaryPoints() {
 
   // Column fits
   for(int i=1; i<=nx; i++) {
-    cout << "i = " << i << endl;
     tanhFit.setHist(hDroplet->ProjectionY("py", i, i));
     // Solve fails if droplet is not present in this row.
     tanhFit.solve();

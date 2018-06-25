@@ -125,6 +125,7 @@ class TanhFit {
   double x0;
 
   int err;
+  bool empty;
 
 public:
   TanhFit();

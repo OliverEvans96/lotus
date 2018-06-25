@@ -67,13 +67,13 @@ TEST_CASE("Readers", "[lotus]") {
   char filename[100];
 
   cout << "*A" << endl;
-  // DensFigure densFigure("testDensFig", droplet, substrate);
+  DensFigure densFigure("testDensFig", droplet, substrate);
   cout << "*B" << endl;
 
-  // DropletFigure dropletFigure("testHistFig", droplet);
+  DropletFigure dropletFigure("testHistFig", droplet);
   cout << "*C" << endl;
 
-  // TanhFigure tanhFigure("tanhFigure", droplet.monolayer.tanhFit);
+  TanhFigure tanhFigure("tanhFigure", droplet.monolayer.tanhFit);
   cout << "*D" << endl;
 
   // Time loop
@@ -90,8 +90,8 @@ TEST_CASE("Readers", "[lotus]") {
     cout << "----- FM-out -----" << endl;
 
     // TODO: Save image
-    // densFigure.draw();
-    // densFigure.save("dens.png");
+    densFigure.draw();
+    densFigure.save("dens.png");
 
     droplet.monolayer.fill(atoms);
     REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
@@ -145,29 +145,33 @@ TEST_CASE("Readers", "[lotus]") {
 
     droplet.monolayer.calculateRadius();
 
-    // tanhFigure.draw();
-    // tanhFigure.save("mono_tanh.png");
+    tanhFigure.draw();
+    tanhFigure.save("mono_tanh.png");
 
     REQUIRE(droplet.monolayer.radius > 0);
 
     droplet.dropletCalculations();
 
+    // TODO: Draw droplet figure
+    dropletFigure.draw();
+    dropletFigure.save("droplet.png");
+
+
     REQUIRE(droplet.bulk.gCirclePoints->GetN() > 0);
     REQUIRE(droplet.bulk.circle.GetNumPoints() > 0);
-
-    // TODO: Draw droplet figure
-    // dropletFigure.draw();
-    // dropletFigure.save("droplet.png");
 
     REQUIRE(droplet.bulk.circle.intersected);
     REQUIRE(droplet.bulk.height > 0);
     REQUIRE(droplet.bulk.radius > 0);
-    REQUIRE(droplet.bulk.contactAngle > 0);
+    REQUIRE(droplet.bulk.contactAngle >= -1);
+    REQUIRE(droplet.bulk.contactAngle <= 1);
     // TODO: Write frame quantities to file
     //       - rm, rb, ca, h, circle points
     // TODO: Add option to enable/disable circle fit
 
-    REQUIRE(file_exists("out.png"));
+    // TODO: Clean up print statements
+
+    // REQUIRE(file_exists("out.png"));
 
     // sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);
     // substrate.plotDensity(filename);

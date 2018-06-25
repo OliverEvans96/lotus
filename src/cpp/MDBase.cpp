@@ -117,11 +117,13 @@ void Grid::calculateVolumeLimits() {
 }
 
 void Grid::allocateBins() {
-  rVals = new double[nv];
+  // Includes both endpoints
+  // https://root.cern.ch/root/roottalk/roottalk10/1170.html
+  rVals = new double[nv+1];
 }
 
 void Grid::calculateBins() {
-  for(int i=0;i<nv;i++) {
+  for(int i=0;i<=nv;i++) {
     rVals[i]=sqrt(i*dv/(PI*dz));
     // pVals[i]=pow(((3*vVals[i])/(4*PI)),1.0/3);
   }
