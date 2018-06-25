@@ -361,8 +361,6 @@ double CircleFit::Height() {
     else
         height=h1;
 
-    cout << "HEIGHT = " << height << endl;
-
     return height;
 }
 
@@ -594,7 +592,6 @@ TanhFit::~TanhFit() {
 // }
 
 void TanhFit::setContext(SimData &simData) {
-  cout << "TanhFit::setContext in" << endl;
   simDataPtr = &simData;
   options = simDataPtr->options;
   if(options.verbose) {
@@ -608,7 +605,6 @@ void TanhFit::setContext(SimData &simData) {
   createFunction();
   setFitBounds();
   initialGuess();
-  cout << "TanhFit::setContext out" << endl;
 }
 
 void TanhFit::setHist(TH1D* _hTanh) {
@@ -621,9 +617,7 @@ void TanhFit::createFunction() {
   xmin = 0;
   xmax = 300;
   // TODO: Get rid of "4*"
-  cout << "allocating fTanh" << endl;
   fTanh = new TF1("tanhFit","[0]/2*(1-tanh(4*(x-[2])/([1])))",xmin, xmax);
-  cout << "allocated fTanh @ " << fTanh << endl;
 }
 
 void TanhFit::setFitBounds() {
@@ -667,30 +661,12 @@ void TanhFit::solve() {
 
   // Check whether histogram contains points
   if(!isEmpty()) {
-    cout << "not empty" << endl;
-    cout << "(" << hTanh->GetEntries() << " entries)" << endl;
-    // cout << "fTanh @ " << fTanh << endl;
-    // cout << "fName = '" << fTanh->GetName() << "'" << endl;
-    // cout << "hTanh @ " << hTanh << endl;
-    // cout << "hName = '" << hTanh->GetName() << "'" << endl;
-    // cout << "fitOptions = '" << fitOptions << "'" << endl;
-    // cout << hTanh->GetNbinsX() << " Points:" << endl;
-    // for(int i=1; i<=hTanh->GetNbinsX(); i++) {
-    //   cout << i << ": (" << hTanh->GetBinCenter(i) << ", " << hTanh->GetBinContent(i) << "," << hTanh->GetBinError(i) << ")" << endl;
-    // }
-    // cout << hTanh->GetNbinsX() << " over." << endl;
-    // cout << "Test eval: " << fTanh->Eval(1.0) << endl;
-    // cout << "evaled." << endl;
     err = hTanh->Fit(fTanh, fitOptions);
-    cout << "fitted." << endl;
-    cout << "err = " << err << endl;
     ld = fTanh->GetParameter(0);
     w = fTanh->GetParameter(1);
     x0 = fTanh->GetParameter(2);
-    cout << "success" << endl;
   }
   else {
-    cout << "empty." << endl;
   }
 }
 
@@ -703,17 +679,11 @@ bool TanhFit::good() {
   // since bounds are mostly arbitrary
   // TODO: Remove print statements
   if(ld <= fitBounds[0]) success = false;
-  // else cout << "ld = " << ld << ">" << fitBounds[0] << endl;
   if(ld >= fitBounds[1]) success = false;
-  // else cout << "ld = " << ld << "<" << fitBounds[1] << endl;
   if(w <= fitBounds[2]) success = false;
-  // else cout << "w = " << ld << ">" << fitBounds[2] << endl;
   if(w >= fitBounds[3]) success = false;
-  // else cout << "w = " << ld << "<" << fitBounds[3] << endl;
   if(x0 <= fitBounds[4]) success = false;
-  // else cout << "x0 = " << ld << ">" << fitBounds[4] << endl;
   if(x0 >= fitBounds[5]) success = false;
-  // else cout << "x0 = " << ld << "<" << fitBounds[5] << endl;
   if(empty) success = false;
 
   return success;

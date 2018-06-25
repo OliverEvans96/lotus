@@ -12,7 +12,6 @@ Monolayer::~Monolayer() {
 }
 
 void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr) {
-  cout << "Monolayer::setContext in" << endl;
   options = _options;
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
@@ -22,7 +21,6 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
   // TODO: This is probably a good place for this,
   // but it doesn't work now since hMono is created later.
   // tanhFit.setHist(hMono);
-  cout << "Monolayer::setContext out" << endl;
 }
 
 void Monolayer::calculateRadius() {
@@ -47,19 +45,15 @@ void Monolayer::fillOne(Atom &atom) {
   // only the necessary "radius" (y or r).
   if(options.geometry == "spherical") {
     hMono->Fill(atom.r, mass);
-    //cout << "fill mono @ " << atom.r << endl;
   }
   else if(options.geometry == "cylindrical") {
     hMono->Fill(atom.y, mass);
-    //cout << "fill mono @ " << atom.r << endl;
   }
-  // cout << "Filling type " << atom.type << " (mono): " << mass << " @ " << atom.r << endl;
 }
 
 void Monolayer::fill(AtomArray &atoms) {
   Atom atom;
   reset();
-  cout << "Filling w/ zlim: " << zlim[0] << " " << zlim[1] << endl;
   // Add to monolayer
   for(int stepInFrame=0; stepInFrame<simDataPtr->framePtr->stepsThisFrame; stepInFrame++) {
     for(int atomNum=0; atomNum<simDataPtr->numAtoms; atomNum++) {
@@ -232,12 +226,10 @@ CircularBulk::~CircularBulk() {
 }
 
 void CircularBulk::setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr) {
-  cout << "CircularBulk::setContext in" << endl;
   options = _options;
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
   tanhFit.setContext(*simDataPtr);
-  cout << "CircularBulk::setContext out" << endl;
 }
 
 void CircularBulk::setHist(TH2D *_hDroplet) {
@@ -268,7 +260,6 @@ void CircularBulk::findBoundaryPoints() {
     if(tanhFit.good()) {
       x = tanhFit.getBoundary();
       y = hDroplet->GetYaxis()->GetBinCenter(j);
-      cout << "Found @ (" << x << "," << y << ")" << endl;
       gCirclePoints->SetPoint(pointNum++, x, y);
     }
   }
@@ -282,7 +273,6 @@ void CircularBulk::findBoundaryPoints() {
       x = hDroplet->GetXaxis()->GetBinCenter(i);
       y = tanhFit.getBoundary();
       gCirclePoints->SetPoint(pointNum++, x, y);
-      cout << "Found @ (" << x << "," << y << ")" << endl;
     }
   }
 }
@@ -510,14 +500,12 @@ Droplet::~Droplet() {
 }
 
 void Droplet::setContext(AtomArray &atomArray) {
-  cout << "Droplet::setContext in" << endl;
   atomArrayPtr = &atomArray;
   simDataPtr = atomArrayPtr->simDataPtr;
   options = simDataPtr->options;
 
   bulk.setContext(options, simDataPtr, atomArrayPtr);
   monolayer.setContext(options, simDataPtr, atomArrayPtr);
-  cout << "Droplet::setContext out" << endl;
 }
 
 void Droplet::fillOne(Atom &atom) {
@@ -543,7 +531,6 @@ void Droplet::fillOne(Atom &atom) {
 void Droplet::fill(AtomArray &atoms) {
   Atom atom;
   reset();
-  cout << "Filling w.r.t. z=" << simDataPtr->substrateTop << endl;
   for(int stepInFrame=0; stepInFrame<simDataPtr->framePtr->stepsThisFrame; stepInFrame++) {
     for(int atomNum=0; atomNum<simDataPtr->numAtoms; atomNum++) {
       atoms.getAtom(atomNum, stepInFrame, atom);
@@ -564,10 +551,7 @@ void Droplet::findMonolayer() {
   // Determine first bulk row to use for row fits
   // TODO: replace with member variable?
   monoTop = monolayer.zlim[1]-simDataPtr->substrateTop;
-  cout << "monoTop1 = " << monoTop << endl;
   bulk.firstBulkBin = hDroplet->GetYaxis()->FindBin(monoTop)+1;
-  cout << "firstBulkBin = " << bulk.firstBulkBin << " @ " << &bulk.firstBulkBin << endl;
-
   cout << "monolayer.zlim: " << monolayer.zlim[0] << " " << monolayer.zlim[1] << endl;
 }
 
@@ -629,29 +613,17 @@ void Droplet::createHists() {
     cout << endl;
   }
 
-  cout << "A" << endl;
-  cout << "grid.nr = " << grid.nr << endl;
-  cout << "grid.rVals = " << grid.rVals << endl;
-  cout << "grid.nz = " << grid.nz << endl;
-  cout << "grid.zlo = " << grid.zlo << endl;
-  cout << "grid.zhi = " << grid.zhi << endl;
   hDroplet = new TH2D("hDroplet","hDroplet",grid.nr,grid.rVals,grid.nz,grid.zlo,grid.zhi);
-  cout << "A.1" << endl;
   hDroplet->SetStats(0);
   hDroplet->SetMinimum(0);
   hDroplet->SetMaximum(2.0);
-  cout << "A.2" << endl;
   bulk.setHist(hDroplet);
-  cout << "B" << endl;
 
   // TODO: This is probably not the way to do this.
   // Maybe pass the grid object instead.
   monolayer.hMono = new TH1D("hMono", "hMono", grid.nr, grid.rVals);
   // TODO: This seems like the wrong place to do this
-  cout << "in Droplet::createHists" << endl;
-  cout << "monolayer.tanhFit.setHist(" << monolayer.hMono << ")" << endl;
   monolayer.tanhFit.setHist(monolayer.hMono);
-  cout << "monolayer.tanhFit.hTanh = " << monolayer.tanhFit.hTanh << endl;
 
   // TODO: This is pretty messy.
   // Want to use actual coords for this one
@@ -662,7 +634,6 @@ void Droplet::createHists() {
   // If dz doesn't evenly divide zhi-zlo, shift zhi up slightly.
   zhi = zlo + nz*dz;
   hLiquidDens = new TH1D("hLiquidDens", "hLiquidDens", nz, zlo, zhi);
-  cout << "C" << endl;
 }
 
 double Droplet::getMass() {
@@ -693,13 +664,10 @@ void Droplet::dropletCalculations() {
   double chi2;
   double monoTop;
 
-  cout << "-+-+-+ dropletCalculations +-+-+-" << endl;
   // Get circle
   bulk.findBoundaryPoints();
-  cout << "found BPs: " << bulk.gCirclePoints->GetN() << endl;
   // bulk.findBoundaryPoints(hDroplet, bulk.gCirclePoints, "a", monolayer.zlim, monolayer.hMono, rBulkMax, monolayer.radius, bulk.radius, /*unnecessary*/simDataPtr->framePtr->frameStep, /*legend*/(TLegend*)NULL, (TLine**)/*tanhLines*/NULL, (TText**)/*tanhTexts*/NULL, (TPaveText*)/*tanhTextBox*/NULL);
   chi2 = bulk.fitCircle(bulk.gCirclePoints, bulk.circle, rBulkMax, simDataPtr->framePtr->time);
-  cout << "chi2 = " << chi2 << endl;
 
   // Bulk radius is the intersection of circle with top of monolayer
   // (relative to top of substrate)

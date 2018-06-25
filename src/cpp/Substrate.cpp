@@ -52,19 +52,14 @@ void Substrate::reset() {
 void Substrate::convertUnits() {
   double dx, dy, dv;
 
-  cout << "~*~*~ Convert Units ~*~*~" << endl;
-  cout << "Pre-convert max: = " << hSubstrateDens->GetMaximum() << endl;
-
   // Divide by number of steps per frame
   hSubstrateDens->Scale(1.0/simDataPtr->stepsPerFrame);
-  cout << "stepsPerFrame = " << simDataPtr->stepsPerFrame << endl;
   // Divide by volume to get density
   dx = simDataPtr->simBounds.xhi - simDataPtr->simBounds.xlo;
   dy = simDataPtr->simBounds.yhi - simDataPtr->simBounds.ylo;
   // dz already defined as member variable
   // dv = dx * dy * dz
-  // TODO: Remove or change
-  cout << "rDensCyl = " << rDensCyl << endl;
+  // TODO: Remove or change (use whole xy plane)
   dv = PI * dz * rDensCyl*rDensCyl;
   hSubstrateDens->Scale(1.0/dv);
   // Convert units from amu/AA^3 to g/cc
@@ -73,18 +68,6 @@ void Substrate::convertUnits() {
   for(int i=1; i<=hSubstrateDens->GetNbinsX(); i++) {
     hSubstrateDens->SetBinError(i, 0.0);
   }
-
-  cout << "xhi = " << simDataPtr->simBounds.xhi << endl;
-  cout << "xlo = " << simDataPtr->simBounds.xlo << endl;
-  cout << "dx = " << dx << endl;
-  cout << "yhi = " << simDataPtr->simBounds.yhi << endl;
-  cout << "ylo = " << simDataPtr->simBounds.ylo << endl;
-  cout << "dy = " << dy << endl;
-  cout << "zhi = " << simDataPtr->simBounds.zhi << endl;
-  cout << "zlo = " << simDataPtr->simBounds.zlo << endl;
-  cout << "dz = " << dz << endl;
-  cout << "dv = " << dv << endl;
-  cout << "SUBSTRATE MAX = " << hSubstrateDens->GetMaximum() << endl;
 }
 
 void Substrate::createHist() {
@@ -98,7 +81,6 @@ void Substrate::createHist() {
   zhi = zlo + nz*dz;
 
   hSubstrateDens = new TH1D("hSubstrateDens", "hSubstrateDens", nz, zlo, zhi);
-  cout << "dz_eff = " << hSubstrateDens->GetXaxis()->GetBinWidth(0) << endl;
 }
 
 void Substrate::findLimits() {

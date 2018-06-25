@@ -85,9 +85,7 @@ TEST_CASE("Readers", "[lotus]") {
     // REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 1e-3*DROPLET_MASS);
     // This is just mass in cylinder, not total
     // TODO: Fill monolayer
-    cout << "----- FM -----" << endl;
     droplet.findMonolayer();
-    cout << "----- FM-out -----" << endl;
 
     // TODO: Save image
     densFigure.draw();
@@ -96,52 +94,6 @@ TEST_CASE("Readers", "[lotus]") {
     droplet.monolayer.fill(atoms);
     REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
     REQUIRE(droplet.monolayer.zlim[1] - droplet.monolayer.zlim[0] > 0);
-    cout << "DATA?" << endl;
-    TH1D *h = droplet.monolayer.tanhFit.hTanh;
-    int n = h->GetNbinsX();
-    double *x = new double[n];
-    double *y = new double[n];
-    for(int i=1; i<h->GetNbinsX(); i++) {
-      cout << h->GetBinCenter(i) << " - " << h->GetBinContent(i) << endl;
-      x[i-1] = h->GetBinCenter(i);
-      y[i-1] = h->GetBinContent(i);
-    }
-
-    cout << "TEST FIT" << endl;
-    TGraph *g = new TGraph(n, x, y);
-
-    cout << "~A" << endl;
-    TH1D *h1 = new TH1D("test", "test", 10, 0, 50);
-    cout << "~B" << endl;
-    h1->Fill(1.0);
-    h1->Fill(12.0);
-    h1->Fill(13.0);
-    h1->Fill(29.0);
-    h1->Fill(36.0);
-    h1->Fill(16.0);
-    h1->Fill(27.0);
-    h1->Fill(54.0);
-    h1->Fill(18.0);
-    h1->Fill(32.0);
-    cout << "f1" << endl;
-
-    h1->Fit("gaus");
-    cout << "gh" << endl;
-
-    delete h1;
-
-    // cout << "-=A" << endl;
-    // g->Fit("gaus");
-    cout << "-=B" << endl;
-    g->Fit(droplet.monolayer.tanhFit.fTanh, "W");
-    // droplet.monolayer.tanhFit.hTanh->Fit(droplet.monolayer.tanhFit.fTanh, "W");
-
-    cout << "deallocate" << endl;
-    delete g;
-
-    delete [] x;
-    delete [] y;
-    cout << "END TEST" << endl;
 
     droplet.monolayer.calculateRadius();
 
