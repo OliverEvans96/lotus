@@ -66,6 +66,8 @@ class DropletFigure : public Figure {
   TText* dHText = NULL;
   TText* bEText = NULL;
   TText* mEText = NULL;
+  TText* mHText = NULL;
+  TText* mLText = NULL;
 
   double bulkEdge;
   double monoEdge;

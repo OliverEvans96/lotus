@@ -85,9 +85,9 @@ void DropletFigure::createLines() {
   //Bulk & Mono radius vertical lines
   bulkEdgeLine = new TLine(xlo,ylo,xlo,yhi); //Bulk edge
   monoEdgeLine = new TLine(xlo,ylo,xlo,yhi); //Mono edge
-  heightLine = new TLine(xlo,ylo,xlo,yhi); //Droplet height
-  monoHiLine = new TLine(xlo,ylo,xlo,yhi); //top of monolayer
-  monoLoLine = new TLine(xlo,ylo,xlo,yhi); //bottom of monolayer
+  heightLine = new TLine(xlo,ylo,xhi,ylo); //Droplet height
+  monoHiLine = new TLine(xlo,ylo,xhi,ylo); //top of monolayer
+  monoLoLine = new TLine(xlo,ylo,xhi,ylo); //bottom of monolayer
 }
 
 void DropletFigure::createCircle() {
@@ -97,10 +97,19 @@ void DropletFigure::createCircle() {
 void DropletFigure::createLegend() {
   legend = new TLegend(.65,.65,.85,.85);
   textBox = new TPaveText();
+
+  legend->AddEntry(bulkEdgeLine, "bulk radius", "l");
+  legend->AddEntry(monoEdgeLine, "mono radius", "l");
+  legend->AddEntry(monoHiLine, "mono top", "l");
+  legend->AddEntry(monoLoLine, "mono bottom", "l");
+  legend->AddEntry(heightLine, "height", "l");
+
   cAText = textBox->AddText("Contact angle");
   dHText = textBox->AddText("Droplet height");
   bEText = textBox->AddText("Bulk edge");
   mEText = textBox->AddText("Mono edge");
+  mHText = textBox->AddText("Mono top");
+  mLText = textBox->AddText("mLText");
 }
 
 void DropletFigure::deleteLines() {
@@ -132,7 +141,7 @@ void DropletFigure::setLineStyle() {
   monoEdgeLine->SetLineColor(kRed);
 
   heightLine->SetLineWidth(3);
-  heightLine->SetLineColor(kOrange+3);
+  heightLine->SetLineColor(kOrange+3); // Brown
 
   monoHiLine->SetLineWidth(3);
   monoHiLine->SetLineColor(kBlue);
@@ -183,10 +192,9 @@ void DropletFigure::setValues() {
   monoEdge = dropletPtr->monolayer.radius;
   dropletHeight = dropletPtr->bulk.height;
   contactAngle = dropletPtr->bulk.contactAngle;
-  cout << "setting ML0 = " << dropletPtr->monolayer.zlim[0] << endl;
-  monoLimits[0] = dropletPtr->monolayer.zlim[0];
-  cout << "setting ML1 = " << dropletPtr->monolayer.zlim[1] << endl;
-  monoLimits[1] = dropletPtr->monolayer.zlim[1];
+
+  monoLimits[0] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
+  monoLimits[1] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
 }
 
 void DropletFigure::setLegendText() {
@@ -203,8 +211,11 @@ void DropletFigure::setLegendText() {
   ss << "Bulk radius: " << bulkEdge;
   bEText->SetText(0,0,ss.str().data());
   ss.str("");
-  ss << "Mono radius: " << monoEdge;
-  mEText->SetText(0,0,ss.str().data());
+  ss << "Mono top: " << monoLimits[0];
+  mLText->SetText(0,0,ss.str().data());
+  ss.str("");
+  ss << "Mono bottom: " << monoLimits[1];
+  mHText->SetText(0,0,ss.str().data());
 }
 
 void DropletFigure::addLegendEntries() {
@@ -244,6 +255,12 @@ void DropletFigure::drawLines() {
   monoHiLine->SetY1(monoLimits[1]);
   monoHiLine->SetY2(monoLimits[1]);
   monoHiLine->Draw("same");
+  cout << "Drew monoHiLine @:" << endl;
+  cout << "(";
+  cout << monoHiLine->GetX1() << ", ";
+  cout << monoHiLine->GetY1() << ") -> (";
+  cout << monoHiLine->GetX2() << ", ";
+  cout << monoHiLine->GetY2() << ")" << endl;
   monoLoLine->SetY1(monoLimits[0]);
   monoLoLine->SetY2(monoLimits[0]);
   monoLoLine->Draw("same");
@@ -274,6 +291,8 @@ void DropletFigure::draw() {
   cout << "2" << endl;
   setStyle();
   cout << "3" << endl;
+  setLegendText();
+  cout << "3.5" << endl;
   drawHist();
   cout << "4" << endl;
   drawLines();
@@ -331,6 +350,11 @@ void DensFigure::createLegend() {
   cout << "leg before = " << legend << endl;
   legend = new TLegend(.75,.75,.85,.85);
   cout << "leg after = " << legend << endl;
+
+  legend->AddEntry(hLiquidDens,"Liquid");
+  legend->AddEntry(hSubstrateDens,"Substrate");
+  legend->AddEntry(monoLoLineDens,"Mono lower limit","l");
+  legend->AddEntry(monoHiLineDens,"Mono upper limit","l");
 }
 
 void DensFigure::deleteLines() {
@@ -373,8 +397,8 @@ void DensFigure::setStyle() {
 }
 
 void DensFigure::setValues() {
-  monoLimits[0] = dropletPtr->monolayer.zlim[0];
-  monoLimits[1] = dropletPtr->monolayer.zlim[0];
+  monoLimits[0] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
+  monoLimits[1] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
 }
 
 void DensFigure::drawHists() {
@@ -395,10 +419,6 @@ void DensFigure::drawLines() {
 }
 
 void DensFigure::drawLegend() {
-  legend->AddEntry(hLiquidDens,"Liquid");
-  legend->AddEntry(hSubstrateDens,"Substrate");
-  legend->AddEntry(monoLoLineDens,"Mono lower limit","l");
-  legend->AddEntry(monoHiLineDens,"Mono upper limit","l");
   legend->Draw("same");
 }
 
@@ -410,11 +430,11 @@ void DensFigure::draw() {
   cout << "b" << endl;
   setStyle();
   cout << "c" << endl;
-  // drawHists();
+  drawHists();
   cout << "d" << endl;
-  // drawLines();
+  drawLines();
   cout << "e" << endl;
-  // drawLegend();
+  drawLegend();
   cout << "f" << endl;
   cout << "updating canvas @ " << canvas << endl;
   canvas->Update();
