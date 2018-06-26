@@ -9,7 +9,7 @@
 
 // Read a YAML file into a map of string vectors.
 // Does not support nested YAML mappings.
-StrVecMap Options::parseYaml(char* configPath) {
+StrVecMap Options::parseYaml(const char* configPath) {
     FILE *configFile;
     yaml_parser_t parser;
     yaml_document_t document;
@@ -141,8 +141,8 @@ void Options::parseRequiredOption(string optionName, T &option) {
   }
 }
 
-void Options::readConfig(char* _configPath) {
-  configPath = _configPath;
+void Options::readConfig(const char* _configPath) {
+  strcpy(configPath, _configPath);
   yamlMap = parseYaml(configPath);
 
   parseRequiredOption("liquidTypes", liquidTypes);
@@ -235,7 +235,7 @@ void Options::printOptions() {
   printOption("expectedLiquidDensity", expectedLiquidDensity);
 }
 
-CommandLineParser::CommandLineParser(int argc, char* argv[]) {
+CommandLineParser::CommandLineParser(int argc, const char* argv[]) {
   parseArgs(argc, argv);
   options.readConfig(configPath);
   if(options.verbose) {
@@ -243,9 +243,9 @@ CommandLineParser::CommandLineParser(int argc, char* argv[]) {
   }
 }
 
-void CommandLineParser::parseArgs(int argc, char* argv[]) {
+void CommandLineParser::parseArgs(int argc, const char* argv[]) {
   if(argc == 2) {
-    configPath = argv[1];
+    strcpy(configPath, argv[1]);
   }
   else {
     cout << "One argument required: YAML config file." << endl;

@@ -5,7 +5,7 @@
 // Writers //
 /////////////
 
-FrameWriter::FrameWriter(char* filename, DumpfileReader &dumpfileReader, Droplet &droplet) {
+FrameWriter::FrameWriter(const char* filename, DumpfileReader &dumpfileReader, Droplet &droplet) {
   dumpfileReaderPtr = &dumpfileReader;
   dropletPtr = &droplet;
   simDataPtr = dumpfileReaderPtr->simDataPtr;
@@ -29,7 +29,7 @@ void FrameWriter::storeType(int *x) {
   typeArray.push_back('i');
 }
 
-void FrameWriter::stripTrailingSlash(char* strippedPath, char* path) {
+void FrameWriter::stripTrailingSlash(char* strippedPath, const char* path) {
   int len = strlen(path);
 
   strcpy(strippedPath, path);
@@ -39,14 +39,14 @@ void FrameWriter::stripTrailingSlash(char* strippedPath, char* path) {
   }
 }
 
-void FrameWriter::joinPath(char* path, char* prefix, char* suffix) {
+void FrameWriter::joinPath(char* path, const char* prefix, const char* suffix) {
   char strippedPath[256];
   // Remove trailing slash from prefix if present
   stripTrailingSlash(strippedPath, prefix);
   sprintf(path, "%s/%s", strippedPath, suffix);
 }
 
-void FrameWriter::setOutputDir(char* path) {
+void FrameWriter::setOutputDir(const char* path) {
   strcpy(outputDir, path);
   if(options.verbose) {
     cout << "Set output dir '" << outputDir << "'" << endl;
@@ -63,7 +63,7 @@ void FrameWriter::setOutputQuantities() {
   addQuantity("dropletHeight", &dropletPtr->bulk.height);
 }
 
-void FrameWriter::openFile(char* _path) {
+void FrameWriter::openFile(const char* _path) {
   joinPath(path, outputDir, _path);
   file = fopen(path, "w");
   if(options.verbose) {

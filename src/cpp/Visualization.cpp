@@ -5,7 +5,7 @@
 // Visualization //
 ///////////////////
 
-Figure::Figure(string _title, SimData &simData) {
+Figure::Figure(const string _title, SimData &simData) {
   title = _title;
   simDataPtr = &simData;
   options = simDataPtr->options;
@@ -36,12 +36,12 @@ void Figure::setCanvasStyle() {
 }
 
 // TODO: Save relative to image directory
-void Figure::save(char* filename) {
+void Figure::save(const char* filename) {
   canvas->SaveAs(filename);
   cout << "saved canvas " << canvas << " @ " << filename << endl;
 }
 
-DropletFigure::DropletFigure(string _title, Droplet &droplet) : Figure(_title, *droplet.simDataPtr){
+DropletFigure::DropletFigure(const string _title, Droplet &droplet) : Figure(_title, *droplet.simDataPtr){
   dropletPtr = &droplet;
   hDroplet = dropletPtr->hDroplet;
   gCirclePoints = dropletPtr->bulk.gCirclePoints;
@@ -283,7 +283,7 @@ void DropletFigure::draw() {
   canvas->Update();
 }
 
-DensFigure::DensFigure(string _title, Droplet &droplet, Substrate &substrate) : Figure(_title, *droplet.simDataPtr) {
+DensFigure::DensFigure(const string _title, Droplet &droplet, Substrate &substrate) : Figure(_title, *droplet.simDataPtr) {
   dropletPtr = &droplet;
   substratePtr = &substrate;
 
@@ -405,7 +405,7 @@ void DensFigure::draw() {
   canvas->Update();
 }
 
-TanhFigure::TanhFigure(string _title, TanhFit &tanhFit) : Figure(_title, *tanhFit.simDataPtr) {
+TanhFigure::TanhFigure(const string _title, TanhFit &tanhFit) : Figure(_title, *tanhFit.simDataPtr) {
   tanhFitPtr = &tanhFit;
 
   // x = z

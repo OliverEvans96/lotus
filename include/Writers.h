@@ -37,16 +37,16 @@ class FrameWriter
   void storeType(double *x);
   void storeType(int *x);
 
-  void stripTrailingSlash(char* strippedPath, char* path);
-  void joinPath(char* path, char* prefix, char* suffix);
+  void stripTrailingSlash(char* strippedPath, const char* path);
+  void joinPath(char* path, const char* prefix, const char* suffix);
 
  public:
-  FrameWriter(char* filename, DumpfileReader &dumpfileReader, Droplet &droplet);
+  FrameWriter(const char* filename, DumpfileReader &dumpfileReader, Droplet &droplet);
   ~FrameWriter();
 
-  void setOutputDir(char* path);
+  void setOutputDir(const char* path);
   void setOutputQuantities();
-  void openFile(char* filename);
+  void openFile(const char* filename);
   void closeFile();
 
   void getDefaultFmt(char* final_fmt, double* dataPtr);

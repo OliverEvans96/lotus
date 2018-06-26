@@ -19,10 +19,10 @@ const double DROPLET_MASS = 6563.56701333;
 
 TEST_CASE("Readers", "[lotus]") {
   int argc = 2;
-  char* argv[2] = {"test", "../test/data/test_config.yaml"};
+  const char* argv[2] = {"test", "../test/data/test_config.yaml"};
   CommandLineParser commandLineParser(argc, argv);
   Options options = commandLineParser.options;
-  REQUIRE(options.configPath == argv[1]);
+  REQUIRE(strcmp(options.configPath, argv[1]) == 0);
   REQUIRE(options.liquidTypes[0] == 4);
   REQUIRE(options.liquidTypes[1] == 5);
   REQUIRE(options.solidTypes[0] == 1);

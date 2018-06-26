@@ -84,7 +84,7 @@ private:
     double licLength;
     int nIter;
     double histEqExp;
-    char* cmapFile;
+    char cmapFile[256];
 	int nFrames;
 
     int DISCRETE_FILTER_SIZE;

@@ -36,14 +36,14 @@ class Figure {
   double ylo, yhi;
 
  public:
-  Figure(string _title, SimData &simData);
+  Figure(const string _title, SimData &simData);
   ~Figure();
 
   void createCanvas();
   void setCanvasStyle();
   void saveImage();
   void saveROOT();
-  void save(char* filename);
+  void save(const char* filename);
 };
 
 class DropletFigure : public Figure {
@@ -76,7 +76,7 @@ class DropletFigure : public Figure {
   double monoLimits[2];
 
  public:
-  DropletFigure(string _title, Droplet &droplet);
+  DropletFigure(const string _title, Droplet &droplet);
   ~DropletFigure();
 
   void createLines();
@@ -124,7 +124,7 @@ class DensFigure : public Figure {
 
  public:
   // TODO: Set title later
-  DensFigure(string _title, Droplet &droplet, Substrate &substrate);
+  DensFigure(const string _title, Droplet &droplet, Substrate &substrate);
   ~DensFigure();
 
   void setTitle();
@@ -183,7 +183,7 @@ class TanhFigure : public Figure {
   TanhFit* tanhFitPtr = NULL;
 
  public:
-  TanhFigure(string _title, TanhFit &tanhFit);
+  TanhFigure(const string _title, TanhFit &tanhFit);
   ~TanhFigure();
 
   void createLines();

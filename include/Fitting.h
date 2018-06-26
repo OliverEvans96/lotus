@@ -136,7 +136,7 @@ public:
   void createFunction();
   void setHist(TH1D* _hTanh);
   void setFitBounds();
-  void setFitType(char* _rowOrCol);
+  void setFitType(const char* _rowOrCol);
   void setFitNum(int num);
   void initialGuess(double _ld=2.0, double _w=20.0, double _x0=50.0);
   bool isEmpty();

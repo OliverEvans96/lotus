@@ -46,7 +46,7 @@ FieldViz::FieldViz()
     nIter = 2;
     histEqExp = 0.85;
 
-    cmapFile = "phase_cmap.txt";
+    strcpy(cmapFile, "phase_cmap.txt");
 
     DISCRETE_FILTER_SIZE = 2048;
     LINE_SQUARE_CLIP_MAX = 100000.0;
@@ -62,7 +62,7 @@ FieldViz::FieldViz(int n_xPix, int n_yPix)
     nIter = 2;
     histEqExp = 0.85;
 
-    cmapFile = "phase_cmap.txt";
+    strcpy(cmapFile, "phase_cmap.txt");
 
     DISCRETE_FILTER_SIZE = 2048;
     LINE_SQUARE_CLIP_MAX = 100000.0;
@@ -81,7 +81,7 @@ FieldViz::FieldViz(int n_xPix, int n_yPix, double xmin, double xmax, double ymin
     nIter = 2;
     histEqExp = 0.85;
 
-    cmapFile = "phase_cmap.txt";
+    strcpy(cmapFile, "phase_cmap.txt");
 
     DISCRETE_FILTER_SIZE = 2048;
     LINE_SQUARE_CLIP_MAX = 100000.0;
@@ -125,7 +125,7 @@ FieldViz::~FieldViz()
 
 void FieldViz::SetColormap(char* _cmapFile)
 {
-    cmapFile = _cmapFile;
+      strcpy(cmapFile, _cmapFile);
 }
 
 void FieldViz::SetNumPixels(int _n_xPix, int _n_yPix)
@@ -286,7 +286,7 @@ void FieldViz::SetBounds(double _xMin, double _xMax, double _yMin, double _yMax)
 // Load colormap from file
 void FieldViz::LoadColormap(char* _cmapFile)
 {
-    cmapFile = _cmapFile;
+    strcpy(cmapFile, _cmapFile);
     ifstream cmapStream(cmapFile);
     int index;
 

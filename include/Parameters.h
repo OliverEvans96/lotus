@@ -15,7 +15,7 @@ typedef map<string, vector<string> > StrVecMap;
 struct Options
 {
   StrVecMap yamlMap;
-  char* configPath;
+  char configPath[256];
 
   string geometry; // spherical or cylindrical
   int stepsPerFrame;
@@ -46,7 +46,7 @@ struct Options
 
   vector<int> liquidTypes, solidTypes;
 
-  StrVecMap parseYaml(char* configPath);
+  StrVecMap parseYaml(const char* configPath);
   bool mapHasKey(StrVecMap yamlMap, string key);
   void printYamlMap(StrVecMap yamlMap);
   void fromString(string optionString, bool &option);
@@ -62,7 +62,7 @@ struct Options
   void parseDefaultOption(string optionName, T &option, T defaultValue);
   template <typename T>
   void parseRequiredOption(string optionName, T &option);
-  void readConfig(char* configPath);
+  void readConfig(const char* configPath);
 
   template <typename T>
   void printOption(string optionName, T option);
@@ -80,11 +80,11 @@ struct AnalysisParameters
 
 struct CommandLineParser
 {
-  CommandLineParser(int argc, char* argv[]);
-  char *configPath;
+  CommandLineParser(int argc, const char* argv[]);
+  char configPath[256];
   Options options;
 
-  void parseArgs(int argc, char* argv[]);
+  void parseArgs(int argc, const char* argv[]);
   void print();
 };
 

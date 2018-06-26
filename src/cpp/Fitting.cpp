@@ -641,7 +641,7 @@ void TanhFit::setFitBounds() {
   fTanh->SetParLimits(2, fitBounds[4], fitBounds[5]); //x0
 }
 
-void TanhFit::setFitType(char* _rowOrCol) {
+void TanhFit::setFitType(const char* _rowOrCol) {
   strcpy(rowOrCol, _rowOrCol);
 }
 
