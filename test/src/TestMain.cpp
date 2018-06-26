@@ -66,15 +66,11 @@ TEST_CASE("Readers", "[lotus]") {
 
   char filename[100];
 
-  cout << "*A" << endl;
   DensFigure densFigure("testDensFig", droplet, substrate);
-  cout << "*B" << endl;
 
   DropletFigure dropletFigure("testHistFig", droplet);
-  cout << "*C" << endl;
 
   TanhFigure tanhFigure("tanhFigure", droplet.monolayer.tanhFit);
-  cout << "*D" << endl;
 
   // Time loop
   while(dumpfileReader.good()) {
