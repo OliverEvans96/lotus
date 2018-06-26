@@ -68,7 +68,10 @@ TEST_CASE("Readers", "[lotus]") {
   DensFigure densFigure("dens", droplet, substrate);
   DropletFigure dropletFigure("droplet", droplet);
   TanhFigure tanhFigure("tanh", droplet.monolayer.tanhFit);
+
+  // TODO: Refactor to single FrameWriter?
   ScalarWriter scalarWriter(dumpfileReader, droplet);
+  ArrayWriter arrayWriter(dumpfileReader, droplet);
 
   // Time loop
   while(dumpfileReader.good()) {
@@ -115,6 +118,17 @@ TEST_CASE("Readers", "[lotus]") {
     //       - rm, rb, ca, h, circle points
 
     scalarWriter.writeFrame();
+    cout << "~~~TEST BPA~~~ @ " << endl;
+    cout << droplet.bulk.boundaryPointsArray << endl;
+    cout << droplet.bulk.boundaryPointsArray[0][0] << " ";
+    cout << droplet.bulk.boundaryPointsArray[1][0] << endl;
+    cout << droplet.bulk.boundaryPointsArray[0][1] << " ";
+    cout << droplet.bulk.boundaryPointsArray[1][1] << endl;
+    cout << droplet.bulk.boundaryPointsArray[0][2] << " ";
+    cout << droplet.bulk.boundaryPointsArray[1][2] << endl;
+    cout << droplet.bulk.boundaryPointsArray[0][3] << " ";
+    cout << droplet.bulk.boundaryPointsArray[1][3] << endl;
+    arrayWriter.writeFrame();
 
     // TODO: Add option to enable/disable circle fit
 

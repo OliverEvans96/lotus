@@ -46,14 +46,20 @@ void WriterBase::createDataDir() {
 }
 
 void WriterBase::getFmtStr(char* fmt, double* dataPtr) {
-  strcpy(fmt, "%-15.6f");
+  char lj[1];
+  lj[0] = leftJustify ? '-' : '\0';
+  sprintf(fmt, "%%%s%d.%d%s", lj, COL_WIDTH, PRECISION, "f");
 }
 
 void WriterBase::getFmtStr(char* fmt, int* dataPtr) {
-  strcpy(fmt, "%-15d");
+  char lj[1];
+  lj[0] = leftJustify ? '-' : '\0';
+  sprintf(fmt, "%%%s%d%s", lj, COL_WIDTH, "d");
 }
 void WriterBase::getFmtStr(char* fmt, char* dataPtr) {
-  strcpy(fmt, "%-15s");
+  char lj[1];
+  lj[0] = leftJustify ? '-' : '\0';
+  sprintf(fmt, "%%%s%d%s", lj, COL_WIDTH, "s");
 }
 
 
@@ -73,8 +79,11 @@ ScalarWriter::ScalarWriter(DumpfileReader &dumpfileReader, Droplet &droplet) : W
   dumpfileReaderPtr = &dumpfileReader;
   dropletPtr = &droplet;
 
+  leftJustify = true;
+
   setOutputQuantities();
   writeHeaders();
+
 }
 
 ScalarWriter::~ScalarWriter() {
@@ -122,6 +131,7 @@ void ScalarWriter::getQuantityStr(char* quantityStr, int i) {
     sprintf(quantityStr, fmtArray[i], *((double*) dataPtrArray[i]));
   }
   else if(typeArray[i] == 'i') {
+    cout << "fmtArray[i] = '" << fmtArray[i] << "'" << endl;
     sprintf(quantityStr, fmtArray[i], *((int*) dataPtrArray[i]));
   }
 }
@@ -144,23 +154,117 @@ void ScalarWriter::writeFrame() {
   char quantityStr[256];
   for(int i=0; i<numQuantities; i++) {
     getQuantityStr(quantityStr, i);
-    // Format quantity name (15 char wide)
-    fprintf(files[i], "%15s\n", quantityStr);
+    fprintf(files[i], "%s\n", quantityStr);
   }
 }
 
 //////////////////
-// VectorWriter //
+// ArrayWriter //
 //////////////////
 
-void VectorWriter::getQuantityStr(char* quantityStr, int i) {
+ArrayWriter::ArrayWriter(DumpfileReader &dumpfileReader, Droplet &droplet) : WriterBase(*droplet.simDataPtr) {
+  dumpfileReaderPtr = &dumpfileReader;
+  dropletPtr = &droplet;
+
+  leftJustify = true;
+
+  setOutputQuantities();
 }
 
-void VectorWriter::concatenateQuantityStrs() {
+ArrayWriter::~ArrayWriter() {
+}
+
+void ArrayWriter::setOutputQuantities() {
+  addQuantity("boundaryPoints", dropletPtr->bulk.boundaryPointsArray, &dropletPtr->bulk.numPoints, dropletPtr->bulk.headers, 2);
+}
+
+// Get formatted string for quantity column
+void ArrayWriter::getQuantityStr(char* quantityStr, int quantityNum, int i, int j) {
+  double **doubleArr;
+  int **intArr;
+
+  // TODO: Replace 2 w/ numColumns
+  // TODO: Make sure this is right
+  if(typeArray[quantityNum] == 'd') {
+    doubleArr = (double**) dataPtrArray[quantityNum];
+    sprintf(quantityStr, fmtArray[quantityNum], doubleArr[j][i]);
+  }
+  else if(typeArray[quantityNum] == 'i') {
+    intArr = (int**) dataPtrArray[quantityNum];
+    sprintf(quantityStr, fmtArray[quantityNum], intArr[j][i]);
+  }
+}
+
+void ArrayWriter::concatenateQuantityStrs(int quantityNum, int i) {
   char quantityStr[256];
   line[0] = 0;
-  for(int i=0; i<numQuantities; i++) {
-    getQuantityStr(quantityStr, i);
+  for(int j=0; j<numColumnsArray[quantityNum]; j++) {
+    getQuantityStr(quantityStr, quantityNum, i, j);
     strcat(line, quantityStr);
+  }
+}
+
+void ArrayWriter::createQuantityDir(const char* quantityName) {
+  char quantityDir[256];
+  char dataDir[256];
+
+  // create `outputDir`/data
+  joinPath(dataDir, outputDir, "data");
+  if(!dir_exists(dataDir)) {
+    mkdir(dataDir, S_IRWXU);
+  }
+
+  // create `outputDir`/data/`quantityName`
+  joinPath(quantityDir, dataDir, quantityName);
+  if(!dir_exists(quantityDir)) {
+    mkdir(quantityDir, S_IRWXU);
+  }
+}
+
+void ArrayWriter::getFilePath(char* filePath, const char* quantityName) {
+  char filename[256];
+  char dataDir[256];
+  char quantityDir[256];
+
+  joinPath(dataDir, outputDir, "data");
+  joinPath(quantityDir, dataDir, quantityName);
+  sprintf(filename, "%09d.txt", simDataPtr->framePtr->time);
+  joinPath(filePath, quantityDir, filename);
+}
+
+// Write quantity names to first line of files
+void ArrayWriter::writeHeader(FILE* file, int quantityNum) {
+  char headerStr[256];
+  char fmtStr[16];
+  int numColumns = numColumnsArray[quantityNum];
+  getFmtStr(fmtStr, headerStr);
+  // Prepend # (comment line)
+  for(int j=0; j<numColumns; j++) {
+    sprintf(headerStr, "#%s", headersArray[quantityNum][j]);
+    fprintf(file, fmtStr, headerStr);
+  }
+  fprintf(file, "\n");
+}
+
+void ArrayWriter::writeQuantityFile(int quantityNum) {
+  char quantityStr[256];
+  char filePath[265];
+  int numRows = *lengthPtrArray[quantityNum];
+  getFilePath(filePath, quantityNameArray[quantityNum]);
+  FILE* file = fopen(filePath, "w");
+  if(options.verbose) {
+    cout << "Opened file '" << path << "' for array writing." << endl;
+  }
+  writeHeader(file, quantityNum);
+  for(int i=0; i<numRows; i++) {
+    concatenateQuantityStrs(quantityNum, i);
+    fprintf(file, "%s\n", line);
+  }
+  fclose(file);
+}
+
+void ArrayWriter::writeFrame() {
+  for(int quantityNum=0; quantityNum<numQuantities; quantityNum++) {
+    writeQuantityFile(quantityNum);
   }
 }

@@ -58,6 +58,10 @@ struct CircularBulk
   TGraph *gCirclePoints;
   TH2D *hDroplet;
 
+  int numPoints = 0;
+  double *boundaryPointsArray[2];
+  const char* headers[2] = {"x", "y"};
+
   void setContext(Options options, SimData *_simDataPtr, AtomArray *_atomArrayPtr);
   void setHist(TH2D *_hDroplet);
   void fillOne(Atom &atom);
@@ -67,6 +71,7 @@ struct CircularBulk
   void calculateSphericalVolume();
   void calculateCylindricalVolume();
 
+  void saveBoundaryPoints();
   // TODO: Clean this up
   //Find boundary points by tanh fitting for each row
   void findBoundaryPoints();

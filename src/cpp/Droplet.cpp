@@ -238,6 +238,12 @@ void CircularBulk::setHist(TH2D *_hDroplet) {
   hDroplet = _hDroplet;
 }
 
+void CircularBulk::saveBoundaryPoints() {
+  numPoints = gCirclePoints->GetN();
+  boundaryPointsArray[0] = gCirclePoints->GetX();
+  boundaryPointsArray[1] = gCirclePoints->GetY();
+}
+
 void CircularBulk::findBoundaryPoints() {
   int nx, ny;
   double x, y;
@@ -281,6 +287,8 @@ void CircularBulk::findBoundaryPoints() {
       gCirclePoints->SetPoint(pointNum++, x, y);
     }
   }
+
+  saveBoundaryPoints();
 }
 
 // //Guess boundary of water molecule by counting for a single row

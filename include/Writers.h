@@ -11,6 +11,10 @@
 
 using namespace std;
 
+// TODO: Set in options
+const int COL_WIDTH = 15;
+const int PRECISION = 6;
+
 /////////////
 // Writers //
 /////////////
@@ -21,6 +25,7 @@ class WriterBase {
   char path[256];
   SimData *simDataPtr;
   Options options;
+  bool leftJustify;
 
   // Maximum line length is 2047 characters (last element is null).
   char line[2048];
@@ -38,6 +43,7 @@ class WriterBase {
 
   int numQuantities = 0;
 
+  vector<void*> dataPtrArray;
   vector<char> typeArray;
   vector<const char*> quantityNameArray;
   vector<const char*> fmtArray;
@@ -48,7 +54,6 @@ class WriterBase {
 };
 
 class ScalarWriter : public WriterBase {
-  vector<void*> dataPtrArray;
   vector<FILE*> files;
   DumpfileReader *dumpfileReaderPtr;
   Droplet *dropletPtr;
@@ -83,32 +88,39 @@ class ScalarWriter : public WriterBase {
   }
 };
 
-class VectorWriter : public WriterBase {
-  FILE* openFileBase(const char* filename);
-  void openFile(const char* quantityName);
+class ArrayWriter : public WriterBase {
+  void setOutputQuantities();
+  void getQuantityStr(char* quantityStr, int quantityNum, int i, int j);
+  void concatenateQuantityStrs(int quantityNum, int i);
+  void createQuantityDir(const char* quantityName);
+  void getFilePath(char* filePath, const char* quantityName);
+  void writeHeader(FILE* file, int quantityNum);
+  void writeQuantityFile(int i);
 
-  void getQuantityStr(char* quantityStr, int i);
-  void concatenateQuantityStrs();
-
-  vector<void*> dataPtrArray;
-  vector<FILE*> files;
+  vector<int> numColumnsArray;
+  vector<int*> lengthPtrArray;
+  vector<const char**> headersArray;
   DumpfileReader *dumpfileReaderPtr;
   Droplet *dropletPtr;
 
  public:
+  ArrayWriter(DumpfileReader &dumpfileReader, Droplet &droplet);
+  ~ArrayWriter();
   void writeHeaders();
   void writeFrame();
-  void closeFiles();
 
   template <typename T>
-    void addQuantity(const char* quantityName, T *dataPtr) {
+  void addQuantity(const char* quantityName, T **dataPtr, int *lengthPtr, const char** headers, int numColumns) {
     char* fmt = new char[16];
 
     quantityNameArray.push_back(quantityName);
-    openFile(quantityName);
+    createQuantityDir(quantityName);
     dataPtrArray.push_back(dataPtr);
-    storeType(dataPtr);
-    getFmtStr(fmt, dataPtr);
+    lengthPtrArray.push_back(lengthPtr);
+    headersArray.push_back(headers);
+    numColumnsArray.push_back(numColumns);
+    storeType(*dataPtr);
+    getFmtStr(fmt, *dataPtr);
     fmtArray.push_back(fmt);
     numQuantities++;
   }
