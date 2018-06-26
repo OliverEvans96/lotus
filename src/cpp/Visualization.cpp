@@ -466,6 +466,8 @@ void TanhFigure::addLegendEntries() {
   legend->AddEntry(ldLine,"ld","l");
   legend->AddEntry(halfLdLine,"ld/2","l");
   legend->AddEntry(x0Line,"x0","l");
+  legend->AddEntry(tanhFitPtr->hTanh, "data", "l");
+  legend->AddEntry(tanhFitPtr->fTanh, "fit", "l");
 }
 
 void TanhFigure::setAxisLabels() {
@@ -572,7 +574,7 @@ void TanhFigure::setLineStyle() {
   ldLine->SetLineWidth(3);
   halfLdLine->SetLineColor(kBlack);
   halfLdLine->SetLineWidth(3);
-  x0Line->SetLineColor(kBlue);
+  x0Line->SetLineColor(kGreen);
   x0Line->SetLineWidth(3);
 }
 
