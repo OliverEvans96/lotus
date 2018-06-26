@@ -5,48 +5,47 @@
 // Writers //
 /////////////
 
-FrameWriter::FrameWriter(const char* filename, DumpfileReader &dumpfileReader, Droplet &droplet) {
-  dumpfileReaderPtr = &dumpfileReader;
-  dropletPtr = &droplet;
-  simDataPtr = dumpfileReaderPtr->simDataPtr;
+WriterBase::WriterBase(SimData &simData) {
+  simDataPtr = &simData;
   options = simDataPtr->options;
-
   setOutputDir(options.outLoc.data());
-  openFile(filename);
-
-  setOutputQuantities();
-  writeHeader();
 }
-FrameWriter::~FrameWriter() {
+
+WriterBase::~WriterBase() {
   closeFile();
   deleteFmtStrs();
 }
 
-void FrameWriter::storeType(double *x) {
+void WriterBase::storeType(double *x) {
   typeArray.push_back('d');
 }
-void FrameWriter::storeType(int *x) {
+void WriterBase::storeType(int *x) {
   typeArray.push_back('i');
 }
 
-void FrameWriter::setOutputDir(const char* path) {
+void WriterBase::setOutputDir(const char* path) {
   strcpy(outputDir, path);
   if(options.verbose) {
     cout << "Set output dir '" << outputDir << "'" << endl;
   }
 }
 
-// Choose which quantities are written to the main results file
-// A quantity name and pointer to the quantity are given for each
-void FrameWriter::setOutputQuantities() {
-  addQuantity("timestep", &dumpfileReaderPtr->frameReader.frame.time);
-  addQuantity("monoEdge", &dropletPtr->monolayer.radius);
-  addQuantity("bulkEdge", &dropletPtr->bulk.radius);
-  addQuantity("contactAngle", &dropletPtr->bulk.contactAngle);
-  addQuantity("dropletHeight", &dropletPtr->bulk.height);
+void WriterBase::getDefaultFmt(char* final_fmt, double* dataPtr) {
+  strcpy(final_fmt, "%15.6f");
 }
 
-void FrameWriter::openFile(const char* _path) {
+void WriterBase::getDefaultFmt(char* final_fmt, int* dataPtr) {
+  strcpy(final_fmt, "%15d");
+}
+
+void WriterBase::deleteFmtStrs() {
+  vector<const char*>::iterator it;
+  for(it=fmtArray.begin(); it<fmtArray.end(); it++) {
+    delete *it;
+  }
+}
+
+void WriterBase::openFile(const char* _path) {
   joinPath(path, outputDir, _path);
   file = fopen(path, "w");
   if(options.verbose) {
@@ -54,26 +53,38 @@ void FrameWriter::openFile(const char* _path) {
   }
 }
 
-void FrameWriter::closeFile() {
+void WriterBase::closeFile() {
   fclose(file);
 }
 
-void FrameWriter::getDefaultFmt(char* final_fmt, double* dataPtr) {
-  strcpy(final_fmt, "%15.6f");
+
+//////////////////
+// ScalarWriter //
+//////////////////
+
+ScalarWriter::ScalarWriter(const char* filename, DumpfileReader &dumpfileReader, Droplet &droplet) : WriterBase(*droplet.simDataPtr) {
+  dumpfileReaderPtr = &dumpfileReader;
+  dropletPtr = &droplet;
+
+  openFile(filename);
+
+  setOutputQuantities();
+  writeHeader();
 }
 
-void FrameWriter::getDefaultFmt(char* final_fmt, int* dataPtr) {
-  strcpy(final_fmt, "%15d");
+ScalarWriter::~ScalarWriter() {}
+
+// Choose which quantities are written to the main results file
+// A quantity name and pointer to the quantity are given for each
+void ScalarWriter::setOutputQuantities() {
+  addQuantity("timestep", &dumpfileReaderPtr->frameReader.frame.time);
+  addQuantity("monoEdge", &dropletPtr->monolayer.radius);
+  addQuantity("bulkEdge", &dropletPtr->bulk.radius);
+  addQuantity("contactAngle", &dropletPtr->bulk.contactAngle);
+  addQuantity("dropletHeight", &dropletPtr->bulk.height);
 }
 
-void FrameWriter::deleteFmtStrs() {
-  vector<const char*>::iterator it;
-  for(it=fmtArray.begin(); it<fmtArray.end(); it++) {
-    delete *it;
-  }
-}
-
-void FrameWriter::getQuantityStr(char* quantityStr, int i) {
+void ScalarWriter::getQuantityStr(char* quantityStr, int i) {
   if(typeArray[i] == 'd') {
     sprintf(quantityStr, fmtArray[i], *((double*) dataPtrArray[i]));
   }
@@ -82,7 +93,7 @@ void FrameWriter::getQuantityStr(char* quantityStr, int i) {
   }
 }
 
-void FrameWriter::concatenateQuantityStrs() {
+void ScalarWriter::concatenateQuantityStrs() {
   char quantityStr[256];
   line[0] = 0;
   for(int i=0; i<numQuantities; i++) {
@@ -92,7 +103,7 @@ void FrameWriter::concatenateQuantityStrs() {
 }
 
 // Write quantity names to first line of file
-void FrameWriter::writeHeader() {
+void ScalarWriter::writeHeader() {
   char headerStr[256];
   line[0] = 0;
   for(int i=0; i<numQuantities; i++) {
@@ -105,7 +116,7 @@ void FrameWriter::writeHeader() {
   fprintf(file, "%s\n", line);
 }
 
-void FrameWriter::writeFrame() {
+void ScalarWriter::writeFrame() {
   concatenateQuantityStrs();
   fprintf(file, "%s\n", line);
 }

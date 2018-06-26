@@ -68,7 +68,7 @@ TEST_CASE("Readers", "[lotus]") {
   DensFigure densFigure("dens", droplet, substrate);
   DropletFigure dropletFigure("droplet", droplet);
   TanhFigure tanhFigure("tanh", droplet.monolayer.tanhFit);
-  FrameWriter frameWriter("results.txt", dumpfileReader, droplet);
+  ScalarWriter scalarWriter("results.txt", dumpfileReader, droplet);
 
   // Time loop
   while(dumpfileReader.good()) {
@@ -114,7 +114,7 @@ TEST_CASE("Readers", "[lotus]") {
     // TODO: Write frame quantities to file
     //       - rm, rb, ca, h, circle points
 
-    frameWriter.writeFrame();
+    scalarWriter.writeFrame();
 
     // TODO: Add option to enable/disable circle fit
 

@@ -15,21 +15,13 @@ using namespace std;
 // Writers //
 /////////////
 
-class FrameWriter
-{
+class WriterBase {
+ protected:
   char outputDir[256];
   char path[256];
   FILE* file;
-  DumpfileReader *dumpfileReaderPtr;
-  Droplet *dropletPtr;
   SimData *simDataPtr;
   Options options;
-
-  vector<const char*> quantityNameArray;
-  vector<void*> dataPtrArray;
-  vector<char> typeArray;
-  vector<const char*> fmtArray;
-  int numQuantities = 0;
 
   // Maximum line length is 2047 characters (last element is null).
   char line[2048];
@@ -37,17 +29,40 @@ class FrameWriter
   void storeType(double *x);
   void storeType(int *x);
 
- public:
-  FrameWriter(const char* filename, DumpfileReader &dumpfileReader, Droplet &droplet);
-  ~FrameWriter();
-
   void setOutputDir(const char* path);
-  void setOutputQuantities();
-  void openFile(const char* filename);
-  void closeFile();
 
   void getDefaultFmt(char* final_fmt, double* dataPtr);
   void getDefaultFmt(char* final_fmt, int* dataPtr);
+  void deleteFmtStrs();
+
+  int numQuantities = 0;
+
+  vector<char> typeArray;
+  vector<const char*> quantityNameArray;
+  vector<const char*> fmtArray;
+
+ public:
+  WriterBase(SimData &simData);
+  ~WriterBase();
+  void openFile(const char* filename);
+  void closeFile();
+};
+
+class ScalarWriter : public WriterBase {
+  vector<void*> dataPtrArray;
+  DumpfileReader *dumpfileReaderPtr;
+  Droplet *dropletPtr;
+
+ public:
+  ScalarWriter(const char* filename, DumpfileReader &dumpfileReader, Droplet &droplet);
+  ~ScalarWriter();
+
+
+  void setOutputQuantities();
+  void getQuantityStr(char* quantityStr, int i);
+  void concatenateQuantityStrs();
+  void writeHeader();
+  void writeFrame();
 
   // For some reason, this template function must
   // be fully defined in header file.
@@ -70,12 +85,6 @@ class FrameWriter
     fmtArray.push_back(final_fmt);
     numQuantities++;
   }
-
-  void deleteFmtStrs();
-  void getQuantityStr(char* quantityStr, int i);
-  void concatenateQuantityStrs();
-  void writeHeader();
-  void writeFrame();
 };
 
 #endif
