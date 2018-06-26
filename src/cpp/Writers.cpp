@@ -63,7 +63,7 @@ void FrameWriter::getDefaultFmt(char* final_fmt, double* dataPtr) {
 }
 
 void FrameWriter::getDefaultFmt(char* final_fmt, int* dataPtr) {
-  strcpy(final_fmt, "%10d");
+  strcpy(final_fmt, "%15d");
 }
 
 void FrameWriter::deleteFmtStrs() {
@@ -91,16 +91,17 @@ void FrameWriter::concatenateQuantityStrs() {
   }
 }
 
-// TODO: Align columns or write to separate files
+// Write quantity names to first line of file
 void FrameWriter::writeHeader() {
-  char quantityStr[256];
+  char headerStr[256];
   line[0] = 0;
   for(int i=0; i<numQuantities; i++) {
-    strcat(line, quantityNameArray[i]);
-    if(i<numQuantities-1)
-      strcat(line, " ");
+    // Format quantity name (15 char wide)
+    sprintf(headerStr, "%15s", quantityNameArray[i]);
+    // Concatenate header strings
+    strcat(line, headerStr);
   }
-
+  // Write line to file
   fprintf(file, "%s\n", line);
 }
 
