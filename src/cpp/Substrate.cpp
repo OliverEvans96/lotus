@@ -53,7 +53,7 @@ void Substrate::convertUnits() {
   double dx, dy, dv;
 
   // Divide by number of steps per frame
-  hSubstrateDens->Scale(1.0/simDataPtr->stepsPerFrame);
+  hSubstrateDens->Scale(1.0/simDataPtr->framePtr->stepsThisFrame);
   // Divide by volume to get density
   dx = simDataPtr->simBounds.xhi - simDataPtr->simBounds.xlo;
   dy = simDataPtr->simBounds.yhi - simDataPtr->simBounds.ylo;
