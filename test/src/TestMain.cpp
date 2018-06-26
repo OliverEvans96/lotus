@@ -75,7 +75,7 @@ TEST_CASE("Readers", "[lotus]") {
 
   // TODO: Refactor
   FrameWriter frameWriter(simData);
-  frameWriter.openFile("data.txt");
+  frameWriter.openFile("results.txt");
   frameWriter.addQuantity("timestep", &dumpfileReader.frameReader.frame.time);
   frameWriter.addQuantity("monoEdge", &droplet.monolayer.radius);
   frameWriter.addQuantity("bulkEdge", &droplet.bulk.radius);
