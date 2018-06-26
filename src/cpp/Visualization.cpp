@@ -45,7 +45,7 @@ void Figure::setOutputDir(const char* path) {
 // Get filename, composed from title and timestep
 void Figure::getFilename(char* filename, const char* suffix) {
   // suffix determines file type (e.g. "png", "C")
-  sprintf(filename, "%08d.%s", simDataPtr->framePtr->time, suffix);
+  sprintf(filename, "%09d.%s", simDataPtr->framePtr->time, suffix);
 }
 
 // Create `outputDir`/`subdir`/`title`
@@ -194,7 +194,7 @@ void DropletFigure::deleteLegend() {
 void DropletFigure::setTitle() {
   char title[64];
   // Note timestep in title
-  sprintf(title, "%s, t=%08d", simDataPtr->options.dumpfile.data(), simDataPtr->framePtr->time);
+  sprintf(title, "%s, t=%09d", simDataPtr->options.dumpfile.data(), simDataPtr->framePtr->time);
   hDroplet->SetTitle(title);
 }
 
@@ -407,7 +407,7 @@ void DensFigure::deleteLegend() {
 void DensFigure::setTitle() {
   char title[64];
   // Note timestep in title
-  sprintf(title, "%s, t=%08d", simDataPtr->options.dumpfile.data(), simDataPtr->framePtr->time);
+  sprintf(title, "%s, t=%09d", simDataPtr->options.dumpfile.data(), simDataPtr->framePtr->time);
   hLiquidDens->SetTitle(title);
 }
 
@@ -569,7 +569,7 @@ void TanhFigure::setTitle() {
   char title[64];
   // Note timestep in title
   // TODO: Actually set rowOrCol and rowColNum.
-  sprintf(title, "%s %s %d, t=%08d", simDataPtr->options.dumpfile.data(), rowOrCol, rowColNum, simDataPtr->framePtr->time);
+  sprintf(title, "%s %s %d, t=%09d", simDataPtr->options.dumpfile.data(), rowOrCol, rowColNum, simDataPtr->framePtr->time);
   tanhFitPtr->hTanh->SetTitle(title);
 }
 
