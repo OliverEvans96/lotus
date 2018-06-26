@@ -19,7 +19,6 @@ class WriterBase {
  protected:
   char outputDir[256];
   char path[256];
-  FILE* file;
   SimData *simDataPtr;
   Options options;
 
@@ -33,6 +32,7 @@ class WriterBase {
 
   void getDefaultFmt(char* final_fmt, double* dataPtr);
   void getDefaultFmt(char* final_fmt, int* dataPtr);
+  void getDefaultFmt(char* final_fmt, char* dataPtr);
   void deleteFmtStrs();
 
   int numQuantities = 0;
@@ -44,24 +44,26 @@ class WriterBase {
  public:
   WriterBase(SimData &simData);
   ~WriterBase();
-  void openFile(const char* filename);
-  void closeFile();
 };
 
 class ScalarWriter : public WriterBase {
   vector<void*> dataPtrArray;
+  vector<FILE*> files;
   DumpfileReader *dumpfileReaderPtr;
   Droplet *dropletPtr;
 
  public:
-  ScalarWriter(const char* filename, DumpfileReader &dumpfileReader, Droplet &droplet);
+  ScalarWriter(DumpfileReader &dumpfileReader, Droplet &droplet);
   ~ScalarWriter();
 
-
+  void createDataDir();
+  FILE* openFileBase(const char* filename);
+  void openFile(const char* quantityName);
+  void closeFiles();
   void setOutputQuantities();
   void getQuantityStr(char* quantityStr, int i);
   void concatenateQuantityStrs();
-  void writeHeader();
+  void writeHeaders();
   void writeFrame();
 
   // For some reason, this template function must
@@ -80,11 +82,17 @@ class ScalarWriter : public WriterBase {
     }
 
     quantityNameArray.push_back(quantityName);
+    openFile(quantityName);
     dataPtrArray.push_back(dataPtr);
     storeType(dataPtr);
     fmtArray.push_back(final_fmt);
     numQuantities++;
   }
+};
+
+class VectorWriter : public WriterBase {
+  void getQuantityStr(char* quantityStr, int i);
+  void concatenateQuantityStrs();
 };
 
 #endif

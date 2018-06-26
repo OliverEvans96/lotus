@@ -68,7 +68,7 @@ TEST_CASE("Readers", "[lotus]") {
   DensFigure densFigure("dens", droplet, substrate);
   DropletFigure dropletFigure("droplet", droplet);
   TanhFigure tanhFigure("tanh", droplet.monolayer.tanhFit);
-  ScalarWriter scalarWriter("results.txt", dumpfileReader, droplet);
+  ScalarWriter scalarWriter(dumpfileReader, droplet);
 
   // Time loop
   while(dumpfileReader.good()) {

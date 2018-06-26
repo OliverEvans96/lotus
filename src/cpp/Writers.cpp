@@ -12,7 +12,6 @@ WriterBase::WriterBase(SimData &simData) {
 }
 
 WriterBase::~WriterBase() {
-  closeFile();
   deleteFmtStrs();
 }
 
@@ -31,12 +30,16 @@ void WriterBase::setOutputDir(const char* path) {
 }
 
 void WriterBase::getDefaultFmt(char* final_fmt, double* dataPtr) {
-  strcpy(final_fmt, "%15.6f");
+  strcpy(final_fmt, "%-15.6f");
 }
 
 void WriterBase::getDefaultFmt(char* final_fmt, int* dataPtr) {
-  strcpy(final_fmt, "%15d");
+  strcpy(final_fmt, "%-15d");
 }
+void WriterBase::getDefaultFmt(char* final_fmt, char* dataPtr) {
+  strcpy(final_fmt, "%-15s");
+}
+
 
 void WriterBase::deleteFmtStrs() {
   vector<const char*>::iterator it;
@@ -45,34 +48,58 @@ void WriterBase::deleteFmtStrs() {
   }
 }
 
-void WriterBase::openFile(const char* _path) {
-  joinPath(path, outputDir, _path);
-  file = fopen(path, "w");
-  if(options.verbose) {
-    cout << "Opened file " << path << endl;
-  }
-}
-
-void WriterBase::closeFile() {
-  fclose(file);
-}
-
 
 //////////////////
 // ScalarWriter //
 //////////////////
 
-ScalarWriter::ScalarWriter(const char* filename, DumpfileReader &dumpfileReader, Droplet &droplet) : WriterBase(*droplet.simDataPtr) {
+ScalarWriter::ScalarWriter(DumpfileReader &dumpfileReader, Droplet &droplet) : WriterBase(*droplet.simDataPtr) {
   dumpfileReaderPtr = &dumpfileReader;
   dropletPtr = &droplet;
 
-  openFile(filename);
-
+  createDataDir();
   setOutputQuantities();
-  writeHeader();
+  writeHeaders();
 }
 
-ScalarWriter::~ScalarWriter() {}
+ScalarWriter::~ScalarWriter() {
+  closeFiles();
+}
+
+// Create `outputDir`/`subdir`/`title`
+void ScalarWriter::createDataDir() {
+  char dataDir[256];
+  joinPath(dataDir, outputDir, "data");
+  if(!dir_exists(dataDir)) {
+    mkdir(dataDir, S_IRWXU);
+  }
+}
+
+FILE* ScalarWriter::openFileBase(const char* filename) {
+  char dataDir[256];
+  joinPath(dataDir, outputDir, "data");
+  joinPath(path, dataDir, filename);
+  FILE* file = fopen(path, "w");
+  if(options.verbose) {
+    cout << "Opened file '" << path << "' for scalar writing." << endl;
+  }
+  return file;
+}
+
+void ScalarWriter::openFile(const char* quantityName) {
+  char filename[256];
+  sprintf(filename, "%s.txt", quantityName);
+  files.push_back(openFileBase(filename));
+}
+
+void ScalarWriter::closeFiles() {
+  for(int i=0; i<numQuantities; i++) {
+    // Only close if file is actually open
+    if(files[i] != NULL) {
+      fclose(files[i]);
+    }
+  }
+}
 
 // Choose which quantities are written to the main results file
 // A quantity name and pointer to the quantity are given for each
@@ -93,30 +120,41 @@ void ScalarWriter::getQuantityStr(char* quantityStr, int i) {
   }
 }
 
-void ScalarWriter::concatenateQuantityStrs() {
+// Write quantity names to first line of files
+void ScalarWriter::writeHeaders() {
+  char headerStr[256];
+  char fmtStr[16];
+  getDefaultFmt(fmtStr, headerStr);
+  strcat(fmtStr, "\n");
+  for(int i=0; i<numQuantities; i++) {
+    // Prepend # (comment line)
+    sprintf(headerStr, "#%s", quantityNameArray[i]);
+    // Format quantity name
+    fprintf(files[i], fmtStr, headerStr);
+  }
+}
+
+void ScalarWriter::writeFrame() {
+  char quantityStr[256];
+  for(int i=0; i<numQuantities; i++) {
+    getQuantityStr(quantityStr, i);
+    // Format quantity name (15 char wide)
+    fprintf(files[i], "%15s\n", quantityStr);
+  }
+}
+
+//////////////////
+// VectorWriter //
+//////////////////
+
+void VectorWriter::getQuantityStr(char* quantityStr, int i) {
+}
+
+void VectorWriter::concatenateQuantityStrs() {
   char quantityStr[256];
   line[0] = 0;
   for(int i=0; i<numQuantities; i++) {
     getQuantityStr(quantityStr, i);
     strcat(line, quantityStr);
   }
-}
-
-// Write quantity names to first line of file
-void ScalarWriter::writeHeader() {
-  char headerStr[256];
-  line[0] = 0;
-  for(int i=0; i<numQuantities; i++) {
-    // Format quantity name (15 char wide)
-    sprintf(headerStr, "%15s", quantityNameArray[i]);
-    // Concatenate header strings
-    strcat(line, headerStr);
-  }
-  // Write line to file
-  fprintf(file, "%s\n", line);
-}
-
-void ScalarWriter::writeFrame() {
-  concatenateQuantityStrs();
-  fprintf(file, "%s\n", line);
 }
