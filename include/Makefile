@@ -94,7 +94,7 @@ echo:
 
 test: $(main_test_bin) $(testdata_unzipped)
 	rm -rf $(RUN)/*
-	rm -rf $(TEST_RESULTS)/*
+	rm -rf $(TEST_RESULTS)
 	cd $(RUN) && $<
 
 #############

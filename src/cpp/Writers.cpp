@@ -9,6 +9,7 @@ WriterBase::WriterBase(SimData &simData) {
   simDataPtr = &simData;
   options = simDataPtr->options;
   setOutputDir(options.outLoc.data());
+  createDataDir();
 }
 
 WriterBase::~WriterBase() {
@@ -26,6 +27,21 @@ void WriterBase::setOutputDir(const char* path) {
   strcpy(outputDir, path);
   if(options.verbose) {
     cout << "Set output dir '" << outputDir << "'" << endl;
+  }
+}
+
+// Create `outputDir`/`subdir`/`title`
+void WriterBase::createDataDir() {
+  char dataDir[256];
+  // Create `outputDir`
+  if(!dir_exists(outputDir)) {
+    mkdir(outputDir, S_IRWXU);
+  }
+
+  // create `outputDir`/data
+  joinPath(dataDir, outputDir, "data");
+  if(!dir_exists(dataDir)) {
+    mkdir(dataDir, S_IRWXU);
   }
 }
 
@@ -57,22 +73,12 @@ ScalarWriter::ScalarWriter(DumpfileReader &dumpfileReader, Droplet &droplet) : W
   dumpfileReaderPtr = &dumpfileReader;
   dropletPtr = &droplet;
 
-  createDataDir();
   setOutputQuantities();
   writeHeaders();
 }
 
 ScalarWriter::~ScalarWriter() {
   closeFiles();
-}
-
-// Create `outputDir`/`subdir`/`title`
-void ScalarWriter::createDataDir() {
-  char dataDir[256];
-  joinPath(dataDir, outputDir, "data");
-  if(!dir_exists(dataDir)) {
-    mkdir(dataDir, S_IRWXU);
-  }
 }
 
 FILE* ScalarWriter::openFileBase(const char* filename) {

@@ -29,6 +29,7 @@ class WriterBase {
   void storeType(int *x);
 
   void setOutputDir(const char* path);
+  void createDataDir();
 
   void getDefaultFmt(char* final_fmt, double* dataPtr);
   void getDefaultFmt(char* final_fmt, int* dataPtr);
@@ -56,13 +57,12 @@ class ScalarWriter : public WriterBase {
   ScalarWriter(DumpfileReader &dumpfileReader, Droplet &droplet);
   ~ScalarWriter();
 
-  void createDataDir();
   FILE* openFileBase(const char* filename);
   void openFile(const char* quantityName);
   void closeFiles();
+
   void setOutputQuantities();
   void getQuantityStr(char* quantityStr, int i);
-  void concatenateQuantityStrs();
   void writeHeaders();
   void writeFrame();
 
@@ -91,8 +91,40 @@ class ScalarWriter : public WriterBase {
 };
 
 class VectorWriter : public WriterBase {
+  FILE* openFileBase(const char* filename);
+  void openFile(const char* quantityName);
+
   void getQuantityStr(char* quantityStr, int i);
   void concatenateQuantityStrs();
+
+  vector<void*> dataPtrArray;
+  vector<FILE*> files;
+  DumpfileReader *dumpfileReaderPtr;
+  Droplet *dropletPtr;
+
+ public:
+  void writeHeaders();
+  void writeFrame();
+  void closeFiles();
+
+  template <typename T>
+    void addQuantity(const char* quantityName, T *dataPtr, const char* fmt=" ") {
+    char* final_fmt = new char[16];
+    // Get default format string based on variable type
+    if(strcmp(fmt, " ") == 0) {
+      getDefaultFmt(final_fmt, dataPtr);
+    }
+    else {
+      strcpy(final_fmt, fmt);
+    }
+
+    quantityNameArray.push_back(quantityName);
+    openFile(quantityName);
+    dataPtrArray.push_back(dataPtr);
+    storeType(dataPtr);
+    fmtArray.push_back(final_fmt);
+    numQuantities++;
+  }
 };
 
 #endif
