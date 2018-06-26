@@ -67,4 +67,8 @@ double findMaximum(vector<double> v);
 //Given a TH1D and a two bin numbers, draw a line between the points and solve for where y=yc (y_cutoff)
 double solveLinear(TH1D *hist,int bin1,int bin2,double yc);
 
+void stripTrailingSlash(char* strippedPath, const char* path);
+void joinPath(char* path, const char* prefix, const char* suffix);
+
+
 #endif

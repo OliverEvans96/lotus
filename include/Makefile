@@ -24,6 +24,7 @@ LIB=$(PWD)/../lib
 TEST_SRC=$(TEST)/src
 TEST_INC=$(TEST)/include
 RUN=$(BASE)/run
+TEST_RESULTS=$(TEST)/results
 
 # C++ Compiler
 CXX=g++
@@ -92,6 +93,8 @@ echo:
 	echo $(testdata_unzipped)
 
 test: $(main_test_bin) $(testdata_unzipped)
+	rm -rf $(RUN)/*
+	rm -rf $(TEST_RESULTS)/*
 	cd $(RUN) && $<
 
 #############

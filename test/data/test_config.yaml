@@ -1,6 +1,6 @@
 dumpfile: ../test/data/20A_atom1_13-20
 datafile: ../test/data/lammps_noZperiod_3A.dat
-outLoc: ../test/run
+outLoc: ../test/results
 stepsPerFrame: 3
 solidTypes:
   - 1

@@ -37,9 +37,6 @@ class FrameWriter
   void storeType(double *x);
   void storeType(int *x);
 
-  void stripTrailingSlash(char* strippedPath, const char* path);
-  void joinPath(char* path, const char* prefix, const char* suffix);
-
  public:
   FrameWriter(const char* filename, DumpfileReader &dumpfileReader, Droplet &droplet);
   ~FrameWriter();

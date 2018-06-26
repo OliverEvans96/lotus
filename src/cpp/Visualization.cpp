@@ -10,6 +10,7 @@ Figure::Figure(const string _title, SimData &simData) {
   simDataPtr = &simData;
   options = simDataPtr->options;
 
+  setOutputDir(options.outLoc.data());
   createCanvas();
   setCanvasStyle();
 }
@@ -35,10 +36,15 @@ void Figure::setCanvasStyle() {
   gStyle->SetCanvasPreferGL(true);
 }
 
-// TODO: Save relative to image directory
+void Figure::setOutputDir(const char* path) {
+  strcpy(outputDir, path);
+}
+
 void Figure::save(const char* filename) {
-  canvas->SaveAs(filename);
-  cout << "saved canvas " << canvas << " @ " << filename << endl;
+  char path[256];
+  joinPath(path, outputDir, filename);
+  canvas->SaveAs(path);
+  cout << "saved canvas " << canvas << " @ " << path << endl;
 }
 
 DropletFigure::DropletFigure(const string _title, Droplet &droplet) : Figure(_title, *droplet.simDataPtr){

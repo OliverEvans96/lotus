@@ -34,6 +34,7 @@ class Figure {
   Options options;
   double xlo, xhi;
   double ylo, yhi;
+  char outputDir[256];
 
  public:
   Figure(const string _title, SimData &simData);
@@ -41,6 +42,7 @@ class Figure {
 
   void createCanvas();
   void setCanvasStyle();
+  void setOutputDir(const char* path);
   void saveImage();
   void saveROOT();
   void save(const char* filename);

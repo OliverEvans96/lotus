@@ -32,7 +32,7 @@ TEST_CASE("Readers", "[lotus]") {
   REQUIRE(options.stepsPerFrame == STEPS_PER_FRAME);
   REQUIRE(options.dumpfile == "../test/data/20A_atom1_13-20");
   REQUIRE(options.datafile == "../test/data/lammps_noZperiod_3A.dat");
-  REQUIRE(options.outLoc == "../test/run");
+  REQUIRE(options.outLoc == "../test/results");
   REQUIRE(options.skipToEnd == false);
   REQUIRE(options.trackMonoAtoms == false);
   REQUIRE(options.saveImages == true);

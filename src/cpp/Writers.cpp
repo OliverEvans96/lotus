@@ -29,23 +29,6 @@ void FrameWriter::storeType(int *x) {
   typeArray.push_back('i');
 }
 
-void FrameWriter::stripTrailingSlash(char* strippedPath, const char* path) {
-  int len = strlen(path);
-
-  strcpy(strippedPath, path);
-  if(strippedPath[len-1] == '/') {
-    // Replace with null terminator
-    strippedPath[len-1] = 0;
-  }
-}
-
-void FrameWriter::joinPath(char* path, const char* prefix, const char* suffix) {
-  char strippedPath[256];
-  // Remove trailing slash from prefix if present
-  stripTrailingSlash(strippedPath, prefix);
-  sprintf(path, "%s/%s", strippedPath, suffix);
-}
-
 void FrameWriter::setOutputDir(const char* path) {
   strcpy(outputDir, path);
   if(options.verbose) {

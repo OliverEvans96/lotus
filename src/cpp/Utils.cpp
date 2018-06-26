@@ -122,3 +122,22 @@ double solveLinear(TH1D *hist,int bin1,int bin2,double yc)
   double xc = (yc-b)/m;
   return xc;
 }
+
+// Path operations
+
+void stripTrailingSlash(char* strippedPath, const char* path) {
+  int len = strlen(path);
+
+  strcpy(strippedPath, path);
+  if(strippedPath[len-1] == '/') {
+    // Replace with null terminator
+    strippedPath[len-1] = 0;
+  }
+}
+
+void joinPath(char* path, const char* prefix, const char* suffix) {
+  char strippedPath[256];
+  // Remove trailing slash from prefix if present
+  stripTrailingSlash(strippedPath, prefix);
+  sprintf(path, "%s/%s", strippedPath, suffix);
+}
