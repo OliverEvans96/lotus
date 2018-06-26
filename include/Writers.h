@@ -31,9 +31,9 @@ class WriterBase {
   void setOutputDir(const char* path);
   void createDataDir();
 
-  void getDefaultFmt(char* final_fmt, double* dataPtr);
-  void getDefaultFmt(char* final_fmt, int* dataPtr);
-  void getDefaultFmt(char* final_fmt, char* dataPtr);
+  void getFmtStr(char* fmt, double* dataPtr);
+  void getFmtStr(char* fmt, int* dataPtr);
+  void getFmtStr(char* fmt, char* dataPtr);
   void deleteFmtStrs();
 
   int numQuantities = 0;
@@ -71,21 +71,14 @@ class ScalarWriter : public WriterBase {
   // http://www.cplusplus.com/forum/general/114299/
   // https://stackoverflow.com/questions/10632251/undefined-reference-to-template-function
   template <typename T>
-  void addQuantity(const char* quantityName, T *dataPtr, const char* fmt=" ") {
-    char* final_fmt = new char[16];
-    // Get default format string based on variable type
-    if(strcmp(fmt, " ") == 0) {
-      getDefaultFmt(final_fmt, dataPtr);
-    }
-    else {
-      strcpy(final_fmt, fmt);
-    }
-
+  void addQuantity(const char* quantityName, T *dataPtr) {
+    char* fmt = new char[16];
     quantityNameArray.push_back(quantityName);
     openFile(quantityName);
     dataPtrArray.push_back(dataPtr);
     storeType(dataPtr);
-    fmtArray.push_back(final_fmt);
+    getFmtStr(fmt, dataPtr);
+    fmtArray.push_back(fmt);
     numQuantities++;
   }
 };
@@ -108,21 +101,15 @@ class VectorWriter : public WriterBase {
   void closeFiles();
 
   template <typename T>
-    void addQuantity(const char* quantityName, T *dataPtr, const char* fmt=" ") {
-    char* final_fmt = new char[16];
-    // Get default format string based on variable type
-    if(strcmp(fmt, " ") == 0) {
-      getDefaultFmt(final_fmt, dataPtr);
-    }
-    else {
-      strcpy(final_fmt, fmt);
-    }
+    void addQuantity(const char* quantityName, T *dataPtr) {
+    char* fmt = new char[16];
 
     quantityNameArray.push_back(quantityName);
     openFile(quantityName);
     dataPtrArray.push_back(dataPtr);
     storeType(dataPtr);
-    fmtArray.push_back(final_fmt);
+    getFmtStr(fmt, dataPtr);
+    fmtArray.push_back(fmt);
     numQuantities++;
   }
 };

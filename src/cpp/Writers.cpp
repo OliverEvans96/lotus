@@ -45,15 +45,15 @@ void WriterBase::createDataDir() {
   }
 }
 
-void WriterBase::getDefaultFmt(char* final_fmt, double* dataPtr) {
-  strcpy(final_fmt, "%-15.6f");
+void WriterBase::getFmtStr(char* fmt, double* dataPtr) {
+  strcpy(fmt, "%-15.6f");
 }
 
-void WriterBase::getDefaultFmt(char* final_fmt, int* dataPtr) {
-  strcpy(final_fmt, "%-15d");
+void WriterBase::getFmtStr(char* fmt, int* dataPtr) {
+  strcpy(fmt, "%-15d");
 }
-void WriterBase::getDefaultFmt(char* final_fmt, char* dataPtr) {
-  strcpy(final_fmt, "%-15s");
+void WriterBase::getFmtStr(char* fmt, char* dataPtr) {
+  strcpy(fmt, "%-15s");
 }
 
 
@@ -130,7 +130,7 @@ void ScalarWriter::getQuantityStr(char* quantityStr, int i) {
 void ScalarWriter::writeHeaders() {
   char headerStr[256];
   char fmtStr[16];
-  getDefaultFmt(fmtStr, headerStr);
+  getFmtStr(fmtStr, headerStr);
   strcat(fmtStr, "\n");
   for(int i=0; i<numQuantities; i++) {
     // Prepend # (comment line)
