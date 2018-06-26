@@ -371,8 +371,8 @@ void DensFigure::setStyle() {
 }
 
 void DensFigure::setValues() {
-  monoLimits[0] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
-  monoLimits[1] = dropletPtr->monolayer.zlim[1] - simDataPtr->substrateTop;
+  monoLimits[0] = dropletPtr->monolayer.zlim[0];
+  monoLimits[1] = dropletPtr->monolayer.zlim[1];
 }
 
 void DensFigure::drawHists() {
