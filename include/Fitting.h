@@ -17,6 +17,7 @@
 #include "TMinuitMinimizer.h"
 #include "Math/Functor.h"
 
+#include "Utils.h"
 #include "MDBase.h"
 #include "Parameters.h"
 
@@ -56,7 +57,6 @@ public:
 
 private:
 	//Variables
-	double PI; //Pi!
 	char* name; //Circle name
 	vector<double> x,y; //List of points
 	int n; //Number of points
@@ -64,6 +64,7 @@ private:
 	double x1,y1; //Intersection of bulk and monolayer
 	double theta; //Contact angle
 	double cosTheta; //Cos(contact angle)
+  double thetaDeg; // contact angle (degrees)
 	double height; //Droplet height at x=0
 	double m,b; //Parameters for tangent line
 	double margins[4]; //Margins of canvas

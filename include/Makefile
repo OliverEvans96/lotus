@@ -109,6 +109,7 @@ Writers.o: Utils.o
 Droplet.o: Utils.o Atoms.o Fitting.o
 Substrate.o: Utils.o Atoms.o
 Parameters.o: $(LIB)/libyaml.so Utils.o
+Fitting.o: Utils.o MDBase.o Parameters.o
 
 ###################
 # Compile libYAML #

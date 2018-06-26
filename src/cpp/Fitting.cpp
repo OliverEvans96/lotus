@@ -239,7 +239,11 @@ double CircleFit::ContactAngle() {
     if(intersected)
     {
         cosTheta=(y1-y0)/r;
-        return cosTheta;
+        cout << "PI = " << PI << endl;
+        thetaDeg = 180.0 / PI * acos(cosTheta);
+        cout << "cosTheta = " << cosTheta << endl;
+        cout << "thetaDeg = " << thetaDeg << endl;
+        return thetaDeg;
     }
 
     else

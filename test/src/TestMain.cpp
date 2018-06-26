@@ -115,8 +115,8 @@ TEST_CASE("Readers", "[lotus]") {
     REQUIRE(droplet.bulk.circle.intersected);
     REQUIRE(droplet.bulk.height > 0);
     REQUIRE(droplet.bulk.radius > 0);
-    REQUIRE(droplet.bulk.contactAngle >= -1);
-    REQUIRE(droplet.bulk.contactAngle <= 1);
+    REQUIRE(droplet.bulk.contactAngle >= 0.0);
+    REQUIRE(droplet.bulk.contactAngle <= 180.0);
     // TODO: Write frame quantities to file
     //       - rm, rb, ca, h, circle points
     // TODO: Add option to enable/disable circle fit

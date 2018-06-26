@@ -195,7 +195,7 @@ void DropletFigure::setValues() {
 
 void DropletFigure::setLegendText() {
   char str[64];
-  sprintf(str, "Contact angle: %6.2f#circ", 180.0/PI * acos(contactAngle));
+  sprintf(str, "Contact angle: %6.2f#circ", contactAngle);
   cAText->SetText(0,0,str);
   sprintf(str, "Droplet height: %6.2f", dropletHeight);
   dHText->SetText(0,0,str);
