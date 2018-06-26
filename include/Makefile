@@ -104,8 +104,8 @@ $(cpp_obj): %.o: $(SRC)/%.cpp $(INC)/%.h
 MDBase.o: Utils.o Parameters.o Time.o
 Visualization.o: Utils.o Quiver.o FieldViz.o Fitting.o Droplet.o Substrate.o
 Readers.o: Utils.o MDBase.o Atoms.o Time.o
-Atoms.o: Utils.o MDBase.o
-Writers.o: Utils.o
+Atoms.o: Utils.o MDBase.o Parameters.o
+Writers.o: Utils.o MDBase.o Parameters.o
 Droplet.o: Utils.o Atoms.o Fitting.o
 Substrate.o: Utils.o Atoms.o
 Parameters.o: $(LIB)/libyaml.so Utils.o

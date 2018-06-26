@@ -2,6 +2,7 @@
 #include "MDBase.h"
 #include "Atoms.h"
 #include "Readers.h"
+#include "Writers.h"
 #include "Droplet.h"
 #include "Substrate.h"
 #include "Visualization.h"
@@ -72,6 +73,16 @@ TEST_CASE("Readers", "[lotus]") {
 
   TanhFigure tanhFigure("tanhFigure", droplet.monolayer.tanhFit);
 
+  // TODO: Refactor
+  FrameWriter frameWriter(simData);
+  frameWriter.openFile("data.txt");
+  frameWriter.addQuantity("timestep", &dumpfileReader.frameReader.frame.time);
+  frameWriter.addQuantity("monoEdge", &droplet.monolayer.radius);
+  frameWriter.addQuantity("bulkEdge", &droplet.bulk.radius);
+  frameWriter.addQuantity("contactAngle", &droplet.bulk.contactAngle);
+  frameWriter.addQuantity("dropletHeight", &droplet.bulk.height);
+  frameWriter.writeHeader();
+
   // Time loop
   while(dumpfileReader.good()) {
     dumpfileReader.readFrame();
@@ -115,6 +126,9 @@ TEST_CASE("Readers", "[lotus]") {
     REQUIRE(droplet.bulk.contactAngle <= 180.0);
     // TODO: Write frame quantities to file
     //       - rm, rb, ca, h, circle points
+
+    frameWriter.writeFrame();
+
     // TODO: Add option to enable/disable circle fit
 
     // TODO: Clean up print statements
