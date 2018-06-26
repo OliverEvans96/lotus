@@ -637,6 +637,14 @@ void TanhFit::setFitBounds() {
   fTanh->SetParLimits(2, fitBounds[4], fitBounds[5]); //x0
 }
 
+void TanhFit::setFitType(char* _rowOrCol) {
+  strcpy(rowOrCol, _rowOrCol);
+}
+
+void TanhFit::setFitNum(int num) {
+  rowColNum = num;
+}
+
 void TanhFit::initialGuess(double _ld, double _w, double _x0) {
   // Initial guess doesn't have to be very good.
   ld = _ld;

@@ -135,6 +135,8 @@ public:
   void createFunction();
   void setHist(TH1D* _hTanh);
   void setFitBounds();
+  void setFitType(char* _rowOrCol);
+  void setFitNum(int num);
   void initialGuess(double _ld=2.0, double _w=20.0, double _x0=50.0);
   bool isEmpty();
   void solve();
@@ -144,6 +146,9 @@ public:
   double getWidth();
   double getLiquidDensity();
   SimData *simDataPtr;
+
+  char rowOrCol[4];
+  int rowColNum = 0;
 
   TF1 *fTanh;
   TH1D *hTanh;

@@ -24,6 +24,8 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
 }
 
 void Monolayer::calculateRadius() {
+  tanhFit.setFitType("mono");
+  tanhFit.setFitNum(0);
   tanhFit.solve();
   if(tanhFit.good()) {
     radius = tanhFit.getBoundary();
@@ -250,9 +252,11 @@ void CircularBulk::findBoundaryPoints() {
   // cout << "+++++++++++++++firstBulkBin+++++++++++++ = " << firstBulkBin << " @ " << &firstBulkBin << endl;
 
   // Row fits (start at first row above monolayer)
+  tanhFit.setFitType("row");
   for(int j=firstBulkBin; j<=ny; j++) {
     // cout << "j = " << j << endl;
     tanhFit.setHist(hDroplet->ProjectionX("px", j, j));
+    tanhFit.setFitNum(j);
     // cout << "solve" << endl;
     tanhFit.solve();
     // cout << "verify" << endl;
@@ -265,8 +269,10 @@ void CircularBulk::findBoundaryPoints() {
   }
 
   // Column fits
+  tanhFit.setFitType("col");
   for(int i=1; i<=nx; i++) {
     tanhFit.setHist(hDroplet->ProjectionY("py", i, i));
+    tanhFit.setFitNum(i);
     // Solve fails if droplet is not present in this row.
     tanhFit.solve();
     if(tanhFit.good()) {

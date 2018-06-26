@@ -98,6 +98,8 @@ class DropletFigure : public Figure {
 
   void setLegendText();
   void addLegendEntries();
+  void setTitle();
+  void setAxisLabels();
 
   void drawHist();
   void drawLines();
@@ -124,6 +126,9 @@ class DensFigure : public Figure {
   // TODO: Set title later
   DensFigure(string _title, Droplet &droplet, Substrate &substrate);
   ~DensFigure();
+
+  void setTitle();
+  void setAxisLabels();
   void setLineStyle();
   void setLegendStyle();
   void setStyle();
@@ -162,6 +167,9 @@ class TanhFigure : public Figure {
   double startPoint;
   double val;
 
+  char rowOrCol[4];
+  int rowColNum;
+
   static const int numLines = 3;
   static const int numTexts = 5;
 
@@ -175,7 +183,7 @@ class TanhFigure : public Figure {
   TanhFit* tanhFitPtr = NULL;
 
  public:
-  TanhFigure(string _string, TanhFit &tanhFit);
+  TanhFigure(string _title, TanhFit &tanhFit);
   ~TanhFigure();
 
   void createLines();
@@ -188,6 +196,10 @@ class TanhFigure : public Figure {
   void addLegendEntries();
   void setValues();
   void setText();
+  void setAxisLabels();
+  void updateRowCol();
+
+  void setTitle();
   void setLinePositions();
 
   void setHistStyle();

@@ -88,8 +88,8 @@ void DropletFigure::createLegend() {
 
   cAText = textBox->AddText("Contact angle");
   dHText = textBox->AddText("Droplet height");
-  bEText = textBox->AddText("Bulk edge");
-  mEText = textBox->AddText("Mono edge");
+  bEText = textBox->AddText("Bulk radius");
+  mEText = textBox->AddText("Mono radius");
   mHText = textBox->AddText("Mono top");
   mLText = textBox->AddText("mLText");
 }
@@ -113,6 +113,20 @@ void DropletFigure::deleteLegend() {
   // delete dHText;
   // delete bEText;
   // delete mEText;
+}
+
+void DropletFigure::setTitle() {
+  char title[64];
+  // Note timestep in title
+  sprintf(title, "%s, t=%08d", simDataPtr->options.dumpfile.data(), simDataPtr->framePtr->time);
+  hDroplet->SetTitle(title);
+}
+
+void DropletFigure::setAxisLabels() {
+  hDroplet->SetXTitle("r (#AA)");
+  hDroplet->SetYTitle("z (#AA)");
+  hDroplet->GetXaxis()->CenterTitle();
+  hDroplet->GetYaxis()->CenterTitle();
 }
 
 void DropletFigure::setLineStyle() {
@@ -176,28 +190,23 @@ void DropletFigure::setValues() {
   contactAngle = dropletPtr->bulk.contactAngle;
 
   monoLimits[0] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
-  monoLimits[1] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
+  monoLimits[1] = dropletPtr->monolayer.zlim[1] - simDataPtr->substrateTop;
 }
 
 void DropletFigure::setLegendText() {
-  // TODO: Do this differently (w/o ss)
-  stringstream ss;
-  //Add data text box
-  ss.str("");
-  ss << "Contact angle: " << contactAngle;
-  cAText->SetText(0,0,ss.str().data());
-  ss.str("");
-  ss << "Droplet height: " << dropletHeight;
-  dHText->SetText(0,0,ss.str().data());
-  ss.str("");
-  ss << "Bulk radius: " << bulkEdge;
-  bEText->SetText(0,0,ss.str().data());
-  ss.str("");
-  ss << "Mono top: " << monoLimits[0];
-  mLText->SetText(0,0,ss.str().data());
-  ss.str("");
-  ss << "Mono bottom: " << monoLimits[1];
-  mHText->SetText(0,0,ss.str().data());
+  char str[64];
+  sprintf(str, "Contact angle: %6.2f#circ", 180.0/PI * acos(contactAngle));
+  cAText->SetText(0,0,str);
+  sprintf(str, "Droplet height: %6.2f", dropletHeight);
+  dHText->SetText(0,0,str);
+  sprintf(str, "Bulk radius: %6.2f", bulkEdge);
+  bEText->SetText(0,0,str);
+  sprintf(str, "Mono radius: %6.2f", monoEdge);
+  mEText->SetText(0,0,str);
+  sprintf(str, "Mono bottom: %6.2f", monoLimits[0]);
+  mLText->SetText(0,0,str);
+  sprintf(str, "Mono top: %6.2f", monoLimits[1]);
+  mHText->SetText(0,0,str);
 }
 
 void DropletFigure::addLegendEntries() {
@@ -264,6 +273,8 @@ void DropletFigure::draw() {
   canvas->cd();
   setStyle();
   setLegendText();
+  setTitle();
+  setAxisLabels();
   drawHist();
   drawLines();
   drawCircle();
@@ -300,12 +311,12 @@ void DensFigure::createLines() {
 }
 
 void DensFigure::createLegend() {
-  legend = new TLegend(.75,.75,.85,.85);
+  legend = new TLegend(.65,.65,.85,.85);
 
   legend->AddEntry(hLiquidDens,"Liquid");
   legend->AddEntry(hSubstrateDens,"Substrate");
-  legend->AddEntry(monoLoLineDens,"Mono lower limit","l");
-  legend->AddEntry(monoHiLineDens,"Mono upper limit","l");
+  legend->AddEntry(monoLoLineDens,"Mono bottom","l");
+  legend->AddEntry(monoHiLineDens,"Mono top","l");
 }
 
 void DensFigure::deleteLines() {
@@ -315,6 +326,20 @@ void DensFigure::deleteLines() {
 
 void DensFigure::deleteLegend() {
   delete legend;
+}
+
+void DensFigure::setTitle() {
+  char title[64];
+  // Note timestep in title
+  sprintf(title, "%s, t=%08d", simDataPtr->options.dumpfile.data(), simDataPtr->framePtr->time);
+  hLiquidDens->SetTitle(title);
+}
+
+void DensFigure::setAxisLabels() {
+  hLiquidDens->SetXTitle("z (#AA)");
+  hLiquidDens->SetYTitle("mass density (g/cc)");
+  hLiquidDens->GetXaxis()->CenterTitle();
+  hLiquidDens->GetYaxis()->CenterTitle();
 }
 
 void DensFigure::setLineStyle() {
@@ -347,11 +372,11 @@ void DensFigure::setStyle() {
 
 void DensFigure::setValues() {
   monoLimits[0] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
-  monoLimits[1] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
+  monoLimits[1] = dropletPtr->monolayer.zlim[1] - simDataPtr->substrateTop;
 }
 
 void DensFigure::drawHists() {
-  hLiquidDens->Draw("hist same");
+  hLiquidDens->Draw("hist");
   hSubstrateDens->Draw("hist same"); //Same canvas
 }
 
@@ -372,6 +397,8 @@ void DensFigure::draw() {
   setValues();
   canvas->cd();
   setStyle();
+  setTitle();
+  setAxisLabels();
   drawHists();
   drawLines();
   drawLegend();
@@ -439,6 +466,33 @@ void TanhFigure::addLegendEntries() {
   legend->AddEntry(ldLine,"ld","l");
   legend->AddEntry(halfLdLine,"ld/2","l");
   legend->AddEntry(x0Line,"x0","l");
+}
+
+void TanhFigure::setAxisLabels() {
+  // col fit
+  if(strcmp(rowOrCol, "col") == 0) {
+    tanhFitPtr->hTanh->SetXTitle("z (#AA)");
+  }
+  // row fit
+  else {
+    tanhFitPtr->hTanh->SetXTitle("r (#AA)");
+  }
+  tanhFitPtr->hTanh->SetYTitle("mass density (g/cc)");
+  tanhFitPtr->hTanh->GetXaxis()->CenterTitle();
+  tanhFitPtr->hTanh->GetYaxis()->CenterTitle();
+}
+
+void TanhFigure::updateRowCol() {
+  strcpy(rowOrCol, tanhFitPtr->rowOrCol);
+  rowColNum = tanhFitPtr->rowColNum;
+}
+
+void TanhFigure::setTitle() {
+  char title[64];
+  // Note timestep in title
+  // TODO: Actually set rowOrCol and rowColNum.
+  sprintf(title, "%s %s %d, t=%08d", simDataPtr->options.dumpfile.data(), rowOrCol, rowColNum, simDataPtr->framePtr->time);
+  tanhFitPtr->hTanh->SetTitle(title);
 }
 
 void TanhFigure::setValues() {
@@ -569,6 +623,9 @@ void TanhFigure::drawLegend() {
 void TanhFigure::draw() {
   setValues();
   setText();
+  updateRowCol();
+  setAxisLabels();
+  setTitle();
   setLinePositions();
 
   canvas->cd();
