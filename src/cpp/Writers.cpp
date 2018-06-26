@@ -74,8 +74,6 @@ void FrameWriter::deleteFmtStrs() {
 }
 
 void FrameWriter::getQuantityStr(char* quantityStr, int i) {
-  cout << "t[" << i << "] = '" << typeArray[i] << "'" << endl;
-  cout << "f[" << i << "] = '" << fmtArray[i] << "'" << endl;
   if(typeArray[i] == 'd') {
     sprintf(quantityStr, fmtArray[i], *((double*) dataPtrArray[i]));
   }
@@ -88,9 +86,7 @@ void FrameWriter::concatenateQuantityStrs() {
   char quantityStr[256];
   line[0] = 0;
   for(int i=0; i<numQuantities; i++) {
-    cout << "q=" << quantityNameArray[i] << endl;
     getQuantityStr(quantityStr, i);
-    cout << "qs='" << quantityStr << "'" << endl;
     strcat(line, quantityStr);
   }
 }
@@ -111,5 +107,4 @@ void FrameWriter::writeHeader() {
 void FrameWriter::writeFrame() {
   concatenateQuantityStrs();
   fprintf(file, "%s\n", line);
-  printf("Line = '%s'\n", line);
 }

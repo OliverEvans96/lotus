@@ -60,14 +60,10 @@ class FrameWriter
       strcpy(final_fmt, fmt);
     }
 
-    cout << "QN = " << quantityName << endl;
-    cout << "final_fmt = '" << final_fmt << "'" << endl;
-
     quantityNameArray.push_back(quantityName);
     dataPtrArray.push_back(dataPtr);
     storeType(dataPtr);
     fmtArray.push_back(final_fmt);
-    cout << "fmt_arr[" << fmtArray.size()-1 << "] = '" << fmtArray[fmtArray.size()-1] << "'" << endl;
     numQuantities++;
   }
 
