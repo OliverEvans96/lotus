@@ -52,12 +52,12 @@ void Figure::getFilename(char* filename, const char* suffix) {
 void Figure::createDirBase(const char* subdir) {
   char outerDir[256];
   char innerDir[256];
+  joinPath(outerDir, outputDir, subdir);
   if(!dir_exists(outerDir)) {
-    joinPath(outerDir, outputDir, subdir);
     mkdir(outerDir, S_IRWXU);
   }
+  joinPath(innerDir, outerDir, title.data());
   if(!dir_exists(innerDir)) {
-    joinPath(innerDir, outerDir, title.data());
     mkdir(innerDir, S_IRWXU);
   }
 }
