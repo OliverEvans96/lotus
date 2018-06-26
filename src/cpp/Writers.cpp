@@ -5,10 +5,17 @@
 // Writers //
 /////////////
 
-FrameWriter::FrameWriter(SimData &simData) {
-  simDataPtr = &simData;
+FrameWriter::FrameWriter(char* filename, DumpfileReader &dumpfileReader, Droplet &droplet) {
+  dumpfileReaderPtr = &dumpfileReader;
+  dropletPtr = &droplet;
+  simDataPtr = dumpfileReaderPtr->simDataPtr;
   options = simDataPtr->options;
+
   setOutputDir(options.outLoc.data());
+  openFile(filename);
+
+  setOutputQuantities();
+  writeHeader();
 }
 FrameWriter::~FrameWriter() {
   closeFile();
@@ -44,6 +51,16 @@ void FrameWriter::setOutputDir(char* path) {
   if(options.verbose) {
     cout << "Set output dir '" << outputDir << "'" << endl;
   }
+}
+
+// Choose which quantities are written to the main results file
+// A quantity name and pointer to the quantity are given for each
+void FrameWriter::setOutputQuantities() {
+  addQuantity("timestep", &dumpfileReaderPtr->frameReader.frame.time);
+  addQuantity("monoEdge", &dropletPtr->monolayer.radius);
+  addQuantity("bulkEdge", &dropletPtr->bulk.radius);
+  addQuantity("contactAngle", &dropletPtr->bulk.contactAngle);
+  addQuantity("dropletHeight", &dropletPtr->bulk.height);
 }
 
 void FrameWriter::openFile(char* _path) {

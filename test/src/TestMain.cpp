@@ -73,15 +73,7 @@ TEST_CASE("Readers", "[lotus]") {
 
   TanhFigure tanhFigure("tanhFigure", droplet.monolayer.tanhFit);
 
-  // TODO: Refactor
-  FrameWriter frameWriter(simData);
-  frameWriter.openFile("results.txt");
-  frameWriter.addQuantity("timestep", &dumpfileReader.frameReader.frame.time);
-  frameWriter.addQuantity("monoEdge", &droplet.monolayer.radius);
-  frameWriter.addQuantity("bulkEdge", &droplet.bulk.radius);
-  frameWriter.addQuantity("contactAngle", &droplet.bulk.contactAngle);
-  frameWriter.addQuantity("dropletHeight", &droplet.bulk.height);
-  frameWriter.writeHeader();
+  FrameWriter frameWriter("results.txt", dumpfileReader, droplet);
 
   // Time loop
   while(dumpfileReader.good()) {

@@ -5,6 +5,9 @@
 #include "Utils.h"
 #include "MDBase.h"
 #include "Parameters.h"
+#include "Droplet.h"
+#include "Substrate.h"
+#include "Readers.h"
 
 using namespace std;
 
@@ -17,6 +20,8 @@ class FrameWriter
   char outputDir[256];
   char path[256];
   FILE* file;
+  DumpfileReader *dumpfileReaderPtr;
+  Droplet *dropletPtr;
   SimData *simDataPtr;
   Options options;
 
@@ -36,9 +41,11 @@ class FrameWriter
   void joinPath(char* path, char* prefix, char* suffix);
 
  public:
-  FrameWriter(SimData &simData);
+  FrameWriter(char* filename, DumpfileReader &dumpfileReader, Droplet &droplet);
   ~FrameWriter();
+
   void setOutputDir(char* path);
+  void setOutputQuantities();
   void openFile(char* filename);
   void closeFile();
 
