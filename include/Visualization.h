@@ -43,9 +43,17 @@ class Figure {
   void createCanvas();
   void setCanvasStyle();
   void setOutputDir(const char* path);
+  void getFilename(char* filename, const char* suffix);
+
+  void createDirBase(const char* subdir);
+  void createImageDir();
+  void createROOTDir();
+  void createDirs();
+
+  void saveBase(const char* subdir, const char* suffix);
   void saveImage();
   void saveROOT();
-  void save(const char* filename);
+  void save();
 };
 
 class DropletFigure : public Figure {

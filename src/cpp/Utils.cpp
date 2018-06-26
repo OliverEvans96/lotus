@@ -66,6 +66,12 @@ bool file_exists(const string& name) {
   return (stat (name.c_str(), &buffer) == 0);
 }
 
+// https://stackoverflow.com/questions/3828192/checking-if-a-directory-exists-in-unix-system-call
+bool dir_exists(const char* pathname) {
+  struct stat sb;
+  return (stat(pathname, &sb) == 0 && S_ISDIR(sb.st_mode));
+}
+
 //round up to nearest multiple of a number
 int roundUp(int numToRound, int multiple) {
   if (multiple == 0)

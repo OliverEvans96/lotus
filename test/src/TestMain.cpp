@@ -65,14 +65,9 @@ TEST_CASE("Readers", "[lotus]") {
   Substrate substrate(atoms, 5);
   Droplet droplet(atoms);
 
-  char filename[100];
-
-  DensFigure densFigure("testDensFig", droplet, substrate);
-
-  DropletFigure dropletFigure("testHistFig", droplet);
-
-  TanhFigure tanhFigure("tanhFigure", droplet.monolayer.tanhFit);
-
+  DensFigure densFigure("dens", droplet, substrate);
+  DropletFigure dropletFigure("droplet", droplet);
+  TanhFigure tanhFigure("tanh", droplet.monolayer.tanhFit);
   FrameWriter frameWriter("results.txt", dumpfileReader, droplet);
 
   // Time loop
@@ -88,7 +83,7 @@ TEST_CASE("Readers", "[lotus]") {
 
     // TODO: Save image
     densFigure.draw();
-    densFigure.save("dens.png");
+    densFigure.save();
 
     droplet.monolayer.fill(atoms);
     REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
@@ -97,7 +92,7 @@ TEST_CASE("Readers", "[lotus]") {
     droplet.monolayer.calculateRadius();
 
     tanhFigure.draw();
-    tanhFigure.save("mono_tanh.png");
+    tanhFigure.save();
 
     REQUIRE(droplet.monolayer.radius > 0);
 
@@ -105,7 +100,7 @@ TEST_CASE("Readers", "[lotus]") {
 
     // TODO: Draw droplet figure
     dropletFigure.draw();
-    dropletFigure.save("droplet.png");
+    dropletFigure.save();
 
 
     REQUIRE(droplet.bulk.gCirclePoints->GetN() > 0);
@@ -126,13 +121,6 @@ TEST_CASE("Readers", "[lotus]") {
     // TODO: Clean up print statements
 
     // REQUIRE(file_exists("out.png"));
-
-    // sprintf(filename, "substrate_density%d.png", dumpfileReader.frameNum);
-    // substrate.plotDensity(filename);
-
-    // sprintf(filename, "droplet_density%d.png", dumpfileReader.frameNum);
-    // droplet.plotDensity(filename);
-
   }
 }
 

@@ -5,12 +5,14 @@
 // Visualization //
 ///////////////////
 
+// Create figure. title must be unique among all Figures.
 Figure::Figure(const string _title, SimData &simData) {
   title = _title;
   simDataPtr = &simData;
   options = simDataPtr->options;
 
   setOutputDir(options.outLoc.data());
+  createDirs();
   createCanvas();
   setCanvasStyle();
 }
@@ -40,11 +42,71 @@ void Figure::setOutputDir(const char* path) {
   strcpy(outputDir, path);
 }
 
-void Figure::save(const char* filename) {
+// Get filename, composed from title and timestep
+void Figure::getFilename(char* filename, const char* suffix) {
+  // suffix determines file type (e.g. "png", "C")
+  sprintf(filename, "%08d.%s", simDataPtr->framePtr->time, suffix);
+}
+
+// Create `outputDir`/`subdir`/`title`
+void Figure::createDirBase(const char* subdir) {
+  char outerDir[256];
+  char innerDir[256];
+  if(!dir_exists(outerDir)) {
+    joinPath(outerDir, outputDir, subdir);
+    mkdir(outerDir, S_IRWXU);
+  }
+  if(!dir_exists(innerDir)) {
+    joinPath(innerDir, outerDir, title.data());
+    mkdir(innerDir, S_IRWXU);
+  }
+}
+
+void Figure::createImageDir() {
+  createDirBase("img");
+}
+
+void Figure::createROOTDir() {
+  createDirBase("root");
+}
+
+void Figure::createDirs() {
+  if(options.saveImages)
+    createImageDir();
+  if(options.saveROOT)
+    createROOTDir();
+}
+
+// Save to `outputDir`/`subdir`/`title`/`timestep`.`suffix`
+void Figure::saveBase(const char* subdir, const char* suffix) {
+  char filename[256];
+  char outerDir[256];
+  char innerDir[256];
   char path[256];
-  joinPath(path, outputDir, filename);
+
+  getFilename(filename, suffix);
+  joinPath(outerDir, outputDir, subdir);
+  joinPath(innerDir, outerDir, title.data());
+  joinPath(path, innerDir, filename);
   canvas->SaveAs(path);
-  cout << "saved canvas " << canvas << " @ " << path << endl;
+  if(options.verbose)
+    cout << "saved canvas " << canvas << " @ '" << path << "'" << endl;
+}
+
+
+void Figure::saveImage() {
+  saveBase("img", "png");
+}
+
+void Figure::saveROOT() {
+  saveBase("root", "C");
+}
+
+void Figure::save() {
+  if(options.saveImages)
+    saveImage();
+  if(options.saveROOT)
+    saveROOT();
 }
 
 DropletFigure::DropletFigure(const string _title, Droplet &droplet) : Figure(_title, *droplet.simDataPtr){

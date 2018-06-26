@@ -54,6 +54,7 @@ bool isIn(string str, string substr);
 
 //Check whether a file exists
 bool file_exists(const string& name);
+bool dir_exists(const char* pathname);
 
 //round up to nearest multiple of a number
 int roundUp(int numToRound, int multiple);
