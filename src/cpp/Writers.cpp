@@ -257,7 +257,7 @@ void ArrayWriter::writeQuantityFile(int quantityNum) {
   getFilePath(filePath, quantityNameArray[quantityNum]);
   FILE* file = fopen(filePath, "w");
   if(options.verbose) {
-    cout << "Opened file '" << path << "' for array writing." << endl;
+    cout << "Opened file '" << filePath << "' for array writing." << endl;
   }
   writeHeader(file, quantityNum);
   for(int i=0; i<numRows; i++) {
