@@ -32,8 +32,9 @@ CXX=g++
 ROOT_LINK=`root-config --glibs --cflags` -lMathMore -lMinuit
 ROOT_INC=`root-config --cflags`
 # Specify rpath for custom shared library path
-CFLAGS=$(ROOT_INC) -I$(INC) -L$(LIB) -lyaml -Wl,-rpath=$(LIB) -g #-w
-TESTFLAGS=-I$(TEST_INC) $(ROOT_LINK)
+CFLAGS=$(ROOT_INC) -I$(INC) -g #-w
+LINKFLAGS=$(ROOT_LINK) -L$(LIB) -lyaml -Wl,-rpath=$(LIB) 
+TESTFLAGS=-I$(TEST_INC) $(LINKFLAGS)
 
 # Test data file
 testdata_zipped=$(wildcard $(DATA)/*.tar.gz)
@@ -132,7 +133,7 @@ $(LIB)/libyaml.so:
 ###############
 
 $(main_bin): $(main_src) $(cpp_obj)
-	$(CXX) -o $(BIN)/$@ $^ $(ROOT_LINK) $(CFLAGS)
+	$(CXX) -o $(BIN)/$@ $^ $(LINKFLAGS) $(CFLAGS)
 
 ########
 # DATA #
