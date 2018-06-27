@@ -99,7 +99,7 @@ class ArrayWriter : public WriterBase {
 
   vector<int> numColumnsArray;
   vector<int*> lengthPtrArray;
-  vector<const char**> headersArray;
+  vector<char**> headersArray;
   DumpfileReader *dumpfileReaderPtr;
   Droplet *dropletPtr;
 
@@ -110,7 +110,7 @@ class ArrayWriter : public WriterBase {
   void writeFrame();
 
   template <typename T>
-  void addQuantity(const char* quantityName, T **dataPtr, int *lengthPtr, const char** headers, int numColumns) {
+  void addQuantity(const char* quantityName, T **dataPtr, int *lengthPtr, char** headers, int numColumns) {
     char* fmt = new char[16];
 
     quantityNameArray.push_back(quantityName);
