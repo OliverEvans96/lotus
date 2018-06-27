@@ -704,16 +704,20 @@ void DumpfileReader::countSteps()
   int lineNum=0;
   int pos;
 
+  cout << "Counting timesteps" << endl;
+
+  // 9 lines for header, rest are atoms
+  int linesPerStep = simDataPtr->numAtoms + 9;
+
   streamPtr = &frameReader.inputStream.stream;
   pos = streamPtr->tellg();
 
   //Count number of timesteps
-  while(getline(*streamPtr,line))
-    {
-      if(isIn("TIMESTEP", line)) {
-        numSteps++;
-      }
-    }
+  while(getline(*streamPtr,line)) {
+      lineNum++;
+  }
+
+  numSteps = lineNum / linesPerStep;
 
   //Unset eof flag (if set) & return to beginning of file
   streamPtr->clear();
