@@ -46,19 +46,22 @@ void WriterBase::createDataDir() {
 }
 
 void WriterBase::getFmtStr(char* fmt, double* dataPtr) {
-  char lj[1];
+  char lj[2];
   lj[0] = leftJustify ? '-' : '\0';
+  lj[1] = 0;
   sprintf(fmt, "%%%s%d.%d%s", lj, COL_WIDTH, PRECISION, "f");
 }
 
 void WriterBase::getFmtStr(char* fmt, int* dataPtr) {
-  char lj[1];
+  char lj[2];
   lj[0] = leftJustify ? '-' : '\0';
+  lj[1] = 0;
   sprintf(fmt, "%%%s%d%s", lj, COL_WIDTH, "d");
 }
 void WriterBase::getFmtStr(char* fmt, char* dataPtr) {
-  char lj[1];
+  char lj[2];
   lj[0] = leftJustify ? '-' : '\0';
+  lj[1] = 0;
   sprintf(fmt, "%%%s%d%s", lj, COL_WIDTH, "s");
 }
 
@@ -135,7 +138,6 @@ void ScalarWriter::getQuantityStr(char* quantityStr, int i) {
     sprintf(quantityStr, fmtArray[i], *((double*) dataPtrArray[i]));
   }
   else if(typeArray[i] == 'i') {
-    cout << "fmtArray[i] = '" << fmtArray[i] << "'" << endl;
     sprintf(quantityStr, fmtArray[i], *((int*) dataPtrArray[i]));
   }
 }
