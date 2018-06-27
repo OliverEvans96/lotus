@@ -43,7 +43,7 @@ void AtomArray::allocateArrays() {
     if(simDataPtr->options.verbose) {
       cout << "lastFrame.numSteps = " << simDataPtr->lastFrame.numSteps << endl;
       cout << "Allocating arrays of size " << arraySize;
-      printf(" (%8.4f GB)\n", arraySize/pow(2,27)*3);
+      printf(" (%8.4f GB)\n", arraySize/pow(2.0,27)*3);
     }
 
 
