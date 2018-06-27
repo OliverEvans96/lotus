@@ -43,6 +43,10 @@ struct Options
   double plot_aspect;
   int plot_width;
   double expectedLiquidDensity;
+  bool monolayer;
+  bool substrate;
+  bool fitCircle;
+  double z_interface;
 
   vector<int> liquidTypes, solidTypes;
 

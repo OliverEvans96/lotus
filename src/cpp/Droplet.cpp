@@ -678,19 +678,24 @@ void Droplet::dropletCalculations() {
   double chi2;
   double monoTop;
 
-  // Get circle
-  bulk.findBoundaryPoints();
-  // bulk.findBoundaryPoints(hDroplet, bulk.gCirclePoints, "a", monolayer.zlim, monolayer.hMono, rBulkMax, monolayer.radius, bulk.radius, /*unnecessary*/simDataPtr->framePtr->frameStep, /*legend*/(TLegend*)NULL, (TLine**)/*tanhLines*/NULL, (TText**)/*tanhTexts*/NULL, (TPaveText*)/*tanhTextBox*/NULL);
-  chi2 = bulk.fitCircle(bulk.gCirclePoints, bulk.circle, rBulkMax, simDataPtr->framePtr->time);
-
   // Bulk radius is the intersection of circle with top of monolayer
   // (relative to top of substrate)
-  monoTop = monolayer.zlim[1] - simDataPtr->substrateTop;
+  if(options.monolayer) {
+    monoTop = monolayer.zlim[1] - simDataPtr->substrateTop;
+  }
+
+  // Get circle
+  bulk.findBoundaryPoints();
+  if(options.fitCircle) {
+    chi2 = bulk.fitCircle(bulk.gCirclePoints, bulk.circle, rBulkMax, simDataPtr->framePtr->time);
+
+    bulk.radius = bulk.circle.Intersect(monoTop);
+    bulk.contactAngle = bulk.circle.ContactAngle();
+    bulk.height = bulk.circle.Height();
+  }
+
   cout << "monoTop = " << monoTop << endl;
-  bulk.radius = bulk.circle.Intersect(monoTop);
   cout << "radius = " << bulk.radius << endl;
-  bulk.contactAngle = bulk.circle.ContactAngle();
   cout << "contactAngle = " << bulk.contactAngle << endl;
-  bulk.height = bulk.circle.Height();
   cout << "height = " << bulk.height << endl;
 }

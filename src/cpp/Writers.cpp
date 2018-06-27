@@ -120,10 +120,14 @@ void ScalarWriter::closeFiles() {
 // A quantity name and pointer to the quantity are given for each
 void ScalarWriter::setOutputQuantities() {
   addQuantity("timestep", &dumpfileReaderPtr->frameReader.frame.time);
-  addQuantity("monoEdge", &dropletPtr->monolayer.radius);
-  addQuantity("bulkEdge", &dropletPtr->bulk.radius);
-  addQuantity("contactAngle", &dropletPtr->bulk.contactAngle);
-  addQuantity("dropletHeight", &dropletPtr->bulk.height);
+  if(options.monolayer) {
+    addQuantity("monoEdge", &dropletPtr->monolayer.radius);
+  }
+  if(options.fitCircle) {
+    addQuantity("bulkEdge", &dropletPtr->bulk.radius);
+    addQuantity("contactAngle", &dropletPtr->bulk.contactAngle);
+    addQuantity("dropletHeight", &dropletPtr->bulk.height);
+  }
 }
 
 void ScalarWriter::getQuantityStr(char* quantityStr, int i) {

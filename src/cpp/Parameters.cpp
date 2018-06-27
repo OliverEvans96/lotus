@@ -174,6 +174,10 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("plot_aspect", plot_aspect, 1.0);
   parseDefaultOption("plot_width", plot_width, 800);
   parseDefaultOption("expectedLiquidDensity", expectedLiquidDensity, 1.0);
+  parseDefaultOption("monolayer", monolayer, true);
+  parseDefaultOption("substrate", substrate, true);
+  parseDefaultOption("fitCircle", fitCircle, true);
+  parseDefaultOption("z_interface", z_interface, 0.0);
 
   // Set ROOT verbosity
   if(verbose) {
@@ -233,6 +237,10 @@ void Options::printOptions() {
   printOption("plot_aspect", plot_aspect);
   printOption("plot_width", plot_width);
   printOption("expectedLiquidDensity", expectedLiquidDensity);
+  printOption("monolayer", monolayer);
+  printOption("substrate", substrate);
+  printOption("fitCircle", fitCircle);
+  printOption("z_interface", z_interface);
 }
 
 CommandLineParser::CommandLineParser(int argc, const char* argv[]) {

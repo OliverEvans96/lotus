@@ -76,64 +76,52 @@ TEST_CASE("Readers", "[lotus]") {
   // Time loop
   while(dumpfileReader.good()) {
     dumpfileReader.readFrame();
-    substrate.fill(atoms);
-    // REQUIRE(abs(substrate.getMass() - SUBSTRATE_MASS) < 1e-3*SUBSTRATE_MASS);
-    droplet.fill(atoms);
-    // REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 1e-3*DROPLET_MASS);
-    // This is just mass in cylinder, not total
-    // TODO: Fill monolayer
-    droplet.findMonolayer();
 
-    // TODO: Save image
+    if(options.substrate) {
+      substrate.fill(atoms);
+    }
+    droplet.fill(atoms);
+
+    // TODO: Re-enable this test
+    // REQUIRE(abs(substrate.getMass() - SUBSTRATE_MASS) < 1e-3*SUBSTRATE_MASS);
+    // REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 1e-3*DROPLET_MASS);
+
+    if(options.monolayer) {
+      droplet.findMonolayer();
+      droplet.monolayer.fill(atoms);
+      REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
+      REQUIRE(droplet.monolayer.zlim[1] - droplet.monolayer.zlim[0] > 0);
+
+      droplet.monolayer.calculateRadius();
+      REQUIRE(droplet.monolayer.radius > 0);
+    }
+
+    droplet.dropletCalculations();
+
     densFigure.draw();
     densFigure.save();
-
-    droplet.monolayer.fill(atoms);
-    REQUIRE(droplet.monolayer.hMono->GetEntries() > 0);
-    REQUIRE(droplet.monolayer.zlim[1] - droplet.monolayer.zlim[0] > 0);
-
-    droplet.monolayer.calculateRadius();
 
     tanhFigure.draw();
     tanhFigure.save();
 
-    REQUIRE(droplet.monolayer.radius > 0);
-
-    droplet.dropletCalculations();
-
-    // TODO: Draw droplet figure
     dropletFigure.draw();
     dropletFigure.save();
-
 
     REQUIRE(droplet.bulk.gCirclePoints->GetN() > 0);
     REQUIRE(droplet.bulk.circle.GetNumPoints() > 0);
 
-    REQUIRE(droplet.bulk.circle.intersected);
-    REQUIRE(droplet.bulk.height > 0);
-    REQUIRE(droplet.bulk.radius > 0);
-    REQUIRE(droplet.bulk.contactAngle >= 0.0);
-    REQUIRE(droplet.bulk.contactAngle <= 180.0);
-    // TODO: Write frame quantities to file
-    //       - rm, rb, ca, h, circle points
+    if(options.fitCircle) {
+      REQUIRE(droplet.bulk.circle.intersected);
+      REQUIRE(droplet.bulk.height > 0);
+      REQUIRE(droplet.bulk.radius > 0);
+      REQUIRE(droplet.bulk.contactAngle >= 0.0);
+      REQUIRE(droplet.bulk.contactAngle <= 180.0);
+    }
 
     scalarWriter.writeFrame();
-    cout << "~~~TEST BPA~~~ @ " << endl;
-    cout << droplet.bulk.boundaryPointsArray << endl;
-    cout << droplet.bulk.boundaryPointsArray[0][0] << " ";
-    cout << droplet.bulk.boundaryPointsArray[1][0] << endl;
-    cout << droplet.bulk.boundaryPointsArray[0][1] << " ";
-    cout << droplet.bulk.boundaryPointsArray[1][1] << endl;
-    cout << droplet.bulk.boundaryPointsArray[0][2] << " ";
-    cout << droplet.bulk.boundaryPointsArray[1][2] << endl;
-    cout << droplet.bulk.boundaryPointsArray[0][3] << " ";
-    cout << droplet.bulk.boundaryPointsArray[1][3] << endl;
     arrayWriter.writeFrame();
 
-    // TODO: Add option to enable/disable circle fit
-
-    // TODO: Clean up print statements
-
+    // TODO: Writer tests
     // REQUIRE(file_exists("out.png"));
   }
 }

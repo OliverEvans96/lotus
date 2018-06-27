@@ -140,55 +140,70 @@ DropletFigure::~DropletFigure() {
 }
 
 void DropletFigure::createLines() {
-  //Bulk & Mono radius vertical lines
-  bulkEdgeLine = new TLine(xlo,ylo,xlo,yhi); //Bulk edge
-  monoEdgeLine = new TLine(xlo,ylo,xlo,yhi); //Mono edge
-  heightLine = new TLine(xlo,ylo,xhi,ylo); //Droplet height
-  monoHiLine = new TLine(xlo,ylo,xhi,ylo); //top of monolayer
-  monoLoLine = new TLine(xlo,ylo,xhi,ylo); //bottom of monolayer
+  if(options.fitCircle) {
+    bulkEdgeLine = new TLine(xlo,ylo,xlo,yhi); //Bulk edge
+    heightLine = new TLine(xlo,ylo,xhi,ylo); //Droplet height
+  }
+  if(options.monolayer) {
+    monoEdgeLine = new TLine(xlo,ylo,xlo,yhi); //Mono edge
+    monoHiLine = new TLine(xlo,ylo,xhi,ylo); //top of monolayer
+    monoLoLine = new TLine(xlo,ylo,xhi,ylo); //bottom of monolayer
+  }
 }
 
 void DropletFigure::createCircle() {
-  eCircle = new TEllipse();
+  if(options.fitCircle) {
+    eCircle = new TEllipse();
+  }
 }
 
 void DropletFigure::createLegend() {
   legend = new TLegend(.65,.65,.85,.85);
   textBox = new TPaveText();
 
-  legend->AddEntry(bulkEdgeLine, "bulk radius", "l");
-  legend->AddEntry(monoEdgeLine, "mono radius", "l");
-  legend->AddEntry(monoHiLine, "mono top", "l");
-  legend->AddEntry(monoLoLine, "mono bottom", "l");
-  legend->AddEntry(heightLine, "height", "l");
+  if(options.fitCircle) {
+    legend->AddEntry(bulkEdgeLine, "bulk radius", "l");
+    legend->AddEntry(heightLine, "height", "l");
 
-  cAText = textBox->AddText("Contact angle");
-  dHText = textBox->AddText("Droplet height");
-  bEText = textBox->AddText("Bulk radius");
-  mEText = textBox->AddText("Mono radius");
-  mHText = textBox->AddText("Mono top");
-  mLText = textBox->AddText("mLText");
+    cAText = textBox->AddText("Contact angle");
+    dHText = textBox->AddText("Droplet height");
+    bEText = textBox->AddText("Bulk radius");
+  }
+
+  if(options.monolayer) {
+    legend->AddEntry(monoEdgeLine, "mono radius", "l");
+    legend->AddEntry(monoHiLine, "mono top", "l");
+    legend->AddEntry(monoLoLine, "mono bottom", "l");
+
+    mEText = textBox->AddText("Mono radius");
+    mHText = textBox->AddText("Mono top");
+    mLText = textBox->AddText("mLText");
+  }
+
 }
 
 void DropletFigure::deleteLines() {
-  delete bulkEdgeLine;
-  delete monoEdgeLine;
-  delete heightLine;
-  delete monoHiLine;
-  delete monoLoLine;
+  if(options.fitCircle) {
+    delete bulkEdgeLine;
+    delete heightLine;
+  }
+
+  if(options.monolayer) {
+    delete monoEdgeLine;
+    delete monoHiLine;
+    delete monoLoLine;
+  }
 }
 
 void DropletFigure::deleteCircle() {
-  delete eCircle;
+  if(options.fitCircle) {
+    delete eCircle;
+  }
 }
 
 void DropletFigure::deleteLegend() {
   delete legend;
   delete textBox;
-  // delete cAText;
-  // delete dHText;
-  // delete bEText;
-  // delete mEText;
 }
 
 void DropletFigure::setTitle() {
@@ -207,20 +222,24 @@ void DropletFigure::setAxisLabels() {
 
 void DropletFigure::setLineStyle() {
   //Line properties
-  bulkEdgeLine->SetLineWidth(3);
-  bulkEdgeLine->SetLineColor(kGreen);
-  monoEdgeLine->SetLineWidth(3);
-  monoEdgeLine->SetLineColor(kRed);
+  if(options.fitCircle) {
+    bulkEdgeLine->SetLineWidth(3);
+    bulkEdgeLine->SetLineColor(kGreen);
+    heightLine->SetLineWidth(3);
+    heightLine->SetLineColor(kOrange+3); // Brown
+  }
 
-  heightLine->SetLineWidth(3);
-  heightLine->SetLineColor(kOrange+3); // Brown
+  if(options.monolayer) {
+    monoEdgeLine->SetLineWidth(3);
+    monoEdgeLine->SetLineColor(kRed);
 
-  monoHiLine->SetLineWidth(3);
-  monoHiLine->SetLineColor(kBlue);
-  monoHiLine->SetLineStyle(9);
-  monoLoLine->SetLineWidth(3);
-  monoLoLine->SetLineColor(kBlue);
-  monoLoLine->SetLineStyle(2);
+    monoHiLine->SetLineWidth(3);
+    monoHiLine->SetLineColor(kBlue);
+    monoHiLine->SetLineStyle(9);
+    monoLoLine->SetLineWidth(3);
+    monoLoLine->SetLineColor(kBlue);
+    monoLoLine->SetLineStyle(2);
+  }
 }
 
 void DropletFigure::setHistStyle() {
@@ -232,8 +251,10 @@ void DropletFigure::setHistStyle() {
 }
 
 void DropletFigure::setCircleStyle() {
-  eCircle->SetLineWidth(2);
-  eCircle->SetFillStyle(0);
+  if(options.fitCircle) {
+    eCircle->SetLineWidth(2);
+    eCircle->SetFillStyle(0);
+  }
 }
 
 void DropletFigure::setGraphStyle() {
@@ -260,39 +281,53 @@ void DropletFigure::setStyle() {
 }
 
 void DropletFigure::setValues() {
-  bulkEdge = dropletPtr->bulk.radius;
-  monoEdge = dropletPtr->monolayer.radius;
-  dropletHeight = dropletPtr->bulk.height;
-  contactAngle = dropletPtr->bulk.contactAngle;
+  if(options.fitCircle) {
+    bulkEdge = dropletPtr->bulk.radius;
+    monoEdge = dropletPtr->monolayer.radius;
+    dropletHeight = dropletPtr->bulk.height;
+    contactAngle = dropletPtr->bulk.contactAngle;
+  }
 
-  monoLimits[0] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
-  monoLimits[1] = dropletPtr->monolayer.zlim[1] - simDataPtr->substrateTop;
+  if(options.monolayer) {
+    monoLimits[0] = dropletPtr->monolayer.zlim[0] - simDataPtr->substrateTop;
+    monoLimits[1] = dropletPtr->monolayer.zlim[1] - simDataPtr->substrateTop;
+  }
 }
 
 void DropletFigure::setLegendText() {
   char str[64];
-  sprintf(str, "Contact angle: %6.2f#circ", contactAngle);
-  cAText->SetText(0,0,str);
-  sprintf(str, "Droplet height: %6.2f", dropletHeight);
-  dHText->SetText(0,0,str);
-  sprintf(str, "Bulk radius: %6.2f", bulkEdge);
-  bEText->SetText(0,0,str);
-  sprintf(str, "Mono radius: %6.2f", monoEdge);
-  mEText->SetText(0,0,str);
-  sprintf(str, "Mono bottom: %6.2f", monoLimits[0]);
-  mLText->SetText(0,0,str);
-  sprintf(str, "Mono top: %6.2f", monoLimits[1]);
-  mHText->SetText(0,0,str);
+  if(options.fitCircle) {
+    sprintf(str, "Contact angle: %6.2f#circ", contactAngle);
+    cAText->SetText(0,0,str);
+    sprintf(str, "Droplet height: %6.2f", dropletHeight);
+    dHText->SetText(0,0,str);
+    sprintf(str, "Bulk radius: %6.2f", bulkEdge);
+    bEText->SetText(0,0,str);
+  }
+
+  if(options.monolayer) {
+    sprintf(str, "Mono radius: %6.2f", monoEdge);
+    mEText->SetText(0,0,str);
+    sprintf(str, "Mono bottom: %6.2f", monoLimits[0]);
+    mLText->SetText(0,0,str);
+    sprintf(str, "Mono top: %6.2f", monoLimits[1]);
+    mHText->SetText(0,0,str);
+  }
 }
 
 void DropletFigure::addLegendEntries() {
   legend->AddEntry(gCirclePoints,"Droplet boundary","lp");
-  legend->AddEntry(bulkEdgeLine,"Bulk radius","l");
-  legend->AddEntry(monoEdgeLine,"Mono radius","l");
-  legend->AddEntry(heightLine,"Droplet height","l");
-  legend->AddEntry(monoHiLine,"Mono top","l");
-  legend->AddEntry(monoLoLine,"Mono bottom","l");
-  legend->AddEntry(tangentLine,"Tangent line","l");
+  if(options.fitCircle) {
+    legend->AddEntry(bulkEdgeLine,"Bulk radius","l");
+    legend->AddEntry(heightLine,"Droplet height","l");
+    legend->AddEntry(tangentLine,"Tangent line","l");
+  }
+
+  if(options.monolayer) {
+    legend->AddEntry(monoEdgeLine,"Mono radius","l");
+    legend->AddEntry(monoHiLine,"Mono top","l");
+    legend->AddEntry(monoLoLine,"Mono bottom","l");
+  }
 }
 
 void DropletFigure::drawHist() {
@@ -300,31 +335,35 @@ void DropletFigure::drawHist() {
 }
 
 void DropletFigure::drawLines() {
-  // Bulk circle
-  // Contact angle tangent
-  // TODO: This is weird
-  tangentLine = circlePtr->DrawTangentLine();
-  // Droplet height
-  heightLine->SetY1(dropletHeight);
-  heightLine->SetY2(dropletHeight);
-  heightLine->Draw("same");
+  if(options.fitCircle) {
 
-  // Bulk radius
-  bulkEdgeLine->SetX1(bulkEdge);
-  bulkEdgeLine->SetX2(bulkEdge);
-  bulkEdgeLine->Draw("same");
-  // Monolayer radius
-  monoEdgeLine->SetX1(monoEdge);
-  monoEdgeLine->SetX2(monoEdge);
-  monoEdgeLine->Draw("same");
+     // TODO: This is weird
+    tangentLine = circlePtr->DrawTangentLine();
+    // Droplet height
+    heightLine->SetY1(dropletHeight);
+    heightLine->SetY2(dropletHeight);
+    heightLine->Draw("same");
 
-  // Monolayer
-  monoHiLine->SetY1(monoLimits[1]);
-  monoHiLine->SetY2(monoLimits[1]);
-  monoHiLine->Draw("same");
-  monoLoLine->SetY1(monoLimits[0]);
-  monoLoLine->SetY2(monoLimits[0]);
-  monoLoLine->Draw("same");
+    // Bulk radius
+    bulkEdgeLine->SetX1(bulkEdge);
+    bulkEdgeLine->SetX2(bulkEdge);
+    bulkEdgeLine->Draw("same");
+  }
+
+  if(options.monolayer) {
+    // Monolayer radius
+    monoEdgeLine->SetX1(monoEdge);
+    monoEdgeLine->SetX2(monoEdge);
+    monoEdgeLine->Draw("same");
+
+    // Monolayer
+    monoHiLine->SetY1(monoLimits[1]);
+    monoHiLine->SetY2(monoLimits[1]);
+    monoHiLine->Draw("same");
+    monoLoLine->SetY1(monoLimits[0]);
+    monoLoLine->SetY2(monoLimits[0]);
+    monoLoLine->Draw("same");
+  }
 }
 
 void DropletFigure::drawCircle() {
@@ -353,7 +392,9 @@ void DropletFigure::draw() {
   setAxisLabels();
   drawHist();
   drawLines();
-  drawCircle();
+  if(options.fitCircle) {
+    drawCircle();
+  }
   drawGraph();
   drawLegend();
   canvas->Update();
@@ -361,10 +402,12 @@ void DropletFigure::draw() {
 
 DensFigure::DensFigure(const string _title, Droplet &droplet, Substrate &substrate) : Figure(_title, *droplet.simDataPtr) {
   dropletPtr = &droplet;
-  substratePtr = &substrate;
-
   hLiquidDens = dropletPtr->hLiquidDens;
-  hSubstrateDens = substratePtr->hSubstrateDens;
+
+  if(options.substrate) {
+    substratePtr = &substrate;
+    hSubstrateDens = substratePtr->hSubstrateDens;
+  }
 
   // Set bounds
   xlo = simDataPtr->simBounds.zlo;
@@ -382,22 +425,32 @@ DensFigure::~DensFigure() {
 }
 
 void DensFigure::createLines() {
-  monoHiLineDens = new TLine(xlo,ylo,xlo,yhi); //top of monolayer
-  monoLoLineDens = new TLine(xlo,ylo,xlo,yhi); //bottom of monolayer
+  if(options.monolayer) {
+    monoHiLineDens = new TLine(xlo,ylo,xlo,yhi); //top of monolayer
+    monoLoLineDens = new TLine(xlo,ylo,xlo,yhi); //bottom of monolayer
+  }
 }
 
 void DensFigure::createLegend() {
   legend = new TLegend(.65,.65,.85,.85);
 
   legend->AddEntry(hLiquidDens,"Liquid");
-  legend->AddEntry(hSubstrateDens,"Substrate");
-  legend->AddEntry(monoLoLineDens,"Mono bottom","l");
-  legend->AddEntry(monoHiLineDens,"Mono top","l");
+
+  if(options.substrate) {
+    legend->AddEntry(hSubstrateDens,"Substrate");
+  }
+
+  if(options.monolayer) {
+    legend->AddEntry(monoLoLineDens,"Mono bottom","l");
+    legend->AddEntry(monoHiLineDens,"Mono top","l");
+  }
 }
 
 void DensFigure::deleteLines() {
-  delete monoHiLineDens;
-  delete monoLoLineDens;
+  if(options.monolayer) {
+    delete monoHiLineDens;
+    delete monoLoLineDens;
+  }
 }
 
 void DensFigure::deleteLegend() {
@@ -419,26 +472,32 @@ void DensFigure::setAxisLabels() {
 }
 
 void DensFigure::setLineStyle() {
-  monoHiLineDens->SetLineWidth(3);
-  monoHiLineDens->SetLineColor(kRed);
-  monoLoLineDens->SetLineWidth(3);
-  monoLoLineDens->SetLineColor(kGreen);
+  if(options.monolayer) {
+    monoHiLineDens->SetLineWidth(3);
+    monoHiLineDens->SetLineColor(kRed);
+    monoLoLineDens->SetLineWidth(3);
+    monoLoLineDens->SetLineColor(kGreen);
+  }
 
   hLiquidDens->SetLineColor(kBlue);
   hLiquidDens->SetLineWidth(2);
-  hSubstrateDens->SetLineColor(kOrange+3); //Brown
-  hSubstrateDens->SetLineWidth(2);
-
-  // Axis limits
   hLiquidDens->SetAxisRange(xlo, xhi, "X");
   hLiquidDens->SetAxisRange(ylo, yhi, "Y");
-  hSubstrateDens->SetAxisRange(xlo, xhi, "X");
-  hSubstrateDens->SetAxisRange(ylo, yhi, "Y");
+
+  if(options.substrate) {
+    hSubstrateDens->SetLineColor(kOrange+3); //Brown
+    hSubstrateDens->SetLineWidth(2);
+
+    hSubstrateDens->SetAxisRange(xlo, xhi, "X");
+    hSubstrateDens->SetAxisRange(ylo, yhi, "Y");
+  }
 }
 
 void DensFigure::setLegendStyle() {
   hLiquidDens->SetStats(0);
-  hSubstrateDens->SetStats(0);
+  if(options.substrate) {
+    hSubstrateDens->SetStats(0);
+  }
 }
 
 void DensFigure::setStyle() {
@@ -447,22 +506,28 @@ void DensFigure::setStyle() {
 }
 
 void DensFigure::setValues() {
-  monoLimits[0] = dropletPtr->monolayer.zlim[0];
-  monoLimits[1] = dropletPtr->monolayer.zlim[1];
+  if(options.monolayer) {
+    monoLimits[0] = dropletPtr->monolayer.zlim[0];
+    monoLimits[1] = dropletPtr->monolayer.zlim[1];
+  }
 }
 
 void DensFigure::drawHists() {
   hLiquidDens->Draw("hist");
-  hSubstrateDens->Draw("hist same"); //Same canvas
+  if(options.substrate) {
+    hSubstrateDens->Draw("hist same"); //Same canvas
+  }
 }
 
 void DensFigure::drawLines() {
-  monoHiLineDens->SetX1(monoLimits[1]);
-  monoHiLineDens->SetX2(monoLimits[1]);
-  monoHiLineDens->Draw("same");
-  monoLoLineDens->SetX1(monoLimits[0]);
-  monoLoLineDens->SetX2(monoLimits[0]);
-  monoLoLineDens->Draw("same");
+  if(options.monolayer) {
+    monoHiLineDens->SetX1(monoLimits[1]);
+    monoHiLineDens->SetX2(monoLimits[1]);
+    monoHiLineDens->Draw("same");
+    monoLoLineDens->SetX1(monoLimits[0]);
+    monoLoLineDens->SetX2(monoLimits[0]);
+    monoLoLineDens->Draw("same");
+  }
 }
 
 void DensFigure::drawLegend() {
