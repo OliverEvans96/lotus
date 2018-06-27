@@ -619,6 +619,7 @@ void DatafileReader::readWaterBonds() {
         simDataPtr->waterBonds[OId][1] = HId;
       }
       else {
+        simDataPtr->waterBonds[OId] = new int[2];
         simDataPtr->waterBonds[OId][0] = HId;
       }
     }

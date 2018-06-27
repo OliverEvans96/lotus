@@ -7,6 +7,17 @@ SimData::SimData(Options options) {
   substrateTop = 0;
 }
 
+SimData::~SimData() {
+  deleteWaterBonds();
+}
+
+void SimData::deleteWaterBonds() {
+  map<int, int*>::iterator it;
+  for(it=waterBonds.begin(); it!=waterBonds.end(); it++) {
+    delete it->second;
+  }
+}
+
 void SimData::setOptions(Options _options) {
   options = _options;
   liquidTypes = options.liquidTypes;

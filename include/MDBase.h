@@ -42,6 +42,9 @@ struct SimData {
   Frame *framePtr;
 
   SimData(Options options);
+  ~SimData();
+
+  void deleteWaterBonds();
   void setOptions(Options options);
   void setNumSteps(int _numSteps);
   void setStepsPerFrame(int _stepsPerFrame);
