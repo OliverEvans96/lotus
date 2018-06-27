@@ -564,7 +564,9 @@ bool CircleFit::inGraph(TGraph *g,double xCheck,double yCheck) {
 // Boundary detection curve
 // for droplet bulk and monolayer
 
-TanhFit::TanhFit() {}
+TanhFit::TanhFit() {
+    rowColNum = 0;
+}
 
 TanhFit::~TanhFit() {
   delete fTanh;

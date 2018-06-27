@@ -45,7 +45,7 @@ struct CircularBulk
   CircularBulk();
   ~CircularBulk();
 
-  double firstBulkBin;
+  int firstBulkBin;
   double height;
   double radius;
   double volume;
@@ -58,9 +58,9 @@ struct CircularBulk
   TGraph *gCirclePoints;
   TH2D *hDroplet;
 
-  int numPoints = 0;
+  int numPoints;
   double *boundaryPointsArray[2];
-  const char* headers[2] = {"x", "y"};
+  char* headers[2];
 
   void setContext(Options options, SimData *_simDataPtr, AtomArray *_atomArrayPtr);
   void setHist(TH2D *_hDroplet);

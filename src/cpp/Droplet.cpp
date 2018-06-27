@@ -221,6 +221,9 @@ void Monolayer::findMonoLimits(TH1D *hLiquidDens,double *monoLimits)
 
 CircularBulk::CircularBulk() {
   gCirclePoints = new TGraph();
+  numPoints = 0;
+  headers[0] = "x";
+  headers[1] = "y";
 }
 
 CircularBulk::~CircularBulk() {
@@ -600,7 +603,7 @@ void Droplet::createHists() {
   double rlo, rhi;
   // Set limits on histograms
   Grid grid;
-  double nz;
+  int nz;
   double dz = options.dz;
   double dv = options.dv;
   zlo = 0;

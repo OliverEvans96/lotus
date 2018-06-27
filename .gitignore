@@ -1,3 +1,4 @@
 doxygen/
 doxygen_config.cfg
 .#*
+.*.swp

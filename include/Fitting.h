@@ -142,7 +142,7 @@ public:
   SimData *simDataPtr;
 
   char rowOrCol[4];
-  int rowColNum = 0;
+  int rowColNum;
 
   TF1 *fTanh;
   TH1D *hTanh;

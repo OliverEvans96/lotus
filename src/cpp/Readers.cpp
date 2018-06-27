@@ -24,7 +24,7 @@ InputStream::~InputStream() {
 void InputStream::open(string _filename) {
   lineNum = 0;
   filename = _filename;
-  stream.open(filename);
+  stream.open(filename.data());
   verifyStream();
 }
 
@@ -508,7 +508,7 @@ void InitialTimestepReader::readFromStream() {
 
 bool InitialTimestepReader::fileExists() {
   // Return true if file exists, false otherwise.
-  ifstream testStream(initLoc);
+  ifstream testStream(initLoc.data());
   return testStream.is_open();
 }
 

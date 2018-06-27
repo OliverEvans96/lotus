@@ -34,7 +34,7 @@ struct SimData {
   vector<int> liquidTypes;
   vector<int> solidTypes;
   map<int, double> masses;
-  map<int, int[2]> waterBonds;
+  map<int, int*> waterBonds;
   BoxBounds simBounds;
 
   // Dynamic data

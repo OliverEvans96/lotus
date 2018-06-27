@@ -41,7 +41,7 @@ class WriterBase {
   void getFmtStr(char* fmt, char* dataPtr);
   void deleteFmtStrs();
 
-  int numQuantities = 0;
+  int numQuantities;
 
   vector<void*> dataPtrArray;
   vector<char> typeArray;

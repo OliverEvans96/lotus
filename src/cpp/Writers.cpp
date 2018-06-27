@@ -6,6 +6,7 @@
 /////////////
 
 WriterBase::WriterBase(SimData &simData) {
+  numQuantities = 0;
   simDataPtr = &simData;
   options = simDataPtr->options;
   setOutputDir(options.outLoc.data());

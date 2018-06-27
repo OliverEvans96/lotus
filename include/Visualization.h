@@ -25,12 +25,12 @@ using namespace std;
 
 class Figure {
  protected:
-  TCanvas* canvas = NULL;
-  TLegend* legend = NULL;
+  TCanvas* canvas;
+  TLegend* legend;
   string title;
   int width;
   int height;
-  SimData* simDataPtr = NULL;
+  SimData* simDataPtr;
   Options options;
   double xlo, xhi;
   double ylo, yhi;
@@ -57,27 +57,27 @@ class Figure {
 };
 
 class DropletFigure : public Figure {
-  Droplet* dropletPtr = NULL;
+  Droplet* dropletPtr;
 
-  TH2D* hDroplet = NULL;
-  TEllipse* eCircle = NULL;
-  TGraph* gCirclePoints = NULL;
-  CircleFit* circlePtr = NULL;
+  TH2D* hDroplet;
+  TEllipse* eCircle;
+  TGraph* gCirclePoints;
+  CircleFit* circlePtr;
 
-  TLine* tangentLine = NULL;
-  TLine* bulkEdgeLine = NULL;
-  TLine* monoEdgeLine = NULL;
-  TLine* heightLine = NULL;
-  TLine* monoHiLine = NULL;
-  TLine* monoLoLine = NULL;
+  TLine* tangentLine;
+  TLine* bulkEdgeLine;
+  TLine* monoEdgeLine;
+  TLine* heightLine;
+  TLine* monoHiLine;
+  TLine* monoLoLine;
 
-  TPaveText* textBox = NULL;
-  TText* cAText = NULL;
-  TText* dHText = NULL;
-  TText* bEText = NULL;
-  TText* mEText = NULL;
-  TText* mHText = NULL;
-  TText* mLText = NULL;
+  TPaveText* textBox;
+  TText* cAText;
+  TText* dHText;
+  TText* bEText;
+  TText* mEText;
+  TText* mHText;
+  TText* mLText;
 
   double bulkEdge;
   double monoEdge;
@@ -123,14 +123,14 @@ class DropletFigure : public Figure {
 
 
 class DensFigure : public Figure {
-  TLine* monoHiLineDens = NULL;
-  TLine* monoLoLineDens = NULL;
-  TH1D* hLiquidDens = NULL;
-  TH1D* hSubstrateDens = NULL;
+  TLine* monoHiLineDens;
+  TLine* monoLoLineDens;
+  TH1D* hLiquidDens;
+  TH1D* hSubstrateDens;
   double monoLimits[2];
 
-  Droplet* dropletPtr = NULL;
-  Substrate* substratePtr = NULL;
+  Droplet* dropletPtr;
+  Substrate* substratePtr;
 
  public:
   // TODO: Set title later
@@ -158,14 +158,14 @@ class DensFigure : public Figure {
 };
 
 class TanhFigure : public Figure {
-  TGraph* gPoints = NULL;
+  TGraph* gPoints;
 
-  TLine* ldLine = NULL;
-  TLine* halfLdLine = NULL;
-  TLine* x0Line = NULL;
+  TLine* ldLine;
+  TLine* halfLdLine;
+  TLine* x0Line;
 
-  TPaveText* tanhTextBox = NULL;
-  TText* posText = NULL;
+  TPaveText* tanhTextBox;
+  TText* posText;
 
   double ld;
   double w_guess;
@@ -184,13 +184,9 @@ class TanhFigure : public Figure {
   static const int numTexts = 5;
 
   TText* tanhTexts[numTexts];
-  TLine* tanhLines[numLines] = {
-    ldLine,
-    halfLdLine,
-    x0Line,
-  };
+  TLine* tanhLines[numLines];
 
-  TanhFit* tanhFitPtr = NULL;
+  TanhFit* tanhFitPtr;
 
  public:
   TanhFigure(const string _title, TanhFit &tanhFit);
