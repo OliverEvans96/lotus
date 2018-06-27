@@ -44,6 +44,7 @@ TEST_CASE("Readers", "[lotus]") {
   // REQUIRE(options.verbose == false);
   REQUIRE(options.onlyFindInterface == false);
   SimData simData(options);
+
   DatafileReader datafileReader(simData);
   REQUIRE(simData.masses.size() == 5);
   REQUIRE(simData.masses[1] == 26.981540);

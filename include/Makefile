@@ -39,7 +39,7 @@ testdata_zipped=$(wildcard $(DATA)/*.tar.gz)
 testdata_unzipped=$(testdata_zipped:%.tar.gz=%)
 
 # Main executable
-main_src=$(SRC)/droplet_analysis.cpp
+main_src=$(SRC)/lotus.cpp
 main_bin=$(main_src:$(SRC)/%.cpp=%)
 
 # All other C++ source, header, and object files
@@ -73,6 +73,7 @@ $(main_test_bin): $(main_test_obj) $(test_src) $(cpp_obj)
 all: $(main_bin)
 
 clean:
+	rm $(BIN)/* -f
 	rm $(LIB)/*.o -f
 	rm $(INC)/*.o -f
 	rm $(main_test_obj) -f
