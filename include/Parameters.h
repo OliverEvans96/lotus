@@ -2,6 +2,7 @@
 #define PARAMETERS_H
 
 #include "Utils.h"
+#include <cassert>
 #include <yaml.h>
 
 using namespace std;
