@@ -245,9 +245,16 @@ void Options::printOptions() {
 
 CommandLineParser::CommandLineParser(int argc, const char* argv[]) {
   parseArgs(argc, argv);
-  options.readConfig(configPath);
-  if(options.verbose) {
-    print();
+  if(file_exists(configPath)) {
+    options.readConfig(configPath);
+    if(options.verbose) {
+      print();
+    }
+  }
+
+  else {
+    cout << "Input file '" << configPath << "' does not exist. Exiting." << endl;
+    exit(1);
   }
 }
 
