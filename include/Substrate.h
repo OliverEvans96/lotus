@@ -8,7 +8,6 @@ using namespace std;
 
 struct Substrate {
   TH1D *hSubstrateDens;
-  TCanvas *cSubs;
   Options options;
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;

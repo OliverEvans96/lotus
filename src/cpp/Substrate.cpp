@@ -9,7 +9,6 @@ Substrate::Substrate(AtomArray &atomArray, double dz) {
 
 Substrate::~Substrate() {
   delete hSubstrateDens;
-  delete cSubs;
 }
 
 void Substrate::setContext(AtomArray &atomArray) {
