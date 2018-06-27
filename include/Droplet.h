@@ -71,6 +71,7 @@ struct CircularBulk
   void calculateSphericalVolume();
   void calculateCylindricalVolume();
 
+  bool pointOk(double r, double z);
   void saveBoundaryPoints();
   // TODO: Clean this up
   //Find boundary points by tanh fitting for each row

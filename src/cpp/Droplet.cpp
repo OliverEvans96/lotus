@@ -241,6 +241,16 @@ void CircularBulk::setHist(TH2D *_hDroplet) {
   hDroplet = _hDroplet;
 }
 
+bool CircularBulk::pointOk(double r, double z) {
+  bool ok = true;
+
+  if(z < simDataPtr->monoTop) {
+    ok = false;
+  }
+
+  return ok;
+}
+
 void CircularBulk::saveBoundaryPoints() {
   numPoints = gCirclePoints->GetN();
   boundaryPointsArray[0] = gCirclePoints->GetX();
@@ -258,8 +268,6 @@ void CircularBulk::findBoundaryPoints() {
   gCirclePoints->Clear();
   pointNum = 0;
 
-  // cout << "+++++++++++++++firstBulkBin+++++++++++++ = " << firstBulkBin << " @ " << &firstBulkBin << endl;
-
   // Row fits (start at first row above monolayer)
   tanhFit.setFitType("row");
   for(int j=firstBulkBin; j<=ny; j++) {
@@ -273,7 +281,9 @@ void CircularBulk::findBoundaryPoints() {
     if(tanhFit.good()) {
       x = tanhFit.getBoundary();
       y = hDroplet->GetYaxis()->GetBinCenter(j);
-      gCirclePoints->SetPoint(pointNum++, x, y);
+      if(pointOk(x, y)) {
+        gCirclePoints->SetPoint(pointNum++, x, y);
+      }
     }
   }
 
@@ -287,7 +297,9 @@ void CircularBulk::findBoundaryPoints() {
     if(tanhFit.good()) {
       x = hDroplet->GetXaxis()->GetBinCenter(i);
       y = tanhFit.getBoundary();
-      gCirclePoints->SetPoint(pointNum++, x, y);
+      if(pointOk(x, y)) {
+        gCirclePoints->SetPoint(pointNum++, x, y);
+      }
     }
   }
 
