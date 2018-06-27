@@ -153,6 +153,7 @@ void ScalarWriter::writeHeaders() {
     sprintf(headerStr, "#%s", quantityNameArray[i]);
     // Format quantity name
     fprintf(files[i], fmtStr, headerStr);
+    fflush(files[i]);
   }
 }
 
@@ -161,6 +162,7 @@ void ScalarWriter::writeFrame() {
   for(int i=0; i<numQuantities; i++) {
     getQuantityStr(quantityStr, i);
     fprintf(files[i], "%s\n", quantityStr);
+    fflush(files[i]);
   }
 }
 
@@ -266,6 +268,7 @@ void ArrayWriter::writeQuantityFile(int quantityNum) {
     concatenateQuantityStrs(quantityNum, i);
     fprintf(file, "%s\n", line);
   }
+  fflush(file);
   fclose(file);
 }
 
