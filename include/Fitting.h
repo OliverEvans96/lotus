@@ -76,13 +76,6 @@ private:
 	TH2D *hist; //Associated histogram
 	int xbin,ybin; //Bin containing point
 
-	//For analyzing density distribution
-	TH1D *densHist;
-	ofstream dataOut;
-
-	//Whether to mirror points about y-axis
-	//bool mirror;
-
 	//Fitting variables
 	TMinuitMinimizer minimizer, linMin;
 	double A,B,C,D,E;

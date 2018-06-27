@@ -8,8 +8,6 @@
 //Constructors
 CircleFit::CircleFit() {
     intersected=false;
-    dataOut.open("CircleData.txt");
-    dataOut << "x | y " << endl;
 }
 
 CircleFit::CircleFit(char* filename,TH2D* givenHist) {
@@ -50,13 +48,6 @@ CircleFit::CircleFit(char* givenName,vector<double> xCoords,vector<double> yCoor
 //Destructor
 CircleFit::~CircleFit() {
     //Save density histogram
-    TCanvas *cCircDens = new TCanvas();
-    cCircDens->cd();
-    cCircDens->SaveAs("cCircDens.png");
-    cCircDens->SaveAs("cCircDens.C");
-    dataOut.flush();
-    dataOut.close();
-    delete cCircDens;
 }
 
 void CircleFit::setHist(TH2D *givenHist) {
@@ -72,22 +63,17 @@ void CircleFit::Define(char* givenName,vector<double> xCoords,vector<double> yCo
     n=x.size();
     cout << "CircleFit received " << n << " points" << endl;
 
-    //Mirror points about y-axis if necessary
-    //if(mirror)
-    //{
-        cout << "Mirroring points" << endl;
-        x.resize(2*n);
-        y.resize(2*n);
-        for(int i=0;i<n;i++)
-        {
-            x[n+i]=-x[i];
-            y[n+i]=y[i];
-            // cout << "(" << x[i] << "," << y[i] << ")" << endl;
-        }
+    cout << "Mirroring points" << endl;
+    x.resize(2*n);
+    y.resize(2*n);
+    for(int i=0;i<n;i++)
+    {
+        x[n+i]=-x[i];
+        y[n+i]=y[i];
+    }
 
-        //Double number of points
-        n*=2;
-    //}
+    //Double number of points
+    n*=2;
 
     intersected=false;
     x0=0;
@@ -136,10 +122,8 @@ double CircleFit::LinearResidual(const double *X) {
 double CircleFit::SumOfSquares(const double *X) {
     //X={x0,y0,r}
     sumsq=0;
-    for(int i=0;i<n;i++)
-    {
-            //sumsq+=square(X[2]-sqrt(square(x[i]-X[0])+square(y[i]-X[1])));
-            sumsq+=square(square(X[2])-square(x[i]-X[0])-square(y[i]-X[1]));
+    for(int i=0;i<n;i++) {
+      sumsq+=square(square(X[2])-square(x[i]-X[0])-square(y[i]-X[1]));
     }
 
     return sumsq;
@@ -246,8 +230,10 @@ double CircleFit::ContactAngle() {
         return thetaDeg;
     }
 
-    else
+    else {
         cout << "Call Intersect(double c) before ContactAngle()" << endl;
+        return -1;
+    }
 }
 
 //Contact angle from points within 5A of the rightmost point.
@@ -294,6 +280,9 @@ double CircleFit::LinearContactAngle() {
     //Get values
     m_lin = linMin.X()[0];
     b_lin = linMin.X()[1];
+
+    // TODO ???
+    return -1;
 }
 
 //Draw tangent line
@@ -341,8 +330,10 @@ TLine* CircleFit::DrawTangentLine() {
 
         return tangentLine;
     }
-    else
+    else {
         cout << "Call Intersect(double c) before ContactAngle()" << endl;
+        return NULL;
+    }
 }
 
 //Calculate the height of the circle at x=0
