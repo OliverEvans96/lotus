@@ -39,6 +39,7 @@ struct SimData {
 
   // Dynamic data
   double substrateTop;
+  double monoTop;
   Frame *framePtr;
 
   SimData(Options options);

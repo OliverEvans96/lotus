@@ -563,12 +563,10 @@ void Droplet::fill(AtomArray &atoms) {
 }
 
 void Droplet::findMonolayer() {
-  double monoTop;
   monolayer.findMonoLimits(hLiquidDens, monolayer.zlim);
   // Determine first bulk row to use for row fits
-  // TODO: replace with member variable?
-  monoTop = monolayer.zlim[1]-simDataPtr->substrateTop;
-  bulk.firstBulkBin = hDroplet->GetYaxis()->FindBin(monoTop)+1;
+  simDataPtr->monoTop = monolayer.zlim[1]-simDataPtr->substrateTop;
+  bulk.firstBulkBin = hDroplet->GetYaxis()->FindBin(simDataPtr->monoTop)+1;
   cout << "monolayer.zlim: " << monolayer.zlim[0] << " " << monolayer.zlim[1] << endl;
 }
 
@@ -679,25 +677,18 @@ void Droplet::dropletCalculations() {
   // TODO: Set boundary points from options
   double rBulkMax = 200.0;
   double chi2;
-  double monoTop;
-
-  // Bulk radius is the intersection of circle with top of monolayer
-  // (relative to top of substrate)
-  if(options.monolayer) {
-    monoTop = monolayer.zlim[1] - simDataPtr->substrateTop;
-  }
 
   // Get circle
   bulk.findBoundaryPoints();
   if(options.fitCircle) {
     chi2 = bulk.fitCircle(bulk.gCirclePoints, bulk.circle, rBulkMax, simDataPtr->framePtr->time);
 
-    bulk.radius = bulk.circle.Intersect(monoTop);
+    bulk.radius = bulk.circle.Intersect(simDataPtr->monoTop);
     bulk.contactAngle = bulk.circle.ContactAngle();
     bulk.height = bulk.circle.Height();
   }
 
-  cout << "monoTop = " << monoTop << endl;
+  cout << "monoTop = " << simDataPtr->monoTop << endl;
   cout << "radius = " << bulk.radius << endl;
   cout << "contactAngle = " << bulk.contactAngle << endl;
   cout << "height = " << bulk.height << endl;
