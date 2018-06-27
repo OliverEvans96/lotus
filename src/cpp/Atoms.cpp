@@ -21,6 +21,8 @@ void Atom::print() {
 // Multi-atom data //
 /////////////////////
 
+// Must be created after DatafileReader
+// so that numAtoms is known
 AtomArray::AtomArray(SimData &simData) {
   allocated = false;
   setSimData(simData);
