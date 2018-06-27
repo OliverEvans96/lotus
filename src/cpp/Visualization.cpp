@@ -22,7 +22,7 @@ Figure::~Figure() {
 }
 
 void Figure::createCanvas() {
-  char str[64];
+  char str[256];
   width = options.plot_width;
   height = (int) round(width / options.plot_aspect);
   if(options.verbose) {
@@ -207,7 +207,7 @@ void DropletFigure::deleteLegend() {
 }
 
 void DropletFigure::setTitle() {
-  char title[64];
+  char title[256];
   // Note timestep in title
   sprintf(title, "%s, t=%09d", simDataPtr->options.dumpfile.data(), simDataPtr->framePtr->time);
   hDroplet->SetTitle(title);
@@ -295,7 +295,7 @@ void DropletFigure::setValues() {
 }
 
 void DropletFigure::setLegendText() {
-  char str[64];
+  char str[256];
   if(options.fitCircle) {
     sprintf(str, "Contact angle: %6.2f#circ", contactAngle);
     cAText->SetText(0,0,str);
@@ -458,7 +458,7 @@ void DensFigure::deleteLegend() {
 }
 
 void DensFigure::setTitle() {
-  char title[64];
+  char title[256];
   // Note timestep in title
   sprintf(title, "%s, t=%09d", simDataPtr->options.dumpfile.data(), simDataPtr->framePtr->time);
   hLiquidDens->SetTitle(title);
@@ -535,15 +535,25 @@ void DensFigure::drawLegend() {
 }
 
 void DensFigure::draw() {
+  cout << "setValues" << endl;
   setValues();
+  cout << "cd" << endl;
   canvas->cd();
+  cout << "setStyle" << endl;
   setStyle();
+  cout << "setTitle" << endl;
   setTitle();
+  cout << "setAxisLabels" << endl;
   setAxisLabels();
+  cout << "drawHists" << endl;
   drawHists();
+  cout << "drawLines" << endl;
   drawLines();
+  cout << "drawLegend" << endl;
   drawLegend();
+  cout << "update canvas" << endl;
   canvas->Update();
+  cout << "done drawing" << endl;
 }
 
 TanhFigure::TanhFigure(const string _title, TanhFit &tanhFit) : Figure(_title, *tanhFit.simDataPtr) {
@@ -631,7 +641,7 @@ void TanhFigure::updateRowCol() {
 }
 
 void TanhFigure::setTitle() {
-  char title[64];
+  char title[256];
   // Note timestep in title
   // TODO: Actually set rowOrCol and rowColNum.
   sprintf(title, "%s %s %d, t=%09d", simDataPtr->options.dumpfile.data(), rowOrCol, rowColNum, simDataPtr->framePtr->time);

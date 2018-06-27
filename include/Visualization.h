@@ -133,7 +133,6 @@ class DensFigure : public Figure {
   Substrate* substratePtr;
 
  public:
-  // TODO: Set title later
   DensFigure(const string _title, Droplet &droplet, Substrate &substrate);
   ~DensFigure();
 
