@@ -71,13 +71,6 @@ struct Options
   void printOptions();
 };
 
-struct AnalysisParameters
-{
-  double rDensCyl; // Radius of cylinder used to calculate water density (z)
-  double rBulkMax; // Maximum cylinder to use for radial binning
-  double binVolume; // Constant volume for all cylindrical bins
-};
-
 struct CommandLineParser
 {
   CommandLineParser(int argc, const char* argv[]);
