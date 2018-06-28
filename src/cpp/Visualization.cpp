@@ -383,7 +383,7 @@ void DropletFigure::drawCircle() {
   eGuessCircle->SetR2(circlePtr->gr);
   eGuessCircle->SetX1(circlePtr->gx0);
   eGuessCircle->SetY1(circlePtr->gy0);
-  eGuessCircle->Draw("same");
+  // eGuessCircle->Draw("same");
 }
 
 void DropletFigure::drawGraph() {
