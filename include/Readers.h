@@ -54,10 +54,11 @@ class HeaderReader {
   InputStream* inputStreamPtr;
   Timestep* timestepPtr;
   BoxBounds* boundsPtr;
+  SimData* simDataPtr;
 
  public:
   int* lineNumPtr;
-  void setContext(Options options, InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr, BoxBounds* _boundsPtr);
+  void setContext(Options options, InputStream* _inputStreamPtr, SimData* _simDataPtr, Timestep* _timestepPtr, int* _lineNumPtr, BoxBounds* _boundsPtr);
   void readHeader();
 };
 

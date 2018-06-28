@@ -249,9 +249,10 @@ void strToData(double *coords,double *velocities,double &dipole,string line)
 // Readers //
 /////////////
 
-void HeaderReader::setContext(Options _options, InputStream* _inputStreamPtr, Timestep* _timestepPtr, int* _lineNumPtr, BoxBounds* _boundsPtr) {
+void HeaderReader::setContext(Options _options, InputStream* _inputStreamPtr, SimData* _simDataPtr, Timestep* _timestepPtr, int* _lineNumPtr, BoxBounds* _boundsPtr) {
   options = _options;
   inputStreamPtr = _inputStreamPtr;
+  simDataPtr = _simDataPtr;
   timestepPtr = _timestepPtr;
   lineNumPtr = _lineNumPtr;
   boundsPtr = _boundsPtr;
@@ -266,9 +267,12 @@ void HeaderReader::readHeader() {
   inputStreamPtr->stream >> timestepPtr->time;
   inputStreamPtr->stream.ignore(256, '\n');
 
-  for(int i=0; i<3; i++) {
-    getline(inputStreamPtr->stream, junk);
-  }
+  getline(inputStreamPtr->stream, junk);
+  inputStreamPtr->stream >> simDataPtr->numAtoms;
+  inputStreamPtr->stream.ignore(256, '\n');
+
+  getline(inputStreamPtr->stream, junk);
+
   inputStreamPtr->stream >> boundsPtr->xlo >> boundsPtr->xhi;
   inputStreamPtr->stream >> boundsPtr->ylo >> boundsPtr->yhi;
   inputStreamPtr->stream >> boundsPtr->zlo >> boundsPtr->zhi;
@@ -384,7 +388,7 @@ void TimestepReader::setContext(Options _options, InputStream* _inputStreamPtr, 
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
   lineReader.setContext(options, inputStreamPtr, &atomNum, &lineNum, &timestepBounds);
-  headerReader.setContext(options, inputStreamPtr, timestepPtr, &lineNum, &timestepBounds);
+  headerReader.setContext(options, inputStreamPtr, simDataPtr, timestepPtr, &lineNum, &timestepBounds);
 }
 
 void TimestepReader::resetAtomCounter() {
