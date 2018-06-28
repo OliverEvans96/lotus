@@ -53,6 +53,10 @@ public:
 	void Print();
   int GetNumPoints();
 
+  void DeletePoints(vector<int> indices);
+  double GetResidual(int i);
+  void Refine();
+
 	bool intersected; //Whether Intersect() has been called
   double gx0, gy0, gr; // Guessed points (from MLS)
 

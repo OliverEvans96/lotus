@@ -510,6 +510,8 @@ double CircularBulk::fitCircle(TGraph* gCirclePoints,CircleFit &circle,double xM
 
     circle.Define(name2,x,y);
     circle.Fit();
+    // TODO: Does this belong here?
+    circle.Refine();
     circle.Print();
 
     //Get chi2 scaled by number of points in fit

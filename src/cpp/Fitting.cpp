@@ -210,6 +210,49 @@ void CircleFit::Fit() {
     cout << "Using minimizer: (" << setprecision(10) << x0 << "," << y0 << "," << r << ")" << endl;
 }
 
+void CircleFit::DeletePoints(vector<int> indices) {
+  // Delete from last point.
+  // That way deletion will not affect indices
+  // of other points yet to be deleted
+  sort(indices.begin(), indices.end());
+  reverse(indices.begin(), indices.end());
+  vector<int>::iterator it;
+  for(it=indices.begin(); it!=indices.end(); it++) {
+    x.erase(x.begin() + *it);
+    y.erase(y.begin() + *it);
+  }
+}
+
+// Calculate residual for single point
+double CircleFit::GetResidual(int i) {
+  double rPoint, rCircle;
+  rPoint = sqrt(square(x[i] - x0) + square(y[i]-y0));
+  rCircle = getRadius();
+  return square(rPoint-rCircle);
+}
+
+// Calculate residual for each point and remove outliers
+void CircleFit::Refine() {
+  vector<int> badIndices;
+  double resid;
+
+  // TODO: Set from options?
+  double max_resid = 1e3;
+
+  for(int i=0; i<GetNumPoints(); i++) {
+    resid = GetResidual(i);
+    cout << "i: " << resid << endl;
+    if(resid > max_resid) {
+      badIndices.push_back(i);
+      cout << "deleting." << endl;
+    }
+  }
+
+  DeletePoints(badIndices);
+  // TODO: Does this belong here?
+  Fit();
+}
+
 //Find the largest x value at which the circle intersects a constant c
 double CircleFit::Intersect(double c) {
     y1=c;
