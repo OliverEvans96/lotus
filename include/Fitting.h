@@ -134,6 +134,7 @@ public:
   void initialGuess(double _ld=2.0, double _w=20.0, double _x0=50.0);
   bool isEmpty();
   void solve();
+  double residual();
   bool good();
 
   double getBoundary();

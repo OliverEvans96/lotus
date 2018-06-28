@@ -675,6 +675,25 @@ void TanhFit::solve() {
   }
 }
 
+// Calculate average squared difference
+// between histogram and fitted function
+double TanhFit::residual() {
+  int n;
+  double resid = 0;
+  double x;
+  double yfit;
+  double ydata;
+  n = hTanh->GetNbinsX();
+  for(int i=1; i<=n; i++) {
+    x = hTanh->GetBinCenter(i);
+    ydata = hTanh->GetBinContent(i);
+    yfit = fTanh->Eval(x);
+    resid += square(ydata-yfit);
+  }
+  resid /= n;
+  return resid;
+}
+
 // Whether fitting was successful
 bool TanhFit::good() {
   bool success = true;
@@ -682,7 +701,6 @@ bool TanhFit::good() {
   if(err != 0) success = false;
   // Disallow equality to insist that minimum is on interior
   // since bounds are mostly arbitrary
-  // TODO: Remove print statements
   if(ld <= fitBounds[0]) success = false;
   if(ld >= fitBounds[1]) success = false;
   if(w <= fitBounds[2]) success = false;
@@ -690,6 +708,7 @@ bool TanhFit::good() {
   if(x0 <= fitBounds[4]) success = false;
   if(x0 >= fitBounds[5]) success = false;
   if(empty) success = false;
+  if(residual() > 1e-1) success = false;
 
   return success;
 }
