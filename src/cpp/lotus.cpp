@@ -78,5 +78,6 @@ int main(int argc, const char** argv) {
     scalarWriter.writeFrame();
     arrayWriter.writeFrame();
   }
+  cout << "Done!" << endl;
 }
 

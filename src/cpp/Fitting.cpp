@@ -671,8 +671,92 @@ void TanhFit::setFitNum(int num) {
   rowColNum = num;
 }
 
+//Given a TH1D and a two bin numbers, draw a line between the points and solve for where y=yc (y-0.5)
+double TanhFit::solveLinear(int bin1, int bin2, double yc)
+{
+  //Find x & y values at bins
+  double x1=hTanh->GetBinCenter(bin1);
+  double x2=hTanh->GetBinCenter(bin2);
+  double y1=hTanh->GetBinContent(bin1);
+  double y2=hTanh->GetBinContent(bin2);
+
+  //Equation of line
+  double m = (y2-y1)/(x2-x1);
+  double b = y1-m*x1;
+
+  //Solve
+  double xc = (yc-b)/m;
+  return xc;
+}
+
+//Guess boundary location and width of water molecule for a single row or column
+void TanhFit::guessTanhFit()
+{
+  // TODO: Change this accordingly if I remove "4*"
+  //f(x)=ld/2*(1-tanh(4*(x-x0)/w))
+  //x=xlo=x0+w/2 => yc=ld/2*(1-tanh(2))
+  //x=xhi=x0-w/2 => yc=ld/2*(1+tanh(2))
+  //We will find these x values: xlo and xhi
+  //From there, calculate width = hi-low
+  //Since we are fitting ld, though, we don't yet know it.
+  //We will use an expected value of ld
+
+  //Number of bins
+  int n=hTanh->GetNbinsX();
+  //Bin content (y value)
+  double yc;
+
+  //Temporary variable for checking whether parameters are within limits
+  double tmp;
+
+  double xlo, xhi;
+  //Lower and upper edges for width
+  double ylo=ld/2*(1-tanh(2));
+  double yhi=ld/2*(1+tanh(2));
+
+  //Whether edges and boundary have been found
+  bool foundLower=false;
+  bool foundUpper=false;
+  bool foundBoundary=false;
+
+  //Scan rows from top to bottom to find the boundary and width
+  for(int i=n;i>0;i--)
+  {
+    yc=hTanh->GetBinContent(i);
+    //Find the first bin with boundary density (ld) then draw a line between this bin and the previous (above) and solve for where the line=ld
+    if( yc>ld/2 && !foundBoundary )
+    {
+      tmp=solveLinear(i,i+1,ld/2);
+      foundBoundary=true;
+      if(fitBounds[4]<tmp && tmp<fitBounds[5])
+        x0=tmp;
+    }
+
+    //Look for lower edge
+    if( yc>ylo && !foundLower )
+    {
+      xlo=solveLinear(i,i+1,ylo);
+      foundLower=true;
+    }
+
+    //Look for upper edge
+    if( yc>yhi && !foundUpper )
+    {
+      xhi=solveLinear(i,i+1,yhi);
+      foundUpper=true;
+    }
+  }
+
+  //Guess width if within bounds. Otherwise, revert to default guess (5)
+  tmp=xlo-xhi;
+  if(fitBounds[2]<tmp && tmp<fitBounds[3])
+    w=tmp;
+
+  fTanh->SetParameters(ld, w, x0);
+}
+
+// First guess, not very good, just for the sake of assigning some values.
 void TanhFit::initialGuess(double _ld, double _w, double _x0) {
-  // Initial guess doesn't have to be very good.
   ld = _ld;
   w = _w;
   x0 = _x0;
@@ -691,7 +775,7 @@ bool TanhFit::isEmpty() {
 //Only take bins after and including startBin
 //fitType should be "row", "col", or "mono"
 void TanhFit::solve() {
-  initialGuess();
+  guessTanhFit();
 
   // Check whether histogram contains points
   if(!isEmpty()) {

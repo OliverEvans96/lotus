@@ -136,6 +136,8 @@ public:
   void setFitBounds();
   void setFitType(const char* _rowOrCol);
   void setFitNum(int num);
+  double solveLinear(int bin1, int bin2, double yc);
+  void guessTanhFit();
   void initialGuess(double _ld=2.0, double _w=20.0, double _x0=50.0);
   bool isEmpty();
   void solve();
