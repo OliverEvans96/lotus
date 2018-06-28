@@ -54,6 +54,7 @@ public:
   int GetNumPoints();
 
 	bool intersected; //Whether Intersect() has been called
+  double gx0, gy0, gr; // Guessed points (from MLS)
 
 private:
 	//Variables

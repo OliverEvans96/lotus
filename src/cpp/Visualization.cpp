@@ -154,6 +154,7 @@ void DropletFigure::createLines() {
 void DropletFigure::createCircle() {
   if(options.fitCircle) {
     eCircle = new TEllipse();
+    eGuessCircle = new TEllipse();
   }
 }
 
@@ -198,6 +199,7 @@ void DropletFigure::deleteLines() {
 void DropletFigure::deleteCircle() {
   if(options.fitCircle) {
     delete eCircle;
+    delete eGuessCircle;
   }
 }
 
@@ -254,6 +256,10 @@ void DropletFigure::setCircleStyle() {
   if(options.fitCircle) {
     eCircle->SetLineWidth(2);
     eCircle->SetFillStyle(0);
+
+    eGuessCircle->SetLineWidth(2);
+    eGuessCircle->SetFillStyle(0);
+    eGuessCircle->SetLineColor(kBlue);
   }
 }
 
@@ -372,6 +378,12 @@ void DropletFigure::drawCircle() {
   eCircle->SetX1(circlePtr->getXCenter());
   eCircle->SetY1(circlePtr->getYCenter());
   eCircle->Draw("same");
+
+  eGuessCircle->SetR1(circlePtr->gr);
+  eGuessCircle->SetR2(circlePtr->gr);
+  eGuessCircle->SetX1(circlePtr->gx0);
+  eGuessCircle->SetY1(circlePtr->gy0);
+  eGuessCircle->Draw("same");
 }
 
 void DropletFigure::drawGraph() {

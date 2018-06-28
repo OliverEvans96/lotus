@@ -1,8 +1,3 @@
-//CircleFit from "A Few Methods for Fitting Circles to Data"
-//By Dale Umbach & Kerry N. Jones
-
-//g++ `root-config --glibs --cflags` CircleFitClass.cpp circletest.cpp -o circletest.out && ./circletest.out
-
 #include "Fitting.h"
 
 //Constructors
@@ -80,7 +75,6 @@ void CircleFit::Define(char* givenName,vector<double> xCoords,vector<double> yCo
     y0=0;
     r=1;
     cout << "About to fit" << endl;
-    GuessFit();
 }
 
 //Get fitting error
@@ -130,6 +124,8 @@ double CircleFit::SumOfSquares(const double *X) {
 }
 
 //Fit circle to points with equal weights using MLS
+//from "A Few Methods for Fitting Circles to Data"
+//By Dale Umbach & Kerry N. Jones
 void CircleFit::GuessFit() {
     A=n*sum(mult(x,x))-square(sum(x));
     B=n*sum(mult(x,y))-sum(x)*sum(y);
@@ -154,6 +150,11 @@ void CircleFit::GuessFit() {
     //Radius
     findRadius();
 
+    // Copy guessed values
+    gx0 = x0;
+    gy0 = y0;
+    gr = r;
+
     //Report
     cout << "Using MLS: (" << setprecision(10) << x0 << "," << y0 << "," << r << ")" << endl;
 }
@@ -170,6 +171,9 @@ void CircleFit::Fit() {
     minimizer.SetMaxIterations((int)1e7);
     minimizer.SetTolerance(1e-8);
 
+    //Calculate center without weights
+    GuessFit();
+
     //Step size & initial values for minimization
     stepVal=1e-3;
     step[0]=stepVal;
@@ -185,12 +189,10 @@ void CircleFit::Fit() {
 
     //Initialize variables
     //cout << "init" << endl;
+    // TODO: Set limits from options
     minimizer.SetLimitedVariable(0,"x0",init[0],step[0],-200,20);
-    minimizer.SetLimitedVariable(1,"y0",init[1],step[1],-200,20);
+    minimizer.SetLimitedVariable(1,"y0",init[1],step[1],-200,100);
     minimizer.SetLimitedVariable(2,"r",init[2],step[2],10,250);
-
-    //Calculate center without weights
-    GuessFit();
 
     //Minimize!
     minimizer.Minimize();
@@ -205,7 +207,7 @@ void CircleFit::Fit() {
     //cout << "chi2s:" << chi2s << endl;
 
     //Report
-    //cout << "Using minimizer: (" << setprecision(10) << x0 << "," << y0 << "," << r << ")" << endl;
+    cout << "Using minimizer: (" << setprecision(10) << x0 << "," << y0 << "," << r << ")" << endl;
 }
 
 //Find the largest x value at which the circle intersects a constant c

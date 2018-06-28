@@ -61,6 +61,7 @@ class DropletFigure : public Figure {
 
   TH2D* hDroplet;
   TEllipse* eCircle;
+  TEllipse* eGuessCircle;
   TGraph* gCirclePoints;
   CircleFit* circlePtr;
 
