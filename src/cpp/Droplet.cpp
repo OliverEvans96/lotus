@@ -265,7 +265,7 @@ void CircularBulk::findBoundaryPoints() {
   nx = hDroplet->GetNbinsX();
   ny = hDroplet->GetNbinsY();
 
-  gCirclePoints->Clear();
+  gCirclePoints->Set(0);
   pointNum = 0;
 
   // Row fits (start at first row above monolayer)
