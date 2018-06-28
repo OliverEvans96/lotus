@@ -179,7 +179,7 @@ bool InputStream::nextLineBlank() {
 
 string InputStream::peekLine() {
   string line;
-  int pos = stream.tellg();
+  pos = stream.tellg();
   getline(stream, line);
   stream.seekg(pos);
   return line;
@@ -393,7 +393,7 @@ void TimestepReader::resetAtomCounter() {
 
 void TimestepReader::readTimestep(int stepInFrame) {
   if(options.verbose)
-    cout << "Reading timestep: @" << inputStreamPtr->stream.tellg() << " '" << inputStreamPtr->peekLine() << "'" << endl;
+    cout << "Reading timestep: @ " << inputStreamPtr->stream.tellg() << " '" << inputStreamPtr->peekLine() << "'" << endl;
   resetAtomCounter();
   headerReader.readHeader();
   for(int atomNum=0; atomNum<atomArrayPtr->numAtoms; atomNum++) {

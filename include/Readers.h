@@ -17,7 +17,8 @@ using namespace std;
 //////////////////
 
 struct InputStream {
-  int lineNum;
+  unsigned long int lineNum;
+  unsigned long int pos;
   string filename;
   ifstream stream;
 
