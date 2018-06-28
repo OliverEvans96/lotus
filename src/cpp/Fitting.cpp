@@ -572,22 +572,6 @@ TanhFit::~TanhFit() {
   delete fTanh;
 }
 
-// double tanhFunc(double x, double *p) {
-//   // TODO
-// }
-// 
-// void resid(double *x, double *y, double *p, int n) {
-//   double res = 0;
-//   for(int i=0; i<n; i++) {
-//     res += pow(tanhFunc(x[i])-y[i], 2);
-//   }
-//   return res;
-// }
-// 
-// void TanhFit::fit(double *x, double *y, double *p, int n) {
-//    
-// }
-
 void TanhFit::setContext(SimData &simData) {
   simDataPtr = &simData;
   options = simDataPtr->options;
