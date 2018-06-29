@@ -18,6 +18,7 @@ struct Options
   StrVecMap yamlMap;
   char configPath[256];
 
+  int numAtoms;
   string geometry; // spherical or cylindrical
   int stepsPerFrame;
   bool skipToEnd; // Jump to last frame

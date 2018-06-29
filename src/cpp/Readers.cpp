@@ -637,7 +637,9 @@ void DatafileReader::read() {
   sections.push_back("Masses");
   sections.push_back("Bonds");
 
-  readNumAtoms();
+  if(simDataPtr->options.numAtoms <= 0) {
+    readNumAtoms();
+  }
   readBoxBounds();
 
   for(int i=0; i<2; i++) {

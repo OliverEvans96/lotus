@@ -23,6 +23,13 @@ void SimData::setOptions(Options _options) {
   liquidTypes = options.liquidTypes;
   solidTypes = options.solidTypes;
   stepsPerFrame = options.stepsPerFrame;
+
+  // Optionally specify number of atoms by hand
+  // e.g. if not all atoms are dumped, causing
+  // dumpfile and datafile to have different #s.
+  if(options.numAtoms > 0) {
+    numAtoms = options.numAtoms;
+  }
 }
 
 void SimData::setStepsPerFrame(int _stepsPerFrame) {

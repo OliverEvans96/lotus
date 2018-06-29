@@ -151,6 +151,7 @@ void Options::readConfig(const char* _configPath) {
   parseRequiredOption("datafile", datafile);
   parseRequiredOption("outLoc", outLoc);
 
+  parseDefaultOption("numAtoms", numAtoms, 0);
   parseDefaultOption("geometry", geometry, (string)"spherical");
   parseDefaultOption("stepsPerFrame", stepsPerFrame, 5);
   parseDefaultOption("waterBondType", waterBondType, 2);
@@ -212,6 +213,7 @@ void Options::printOptions() {
   printOption("datafile", datafile);
   printOption("outLoc", outLoc);
   printOption("waterBondType", waterBondType);
+  printOption("numAtoms", numAtoms);
   printOption("geometry", geometry);
   printOption("stepsPerFrame", stepsPerFrame);
   printOption("skipToEnd", skipToEnd);
