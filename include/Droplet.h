@@ -79,7 +79,7 @@ struct CircularBulk
   //void findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,double &bulkEdge,int frameStep,TLegend* tanhLegend,TLine** tanhLines,TText **tanhTexts,TPaveText *tanhTextBox);
 
   //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points
-  double fitCircle(TGraph* circlePointsGraph,CircleFit &circle,double xMax,int timestep);
+  double fitCircle();
 };
 
 struct Droplet {

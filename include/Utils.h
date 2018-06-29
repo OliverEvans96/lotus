@@ -31,10 +31,13 @@ const double PI = 3.141592653589793;
 // Multiply amu/AA^3 by this number to get g/cc
 const double NANO_DENS_TO_MACRO = 1.0/0.60221409;
 
-//Choose the highest value from a vector
-double max(vector<double> v);
+int countLines(ifstream &inFile);
 
-//Find the mean of a double vector
+vector<double> add(vector<double> u, vector<double> v);
+vector<double> mult(vector<double> u, vector<double> v);
+double sum(vector<double> v);
+double stddev(vector<double> v);
+double max(vector<double> v);
 double mean(vector<double> v);
 double mean(double *v, int n);
 

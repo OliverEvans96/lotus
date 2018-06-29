@@ -1,5 +1,61 @@
 #include "Utils.h"
 
+//Count number of lines in file
+int countLines(ifstream &inFile) {
+  int pos = inFile.tellg();
+  string line;
+  int numLines=0;
+
+  //Beginning of file
+  inFile.seekg(0,ios::beg);
+
+  while(inFile.good()) {
+    getline(inFile,line);
+    numLines++;
+  }
+
+  inFile.clear();
+  inFile.seekg(pos);
+
+  return numLines;
+}
+
+//Elementwise vector addition
+vector<double> add(vector<double> u,vector<double> v) {
+  vector<double> w=u;
+  int n=v.size();
+  for(int i=0;i<n;i++)
+    w[i]+=v[i];
+  return w;
+}
+
+//Elementwise vector multiplication
+vector<double> mult(vector<double> u,vector<double> v) {
+  vector<double> w=u;
+  int n=v.size();
+  for(int i=0;i<n;i++)
+    w[i]*=v[i];
+  return w;
+}
+
+double sum(vector<double> v) {
+  double sum=0;
+  int n=v.size();
+  for(int i=0;i<n;i++)
+    sum+=v[i];
+  return sum;
+}
+
+//Calculate standard deviation
+double stddev(vector<double> x) {
+  double m = mean(x);
+  double sum=0;
+  for(int i=0;i<x.size();i++)
+    sum+=(m-x[i])*(m-x[i]);
+  return sqrt(sum/(x.size()-1));
+}
+
+
 //Choose the highest value in a vector
 double max(vector<double> v)
 {

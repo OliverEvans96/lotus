@@ -26,25 +26,20 @@ using namespace std;
 class CircleFit {
 public:
   CircleFit();
-	CircleFit(char* filename,TH2D *givenHist);
-	CircleFit(char* name,vector<double> xCoords,vector<double> yCoords);
 	~CircleFit();
 
-  void setContext(SimData &simData);
-	void Define(char* name,vector<double> xCoords,vector<double> yCoords);
+  void setContext(SimData &simData, TGraph* _gCirclePoints);
+  void setGraph(TGraph* _gCirclePoints);
+  void updatePoints();
 	double GetChi2s();
-	void GetSize();
-	void Fill(char* filename);
 	void GuessFit();
 	void Fit();
 	double LinearResidual(const double *X);
 	double SumOfSquares(const double *X);
 	double Intersect(double c);
-	double ContactAngle();
+	double GetContactAngle();
 	double LinearContactAngle();
-	double Height();
-	void DrawBadPoints(TGraph *givenBadPointsGraph);
-	void AddBadPoint(double xp,double yp);
+	double GetHeight();
 	void SetTangentLine(TLine *tangentLine);
 	double getXCenter();
 	double getYCenter();
@@ -64,23 +59,17 @@ private:
   Options options;
   char fitOptions[16];
 
+  TGraph *gCirclePoints;
 	//Variables
-	char* name; //Circle name
-	vector<double> x,y; //List of points
-	int n; //Number of points
+  vector<double> x, y;
+  int n; // number of points
 	double x0,y0,r; //x-center,y-center, and radius
 	double x1,y1; //Intersection of bulk and monolayer
-	double theta; //Contact angle
 	double cosTheta; //Cos(contact angle)
   double thetaDeg; // contact angle (degrees)
 	double height; //Droplet height at x=0
 	double m,b; //Parameters for tangent line
-	double margins[4]; //Margins of canvas
 	double x2,y2,x3,y3; //Tangent line points
-	double minAngle,maxAngle; //Range over which to draw circle
-
-	//Histogram variables
-	int xbin,ybin; //Bin containing point
 
 	//Fitting variables
 	TMinuitMinimizer minimizer, linMin;
@@ -90,7 +79,6 @@ private:
 	double stepVal; //Step size value
 	double step[3]; //Step size vector
 	double init[3]; //Initial values
-	double tmpx,tmpy,tmpr;
 	double chi2s; //Error in circle fitting
 
 	// Linear fit variables
@@ -98,17 +86,8 @@ private:
 	vector<double> xLinFit, yLinFit;
 	double m_lin, b_lin;
 
-
 	//Functions
-	double sum(vector<double> v);
-	double square(double x);
-	vector<double> add(vector<double> u,vector<double> v);
-	vector<double> mult(vector<double> u,vector<double> v);
 	void findRadius();
-	void countLines(ifstream &inFile);
-	double mean(vector<double> x);
-	double stddev(vector<double> x);
-	double atanh(double x);
 	bool inGraph(TGraph *g,double xCheck,double yCheck);
 };
 

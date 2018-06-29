@@ -235,7 +235,7 @@ void CircularBulk::setContext(Options _options, SimData *_simDataPtr, AtomArray 
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
   tanhFit.setContext(*simDataPtr);
-  circle.setContext(*simDataPtr);
+  circle.setContext(*simDataPtr, gCirclePoints);
 }
 
 void CircularBulk::setHist(TH2D *_hDroplet) {
@@ -457,66 +457,15 @@ void CircularBulk::findBoundaryPoints() {
 // }
 
 //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points and find the intersection of the circle with the substrate interface. The result is the bulk-monolayer interface
-double CircularBulk::fitCircle(TGraph* gCirclePoints,CircleFit &circle,double xMax,int timestep) {
-    //gCirclePoints->Draw("SAME");
-    //Fit circle and intersect it with a constant c (Interface)
-    char* name1 = (char*) gCirclePoints->GetTitle();
-    stringstream nameStream;
-    nameStream << name1 << setw(8) << setfill('0') << timestep;
-    char* name2 = (char*) nameStream.str().data();
-    int n=gCirclePoints->GetN();
-    vector<double> x(n),y(n);
-    double xTest,yTest;
+double CircularBulk::fitCircle() {
+  gCirclePoints->Sort();
+  circle.Fit();
+  // TODO: Does this belong here?
+  circle.Refine();
+  circle.Print();
 
-    cout << "xMax=" << xMax << endl;
-
-    //Sort points
-    gCirclePoints->Sort();
-
-//     //Limits for circle fitting for first 50 timesteps
-//     double lowLim=30;
-//     double highLim=50;
-//
-    //Number of points with x<xMax
-    int nValid=0;
-
-    for(int i=0;i<n;i++)
-    {
-        //Test the point before including it
-        //gCirclePoints->GetPoint(i,xTest,yTest);
-        xTest=gCirclePoints->GetX()[i];
-        yTest=gCirclePoints->GetY()[i];
-
-        //Only use point if it is less than xMax
-        // I AM NOW USING ALL POINTS SINCE BAD ONES SHOULD ALREADY
-        //if(xTest<=xMax)
-        if(true)
-        {
-            x[nValid]=xTest;
-            y[nValid]=yTest;
-            //cout << x[nValid]<<" "<<y[nValid]<<endl;
-            nValid++;
-        }
-        //Otherwise, mark the point as bad
-        else
-            circle.AddBadPoint(xTest,yTest);
-    }
-    x.resize(nValid);
-    y.resize(nValid);
-
-    //cout << "x-mean = " << mean(x) << endl;
-    //cout << "y-mean = " << mean(y) << endl;
-
-    cout << endl;
-
-    circle.Define(name2,x,y);
-    circle.Fit();
-    // TODO: Does this belong here?
-    circle.Refine();
-    circle.Print();
-
-    //Get chi2 scaled by number of points in fit
-    return circle.GetChi2s();
+  //Get chi2 scaled by number of points in fit
+  return circle.GetChi2s();
 }
 
 Droplet::Droplet(AtomArray &atomArray) {
@@ -696,11 +645,10 @@ void Droplet::dropletCalculations() {
   // Get circle
   bulk.findBoundaryPoints();
   if(options.fitCircle) {
-    chi2 = bulk.fitCircle(bulk.gCirclePoints, bulk.circle, rBulkMax, simDataPtr->framePtr->time);
-
+    chi2 = bulk.fitCircle();
     bulk.radius = bulk.circle.Intersect(simDataPtr->monoTop);
-    bulk.contactAngle = bulk.circle.ContactAngle();
-    bulk.height = bulk.circle.Height();
+    bulk.contactAngle = bulk.circle.GetContactAngle();
+    bulk.height = bulk.circle.GetHeight();
   }
 
   cout << "monoTop = " << simDataPtr->monoTop << endl;
