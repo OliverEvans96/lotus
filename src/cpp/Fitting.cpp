@@ -37,20 +37,30 @@ void CircleFit::updatePoints() {
   yArr = gCirclePoints->GetY();
 
   x.clear();
-  x.resize(2*n);
   y.clear();
-  y.resize(2*n);
+  x.resize(n);
+  y.resize(n);
   cout << "Update points." << endl;
   for(int i=0; i<n; i++) {
     // Mirror points
     x[i] = xArr[i];
     y[i] = yArr[i];
-    x[n+i] = -xArr[i];
-    y[n+i] = yArr[i];
     printf("(%.2f, %.2f)\n", x[i], y[i]);
     printf("(%.2f, %.2f)\n", x[i], y[i]);
   }
 
+}
+
+void CircleFit::mirrorPoints() {
+  double x, y;
+
+  n = GetNumPoints();
+  gCirclePoints->Set(2*n);
+  for(int i=0; i<n; i++) {
+    gCirclePoints->GetPoint(i, x, y);
+    gCirclePoints->SetPoint(n+i, -x, y);
+  }
+  updatePoints();
 }
 
 //Get fitting error
@@ -82,7 +92,7 @@ double CircleFit::SumOfSquares(const double *X) {
 //Fit circle to points with equal weights using MLS
 //from "A Few Methods for Fitting Circles to Data"
 //By Dale Umbach & Kerry N. Jones
-void CircleFit::GuessFit() {
+void CircleFit::guessFit() {
   A=n*sum(mult(x,x))-square(sum(x));
   B=n*sum(mult(x,y))-sum(x)*sum(y);
   C=n*sum(mult(y,y))-square(sum(y));
@@ -108,8 +118,8 @@ void CircleFit::GuessFit() {
 }
 
 //Fit circle to points using numerical minimization
-void CircleFit::Fit() {
-  updatePoints();
+void CircleFit::innerFit() {
+  mirrorPoints();
 
   if(options.verbose) {
     cout << "Circle Points:" << endl;
@@ -122,8 +132,8 @@ void CircleFit::Fit() {
   minimizer.SetMaxIterations((int)1e7);
   minimizer.SetTolerance(1e-8);
 
-  //Calculate center without weights
-  GuessFit();
+  // Approximate solution with MLS
+  guessFit();
 
   //Step size & initial values for minimization
   stepVal=1e-3;
@@ -163,7 +173,19 @@ void CircleFit::Fit() {
   }
 }
 
-void CircleFit::DeletePoints(vector<int> indices) {
+void CircleFit::fit() {
+  const int numRefines = 3;
+  double max_resid[numRefines] = {1e3, 1e2, 1e1};
+
+  innerFit();
+
+  for(int i=0; i<numRefines; i++) {
+    refineFit(max_resid[i]);
+  }
+
+}
+
+void CircleFit::deletePoints(vector<int> indices) {
   // Delete from last point.
   // That way deletion will not affect indices
   // of other points yet to be deleted
@@ -184,13 +206,10 @@ double CircleFit::GetResidual(int i) {
   return square(rPoint-rCircle);
 }
 
-// Calculate residual for each point and remove outliers
-void CircleFit::Refine() {
+// Calculate residual for each point, remove outliers and repeat fit
+void CircleFit::refineFit(double max_resid) {
   vector<int> badIndices;
   double resid;
-
-  // TODO: Set from options?
-  double max_resid = 1e3;
 
   for(int i=0; i<n; i++) {
     resid = GetResidual(i);
@@ -201,9 +220,8 @@ void CircleFit::Refine() {
     }
   }
 
-  DeletePoints(badIndices);
-  // TODO: Does this belong here?
-  Fit();
+  deletePoints(badIndices);
+  innerFit();
 }
 
 //Find the largest x value at which the circle intersects a constant c

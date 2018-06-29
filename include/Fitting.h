@@ -31,9 +31,9 @@ public:
   void setContext(SimData &simData, TGraph* _gCirclePoints);
   void setGraph(TGraph* _gCirclePoints);
   void updatePoints();
+  void mirrorPoints();
 	double GetChi2s();
-	void GuessFit();
-	void Fit();
+	void fit();
 	double LinearResidual(const double *X);
 	double SumOfSquares(const double *X);
 	double Intersect(double c);
@@ -47,9 +47,9 @@ public:
 	void Print();
   int GetNumPoints();
 
-  void DeletePoints(vector<int> indices);
+  void deletePoints(vector<int> indices);
   double GetResidual(int i);
-  void Refine();
+  void refineFit(double max_resid);
 
 	bool intersected; //Whether Intersect() has been called
   double gx0, gy0, gr; // Guessed points (from MLS)
@@ -87,6 +87,8 @@ private:
 	double m_lin, b_lin;
 
 	//Functions
+	void guessFit();
+  void innerFit();
 	void findRadius();
 	bool inGraph(TGraph *g,double xCheck,double yCheck);
 };
