@@ -73,10 +73,8 @@ struct CircularBulk
 
   bool pointOk(double r, double z);
   void saveBoundaryPoints();
-  // TODO: Clean this up
   //Find boundary points by tanh fitting for each row
   void findBoundaryPoints();
-  //void findBoundaryPoints(TH2D* hist,TGraph *circlePointsGraph,char* aOrR,double *monoLimits,TH1D *hMono,double& rBulkMax,double &monoEdge,double &bulkEdge,int frameStep,TLegend* tanhLegend,TLine** tanhLines,TText **tanhTexts,TPaveText *tanhTextBox);
 
   //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points
   double fitCircle();
