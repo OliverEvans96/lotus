@@ -38,7 +38,7 @@ class WriterBase {
 
   void getFmtStr(char* fmt, double* dataPtr);
   void getFmtStr(char* fmt, int* dataPtr);
-  void getFmtStr(char* fmt, char* dataPtr);
+  void getFmtStr(char* fmt, const char* dataPtr);
   void deleteFmtStrs();
 
   int numQuantities;

@@ -58,7 +58,7 @@ void WriterBase::getFmtStr(char* fmt, int* dataPtr) {
   lj[1] = 0;
   sprintf(fmt, "%%%s%d%s", lj, COL_WIDTH, "d");
 }
-void WriterBase::getFmtStr(char* fmt, char* dataPtr) {
+void WriterBase::getFmtStr(char* fmt, const char* dataPtr) {
   char lj[2];
   lj[0] = leftJustify ? '-' : '\0';
   lj[1] = 0;
@@ -134,11 +134,33 @@ void ScalarWriter::setOutputQuantities() {
 }
 
 void ScalarWriter::getQuantityStr(char* quantityStr, int i) {
+  double doubleVal;
+  int intVal;
+
+  // Don't print quantities larger than this
+  double maxVal = 1e20;
+  char fmt[16];
+  const char infStr[16] = "INF";
+
   if(typeArray[i] == 'd') {
-    sprintf(quantityStr, fmtArray[i], *((double*) dataPtrArray[i]));
+    doubleVal = *((double*) dataPtrArray[i]);
+    if(doubleVal < maxVal) {
+      sprintf(quantityStr, fmtArray[i], doubleVal);
+    }
+    else {
+      getFmtStr(fmt, infStr);
+      sprintf(quantityStr, fmt, infStr);
+    }
   }
   else if(typeArray[i] == 'i') {
-    sprintf(quantityStr, fmtArray[i], *((int*) dataPtrArray[i]));
+    intVal = *((int*) dataPtrArray[i]);
+    if(intVal < maxVal) {
+      sprintf(quantityStr, fmtArray[i], intVal);
+    }
+    else {
+      getFmtStr(fmt, infStr);
+      sprintf(quantityStr, fmt, infStr);
+    }
   }
 }
 
@@ -191,15 +213,35 @@ void ArrayWriter::getQuantityStr(char* quantityStr, int quantityNum, int i, int 
   double **doubleArr;
   int **intArr;
 
-  // TODO: Replace 2 w/ numColumns
-  // TODO: Make sure this is right
+  double doubleVal;
+  int intVal;
+
+  // Don't print quantities larger than this
+  double maxVal = 1e20;
+  char fmt[16];
+  const char infStr[16] = "INF";
+
   if(typeArray[quantityNum] == 'd') {
     doubleArr = (double**) dataPtrArray[quantityNum];
-    sprintf(quantityStr, fmtArray[quantityNum], doubleArr[j][i]);
+    doubleVal = doubleArr[j][i];
+    if(doubleVal < maxVal) {
+      sprintf(quantityStr, fmtArray[quantityNum], doubleArr[j][i]);
+    }
+    else {
+      getFmtStr(fmt, infStr);
+      sprintf(quantityStr, fmt, infStr);
+    }
   }
   else if(typeArray[quantityNum] == 'i') {
     intArr = (int**) dataPtrArray[quantityNum];
-    sprintf(quantityStr, fmtArray[quantityNum], intArr[j][i]);
+    intVal = intArr[j][i];
+    if(intVal < maxVal) {
+      sprintf(quantityStr, fmtArray[quantityNum], intArr[j][i]);
+    }
+    else {
+      getFmtStr(fmt, infStr);
+      sprintf(quantityStr, fmt, infStr);
+    }
   }
 }
 
