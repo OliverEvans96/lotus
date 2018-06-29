@@ -40,13 +40,10 @@ void CircleFit::updatePoints() {
   y.clear();
   x.resize(n);
   y.resize(n);
-  cout << "Update points." << endl;
   for(int i=0; i<n; i++) {
     // Mirror points
     x[i] = xArr[i];
     y[i] = yArr[i];
-    printf("(%.2f, %.2f)\n", x[i], y[i]);
-    printf("(%.2f, %.2f)\n", x[i], y[i]);
   }
 
 }
@@ -120,12 +117,6 @@ void CircleFit::guessFit() {
 //Fit circle to points using numerical minimization
 void CircleFit::innerFit() {
   mirrorPoints();
-
-  if(options.verbose) {
-    cout << "Circle Points:" << endl;
-    for(int i=0;i<n;i++)
-      cout << "("<< x[i] << "," << y[i] << ")" << endl;
-  }
 
   //Initialize minimizer
   minimizer.SetMaxFunctionCalls((int)1e7);
@@ -213,10 +204,8 @@ void CircleFit::refineFit(double max_resid) {
 
   for(int i=0; i<n; i++) {
     resid = GetResidual(i);
-    cout << "i: " << resid << endl;
     if(resid > max_resid) {
       badIndices.push_back(i);
-      cout << "deleting." << endl;
     }
   }
 
