@@ -143,6 +143,7 @@ void DropletFigure::createLines() {
   if(options.fitCircle) {
     bulkEdgeLine = new TLine(xlo,ylo,xlo,yhi); //Bulk edge
     heightLine = new TLine(xlo,ylo,xhi,ylo); //Droplet height
+    tangentLine = new TLine(xlo,ylo,xhi,ylo); //Contact angle
   }
   if(options.monolayer) {
     monoEdgeLine = new TLine(xlo,ylo,xlo,yhi); //Mono edge
@@ -161,32 +162,14 @@ void DropletFigure::createCircle() {
 void DropletFigure::createLegend() {
   legend = new TLegend(.65,.65,.85,.85);
   textBox = new TPaveText();
-
-  if(options.fitCircle) {
-    legend->AddEntry(bulkEdgeLine, "bulk radius", "l");
-    legend->AddEntry(heightLine, "height", "l");
-
-    cAText = textBox->AddText("Contact angle");
-    dHText = textBox->AddText("Droplet height");
-    bEText = textBox->AddText("Bulk radius");
-  }
-
-  if(options.monolayer) {
-    legend->AddEntry(monoEdgeLine, "mono radius", "l");
-    legend->AddEntry(monoHiLine, "mono top", "l");
-    legend->AddEntry(monoLoLine, "mono bottom", "l");
-
-    mEText = textBox->AddText("Mono radius");
-    mHText = textBox->AddText("Mono top");
-    mLText = textBox->AddText("mLText");
-  }
-
+  addLegendEntries();
 }
 
 void DropletFigure::deleteLines() {
   if(options.fitCircle) {
     delete bulkEdgeLine;
     delete heightLine;
+    delete tangentLine;
   }
 
   if(options.monolayer) {
@@ -229,6 +212,8 @@ void DropletFigure::setLineStyle() {
     bulkEdgeLine->SetLineColor(kGreen);
     heightLine->SetLineWidth(3);
     heightLine->SetLineColor(kOrange+3); // Brown
+    tangentLine->SetLineColor(kViolet);
+    tangentLine->SetLineWidth(3);
   }
 
   if(options.monolayer) {
@@ -323,16 +308,25 @@ void DropletFigure::setLegendText() {
 
 void DropletFigure::addLegendEntries() {
   legend->AddEntry(gCirclePoints,"Droplet boundary","lp");
+
   if(options.fitCircle) {
-    legend->AddEntry(bulkEdgeLine,"Bulk radius","l");
-    legend->AddEntry(heightLine,"Droplet height","l");
+    legend->AddEntry(bulkEdgeLine, "bulk radius", "l");
+    legend->AddEntry(heightLine, "height", "l");
     legend->AddEntry(tangentLine,"Tangent line","l");
+
+    cAText = textBox->AddText("Contact angle");
+    dHText = textBox->AddText("Droplet height");
+    bEText = textBox->AddText("Bulk radius");
   }
 
   if(options.monolayer) {
-    legend->AddEntry(monoEdgeLine,"Mono radius","l");
-    legend->AddEntry(monoHiLine,"Mono top","l");
-    legend->AddEntry(monoLoLine,"Mono bottom","l");
+    legend->AddEntry(monoEdgeLine, "mono radius", "l");
+    legend->AddEntry(monoHiLine, "mono top", "l");
+    legend->AddEntry(monoLoLine, "mono bottom", "l");
+
+    mEText = textBox->AddText("Mono radius");
+    mHText = textBox->AddText("Mono top");
+    mLText = textBox->AddText("mLText");
   }
 }
 
@@ -342,9 +336,9 @@ void DropletFigure::drawHist() {
 
 void DropletFigure::drawLines() {
   if(options.fitCircle) {
+    circlePtr->SetTangentLine(tangentLine);
+    tangentLine->Draw("same");
 
-     // TODO: This is weird
-    tangentLine = circlePtr->DrawTangentLine();
     // Droplet height
     heightLine->SetY1(dropletHeight);
     heightLine->SetY2(dropletHeight);

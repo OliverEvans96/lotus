@@ -235,6 +235,7 @@ void CircularBulk::setContext(Options _options, SimData *_simDataPtr, AtomArray 
   simDataPtr = _simDataPtr;
   atomArrayPtr = _atomArrayPtr;
   tanhFit.setContext(*simDataPtr);
+  circle.setContext(*simDataPtr);
 }
 
 void CircularBulk::setHist(TH2D *_hDroplet) {

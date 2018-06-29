@@ -13,7 +13,6 @@ CircleFit::CircleFit(char* filename,TH2D* givenHist) {
     Fill(filename);
     inFile.close();
     intersected=false;
-    hist=givenHist;
     x0=y0=0;
     r=1;
     Fit();
@@ -45,10 +44,18 @@ CircleFit::~CircleFit() {
     //Save density histogram
 }
 
-void CircleFit::setHist(TH2D *givenHist) {
-  hist = givenHist;
+void CircleFit::setContext(SimData &simData) {
+  simDataPtr = &simData;
+  options = simDataPtr->options;
+  if(options.verbose) {
+    // W sets weights equal for all points
+    strcpy(fitOptions, "W");
+  }
+  else {
+    // Quiet - non-verbose TMinuit fitting output
+    strcpy(fitOptions, "WQ");
+  }
 }
-
 
 //Give name & points - same as constructor
 void CircleFit::Define(char* givenName,vector<double> xCoords,vector<double> yCoords) {
@@ -331,54 +338,66 @@ double CircleFit::LinearContactAngle() {
 }
 
 //Draw tangent line
-TLine* CircleFit::DrawTangentLine() {
-    if(intersected)
-    {
-        //Calculate slope & y-intercept
-        //Negative reciprocal of radius slope
-        m=(x0-x1)/(y1-y0);
-        b=y1-m*x1;
+void CircleFit::SetTangentLine(TLine *tangentLine) {
+  double xlo = 0.0;
+  double xhi = simDataPtr->options.plot_rmax;
+  double ylo = 0.0;
+  double yhi = simDataPtr->options.plot_zmax;
 
-        //Determine    which boundaries to use
-        //Line will be drawn from (x2,y2) to (x3,y3)
+  if(intersected) {
+    //Calculate slope & y-intercept
+    //Negative reciprocal of radius slope
+    m=(x0-x1)/(y1-y0);
+    b=y1-m*x1;
 
-        //x2 on bottom
-        if(m*xlo+b<ylo)
-            x2=(ylo-b)/m;
-        //x2 on top
-        else if(m*xlo+b>yhi)
-            x2=(yhi-b)/m;
-        //x2 on left
-        else
-            x2=xlo;
+    printf("(xlo, ylo) = (%.2f, %.2f)\n", xlo, ylo);
+    printf("(xhi, yhi) = (%.2f, %.2f)\n", xhi, yhi);
+    printf("(x0, y0) = (%.2f, %.2f)\n", x0, y0);
+    printf("(x1, y1) = (%.2f, %.2f)\n", x1, y1);
+    printf("m = %.2f, b = %.2f\n", m, b);
 
-        //y2 is easy
-        y2=m*x2+b;
+    //Determine  which boundaries to use
+    //Line will be drawn from (x2,y2) to (x3,y3)
 
-        //x3 on bottom
-        if(m*xhi+b<ylo)
-            x3=(ylo-b)/m;
-        //x3 on top
-        else if(m*xhi+b>yhi)
-            x3=(yhi-b)/m;
-        //x3 on right
-        else
-            x3=xhi;
+    //x2 on bottom
+    if(m*xlo+b<ylo)
+      x2=(ylo-b)/m;
+    //x2 on top
+    else if(m*xlo+b>yhi)
+      x2=(yhi-b)/m;
+    //x2 on left
+    else
+      x2=xlo;
 
-        //y3 is easy
-        y3=m*x3+b;
+    //y2 is easy
+    y2=m*x2+b;
 
-        TLine *tangentLine = new TLine(x2,y2,x3,y3);
-        tangentLine->SetLineColor(kViolet);
-        tangentLine->SetLineWidth(3);
-        tangentLine->Draw("same");
+    //x3 on bottom
+    if(m*xhi+b<ylo)
+      x3=(ylo-b)/m;
+    //x3 on top
+    else if(m*xhi+b>yhi)
+      x3=(yhi-b)/m;
+    //x3 on right
+    else
+      x3=xhi;
 
-        return tangentLine;
+    //y3 is easy
+    y3=m*x3+b;
+
+    tangentLine->SetX1(x2);
+    tangentLine->SetY1(y2);
+    tangentLine->SetX2(x3);
+    tangentLine->SetY2(y3);
+
+    if(options.verbose) {
+      printf("Tangent line: (%.2f, %.2f) -> (%.2f, %.2f)\n", x2, y2, x3, y3);
     }
-    else {
-        cout << "Call Intersect(double c) before ContactAngle()" << endl;
-        return NULL;
-    }
+  }
+
+  else {
+    cout << "Cannot draw tangent line because Intersect() has not been called." << endl;
+  }
 }
 
 //Calculate the height of the circle at x=0
@@ -426,10 +445,6 @@ TEllipse* CircleFit::Draw(bool drawPoints) {
     xhi -= (yhi-ylo)*margins[2];
     yhi -= (yhi-ylo)*margins[3];
     */
-    xlo=hist->GetXaxis()->GetXmin();
-    ylo=hist->GetMinimum();
-    xhi=hist->GetXaxis()->GetXmax();
-    yhi=hist->GetMaximum();
 
     //Copy vectors to arrays
     double* xA=&x[0];

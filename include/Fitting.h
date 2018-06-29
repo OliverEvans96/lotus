@@ -30,7 +30,7 @@ public:
 	CircleFit(char* name,vector<double> xCoords,vector<double> yCoords);
 	~CircleFit();
 
-  void setHist(TH2D *givenHist);
+  void setContext(SimData &simData);
 	void Define(char* name,vector<double> xCoords,vector<double> yCoords);
 	double GetChi2s();
 	void GetSize();
@@ -46,7 +46,7 @@ public:
 	void DrawBadPoints(TGraph *givenBadPointsGraph);
 	void AddBadPoint(double xp,double yp);
 	TEllipse* Draw(bool drawPoints=false);
-	TLine* DrawTangentLine();
+	void SetTangentLine(TLine *tangentLine);
 	double getXCenter();
 	double getYCenter();
 	double getRadius();
@@ -61,6 +61,10 @@ public:
   double gx0, gy0, gr; // Guessed points (from MLS)
 
 private:
+  SimData* simDataPtr;
+  Options options;
+  char fitOptions[16];
+
 	//Variables
 	char* name; //Circle name
 	vector<double> x,y; //List of points
@@ -73,12 +77,10 @@ private:
 	double height; //Droplet height at x=0
 	double m,b; //Parameters for tangent line
 	double margins[4]; //Margins of canvas
-	double xlo,ylo,xhi,yhi; //Edges of histogram
 	double x2,y2,x3,y3; //Tangent line points
 	double minAngle,maxAngle; //Range over which to draw circle
 
 	//Histogram variables
-	TH2D *hist; //Associated histogram
 	int xbin,ybin; //Bin containing point
 
 	//Fitting variables
@@ -147,11 +149,11 @@ public:
   double getBoundary();
   double getWidth();
   double getLiquidDensity();
-  SimData *simDataPtr;
 
   char rowOrCol[4];
   int rowColNum;
 
+  SimData *simDataPtr;
   TF1 *fTanh;
   TH1D *hTanh;
 };
