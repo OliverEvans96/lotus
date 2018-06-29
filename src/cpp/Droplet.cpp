@@ -459,8 +459,13 @@ void CircularBulk::findBoundaryPoints() {
 //Given a graph of points, a maximum x value, and the y coordinate of the interface with the substrate, fit a circle to the points and find the intersection of the circle with the substrate interface. The result is the bulk-monolayer interface
 double CircularBulk::fitCircle() {
   gCirclePoints->Sort();
+
   circle.fit();
   circle.Print();
+
+  // Update points stored for writing
+  // since fitting may discard some
+  saveBoundaryPoints();
 
   //Get chi2 scaled by number of points in fit
   return circle.GetChi2s();
