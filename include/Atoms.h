@@ -46,6 +46,7 @@ class AtomArray
   int getIndex(int atomNum, int stepInFrame);
   void setAtom(int atomNum, int stepInFrame, Atom &atom);
   void getAtom(int atomNum, int stepInFrame, Atom &atom);
+  void printStats();
 };
 
 #endif

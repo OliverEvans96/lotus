@@ -39,7 +39,11 @@ double sum(vector<double> v);
 double stddev(vector<double> v);
 double max(vector<double> v);
 double mean(vector<double> v);
+
+double min(double *v, int n);
+double max(double *v, int n);
 double mean(double *v, int n);
+double stddev(double *v, int n);
 
 //Square
 double square(double x);

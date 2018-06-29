@@ -737,7 +737,11 @@ void DumpfileReader::countSteps()
 void DumpfileReader::readFrame() {
   frameNum = frameReader.frame.frameNum;
   frameReader.readFrame();
+
   cout << "frameNum = " << frameNum << endl;
+  if(options.verbose) {
+    atomArrayPtr->printStats();
+  }
 }
 
 bool DumpfileReader::good() {

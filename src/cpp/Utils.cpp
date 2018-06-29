@@ -83,12 +83,44 @@ double mean(vector<double> v)
   return m;
 }
 
+double min(double *v, int n) {
+  double min=v[0];
+
+  for(int i=0;i<n;i++)
+    {
+      if(v[i]<min)
+        min=v[i];
+    }
+
+  return min;
+}
+
+double max(double *v, int n) {
+  double max=v[0];
+
+  for(int i=0;i<n;i++)
+    {
+      if(v[i]>max)
+        max=v[i];
+    }
+
+  return max;
+}
+
 double mean(double *v, int n) {
   int m = 0;
   for(int i=0; i<n; i++) {
     m += v[i];
   }
   return m/n;
+}
+
+double stddev(double *v, int n) {
+  double m = mean(v, n);
+  double sum=0;
+  for(int i=0;i<n;i++)
+    sum+=(m-v[i])*(m-v[i]);
+  return sqrt(sum/(n-1));
 }
 
 //Square
