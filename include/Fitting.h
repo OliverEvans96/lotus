@@ -45,7 +45,6 @@ public:
 	double Height();
 	void DrawBadPoints(TGraph *givenBadPointsGraph);
 	void AddBadPoint(double xp,double yp);
-	TEllipse* Draw(bool drawPoints=false);
 	void SetTangentLine(TLine *tangentLine);
 	double getXCenter();
 	double getYCenter();

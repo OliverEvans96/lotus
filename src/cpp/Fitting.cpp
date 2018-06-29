@@ -423,69 +423,6 @@ double CircleFit::Height() {
     return height;
 }
 
-//Draw points and fitted circle
-TEllipse* CircleFit::Draw(bool drawPoints) {
-    //Get margins
-    margins[0]=gPad->GetLeftMargin();
-    margins[1]=gPad->GetBottomMargin();
-    margins[2]=gPad->GetRightMargin();
-    margins[3]=gPad->GetTopMargin();
-
-    //Get limits (these include values in the margins);
-    //gPad->GetCanvas()->GetRange(xlo,ylo,xhi,yhi);
-
-    /*
-    cout << endl;
-    cout << "Current canvas: " << gPad->GetCanvas()->GetName() << endl;
-    cout << "Canvas range 1: " << xlo << " " << ylo << " " << xhi << " " << yhi << endl;
-
-    //Account for margins
-    xlo += (xhi-xlo)*margins[0];
-    ylo += (xhi-xlo)*margins[1];
-    xhi -= (yhi-ylo)*margins[2];
-    yhi -= (yhi-ylo)*margins[3];
-    */
-
-    //Copy vectors to arrays
-    double* xA=&x[0];
-    double* yA=&y[0];
-
-    //Points
-    if(drawPoints)
-    {
-        TGraph* g = new TGraph(n,xA,yA);
-        g->SetMarkerStyle(20);
-        g->SetMarkerSize(1);
-        g->Draw("same AP");
-    }
-
-    //minAngle=0;
-    //maxAngle=360;
-    /*
-    //Find min and max angle to draw
-    //If circle intersects bottom
-    if(ylo-y0<r)
-        minAngle=asin((ylo-y0)/r)*180/PI;
-    //If circle intersects left
-    if(xlo-x0<r)
-        maxAngle=acos((xlo-x0)/r)*180/PI;
-    */
-
-    //Fitted Circle
-    TEllipse* e = new TEllipse(x0,y0,r,r);
-    e->SetLineWidth(3);
-    e->SetFillStyle(0);
-    //e->SetNoEdges();
-    e->Draw("same");
-
-    return e;
-//     stringstream fname;
-//     fname << "img/circles/" << name << ".jpg";
-
-//     c1->SaveAs(fname.str().data());
-//     delete c1,g,e;
-}
-
 double CircleFit::sum(vector<double> v) {
     double sum=0;
     int n=v.size();
