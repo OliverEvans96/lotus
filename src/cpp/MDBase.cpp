@@ -23,6 +23,8 @@ void SimData::setOptions(Options _options) {
   liquidTypes = options.liquidTypes;
   solidTypes = options.solidTypes;
   stepsPerFrame = options.stepsPerFrame;
+  monoTop = options.monoTop;
+  substrateTop = options.substrateTop;
 
   // Optionally specify number of atoms by hand
   // e.g. if not all atoms are dumped, causing

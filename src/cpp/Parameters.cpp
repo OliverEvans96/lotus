@@ -178,7 +178,8 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("monolayer", monolayer, true);
   parseDefaultOption("substrate", substrate, true);
   parseDefaultOption("fitCircle", fitCircle, true);
-  parseDefaultOption("z_interface", z_interface, 0.0);
+  parseDefaultOption("monoTop", monoTop, 0.0);
+  parseDefaultOption("substrateTop", substrateTop, 0.0);
 
   // Set ROOT verbosity
   if(verbose) {
@@ -242,7 +243,8 @@ void Options::printOptions() {
   printOption("monolayer", monolayer);
   printOption("substrate", substrate);
   printOption("fitCircle", fitCircle);
-  printOption("z_interface", z_interface);
+  printOption("monoTop", monoTop);
+  printOption("substrateTop", substrateTop);
 }
 
 CommandLineParser::CommandLineParser(int argc, const char* argv[]) {

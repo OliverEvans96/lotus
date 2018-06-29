@@ -48,7 +48,8 @@ struct Options
   bool monolayer;
   bool substrate;
   bool fitCircle;
-  double z_interface;
+  double monoTop;
+  double substrateTop;
 
   vector<int> liquidTypes, solidTypes;
 
