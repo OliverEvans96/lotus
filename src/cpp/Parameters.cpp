@@ -181,6 +181,7 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("monoTop", monoTop, 0.0);
   parseDefaultOption("substrateTop", substrateTop, 0.0);
   parseDefaultOption("rDensCyl", rDensCyl, 10.0);
+  parseDefaultOption("densMax", densMax, 1.5);
 
   // Set ROOT verbosity
   if(verbose) {
@@ -208,6 +209,7 @@ void Options::printOption(string optionName, vector<T> optionVec) {
   cout << *it << "]" << endl;
 }
 
+// TODO: Make sure all options are printed
 void Options::printOptions() {
   printOption("liquidTypes", liquidTypes);
   printOption("solidTypes", solidTypes);
@@ -247,6 +249,7 @@ void Options::printOptions() {
   printOption("monoTop", monoTop);
   printOption("substrateTop", substrateTop);
   printOption("rDensCyl", rDensCyl);
+  printOption("densMax", densMax);
 }
 
 CommandLineParser::CommandLineParser(int argc, const char* argv[]) {

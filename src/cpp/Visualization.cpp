@@ -230,11 +230,8 @@ void DropletFigure::setLineStyle() {
 }
 
 void DropletFigure::setHistStyle() {
-  // TODO: Set limits from options
-  double colzMin=0.0;
-  double colzMax=1.5;
-  hDroplet->SetMinimum(colzMin);
-  hDroplet->SetMaximum(colzMax);
+  hDroplet->SetMinimum(0.0);
+  hDroplet->SetMaximum(options.densMax);
 }
 
 void DropletFigure::setCircleStyle() {

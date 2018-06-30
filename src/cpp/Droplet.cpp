@@ -450,16 +450,14 @@ void Droplet::createHists() {
   }
 
   hDroplet = new TH2D("hDroplet","hDroplet",grid.nr,grid.rVals,grid.nz,grid.zlo,grid.zhi);
-  hDroplet->SetStats(0);
-  hDroplet->SetMinimum(0);
-  hDroplet->SetMaximum(2.0);
   bulk.setHist(hDroplet);
 
   monolayer.createHist(grid);
 
-  // TODO: This is pretty messy.
   // Want to use actual coords for this one
   // Rather than shifted z coords as above
+  // hence getting bounds from simDataPtr
+  // instead of grid
   zlo = simDataPtr->simBounds.zlo;
   zhi = simDataPtr->simBounds.zhi;
   nz = (int) ceil((zhi - zlo)/dz);

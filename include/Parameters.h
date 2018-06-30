@@ -51,6 +51,7 @@ struct Options
   double monoTop;
   double substrateTop;
   double rDensCyl;
+  double densMax;
 
   vector<int> liquidTypes, solidTypes;
 
