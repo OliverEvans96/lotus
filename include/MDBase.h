@@ -57,8 +57,8 @@ struct Grid {
   int nz, nv, nr;
 
   double* rVals;
-
   double zhi_preround, vhi_preround, rhi_preround;
+  bool allocated;
 
   ~Grid();
 

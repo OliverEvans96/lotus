@@ -140,6 +140,7 @@ void Grid::allocateBins() {
   // Includes both endpoints
   // https://root.cern.ch/root/roottalk/roottalk10/1170.html
   rVals = new double[nv+1];
+  allocated = true;
 }
 
 void Grid::calculateBins() {
@@ -156,7 +157,9 @@ void Grid::init() {
 }
 
 void Grid::deallocateBins() {
-  delete [] rVals;
+  if(allocated) {
+    delete [] rVals;
+  }
 }
 
 Grid::~Grid() {

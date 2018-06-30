@@ -26,7 +26,7 @@ struct Monolayer
   Monolayer();
   ~Monolayer();
   void setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr);
-  void createHist(Grid grid);
+  void createHist(Grid &grid);
   void deleteHist();
   void calculateRadius();
   void reset();

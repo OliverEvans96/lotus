@@ -17,7 +17,7 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
   tanhFit.setContext(*simDataPtr);
 }
 
-void Monolayer::createHist(Grid grid) {
+void Monolayer::createHist(Grid &grid) {
   hMono = new TH1D("hMono", "hMono", grid.nr, grid.rVals);
   histCreated = true;
   tanhFit.setHist(hMono);
