@@ -147,13 +147,13 @@ bool isIn(string substr, string str) {
   return str.find(substr)!=string::npos;
 }
 
-//Check whether a file exists
-// https://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
-bool file_exists(const string& name) {
-  struct stat buffer;
-  return (stat (name.c_str(), &buffer) == 0);
+//Check whether a file exists and is not a directory
+bool file_exists(const char* pathname) {
+  struct stat sb;
+  return (stat(pathname, &sb) == 0 && !S_ISDIR(sb.st_mode));
 }
 
+// Check whether a directory exists
 // https://stackoverflow.com/questions/3828192/checking-if-a-directory-exists-in-unix-system-call
 bool dir_exists(const char* pathname) {
   struct stat sb;
