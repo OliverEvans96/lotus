@@ -6,9 +6,7 @@
 
 Monolayer::Monolayer() {}
 Monolayer::~Monolayer() {
-  // TODO: Pretty weird to allocate in Droplet
-  // and delete in Monolayer.
-  delete hMono;
+  deleteHist();
 }
 
 void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr) {
@@ -17,10 +15,18 @@ void Monolayer::setContext(Options _options, SimData *_simDataPtr, AtomArray *_a
   atomArrayPtr = _atomArrayPtr;
 
   tanhFit.setContext(*simDataPtr);
+}
 
-  // TODO: This is probably a good place for this,
-  // but it doesn't work now since hMono is created later.
-  // tanhFit.setHist(hMono);
+void Monolayer::createHist(Grid grid) {
+  hMono = new TH1D("hMono", "hMono", grid.nr, grid.rVals);
+  histCreated = true;
+  tanhFit.setHist(hMono);
+}
+
+void Monolayer::deleteHist() {
+  if(histCreated) {
+    delete hMono;
+  }
 }
 
 void Monolayer::calculateRadius() {
@@ -452,11 +458,7 @@ void Droplet::createHists() {
   hDroplet->SetMaximum(2.0);
   bulk.setHist(hDroplet);
 
-  // TODO: This is probably not the way to do this.
-  // Maybe pass the grid object instead.
-  monolayer.hMono = new TH1D("hMono", "hMono", grid.nr, grid.rVals);
-  // TODO: This seems like the wrong place to do this
-  monolayer.tanhFit.setHist(monolayer.hMono);
+  monolayer.createHist(grid);
 
   // TODO: This is pretty messy.
   // Want to use actual coords for this one

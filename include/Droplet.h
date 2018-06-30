@@ -21,10 +21,13 @@ struct Monolayer
   double zlim[2];
   TH1D *hMono;
   TanhFit tanhFit;
+  bool histCreated;
 
   Monolayer();
   ~Monolayer();
   void setContext(Options _options, SimData *_simDataPtr, AtomArray *_atomArrayPtr);
+  void createHist(Grid grid);
+  void deleteHist();
   void calculateRadius();
   void reset();
   void fillOne(Atom &atom);
