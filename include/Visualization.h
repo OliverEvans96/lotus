@@ -181,7 +181,7 @@ class TanhFigure : public Figure {
   int rowColNum;
 
   static const int numLines = 3;
-  static const int numTexts = 5;
+  static const int numTexts = 3;
 
   TText* tanhTexts[numTexts];
   TLine* tanhLines[numLines];

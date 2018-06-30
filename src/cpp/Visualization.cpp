@@ -661,8 +661,8 @@ void TanhFigure::setText() {
 
   //Text lines (There are 5)
   tanhTexts[0]=tanhTextBox->AddText("ld: ");
-  tanhTexts[2]=tanhTextBox->AddText("w: ");
-  tanhTexts[4]=tanhTextBox->AddText("x0: ");
+  tanhTexts[1]=tanhTextBox->AddText("w: ");
+  tanhTexts[2]=tanhTextBox->AddText("x0: ");
 
   //Set texts
   //ld
@@ -670,10 +670,10 @@ void TanhFigure::setText() {
   tanhTexts[0]->SetText(0,0, label);
   //w
   sprintf(label, "w: %.2f", w);
-  tanhTexts[2]->SetText(0,0,label);
+  tanhTexts[1]->SetText(0,0,label);
   //x0
   sprintf(label, "x0: %.2f", x0);
-  tanhTexts[4]->SetText(0,0,label);
+  tanhTexts[2]->SetText(0,0,label);
 }
 
 void TanhFigure::setLinePositions() {
@@ -760,6 +760,7 @@ void TanhFigure::drawGraph() {
 
 void TanhFigure::drawLegend() {
   legend->Draw("same");
+  tanhTextBox->Draw("same");
 }
 
 void TanhFigure::draw() {
