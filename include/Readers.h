@@ -37,9 +37,6 @@ struct InputStream {
   string peekLine();
 };
 
-//Split a string into a string vector of words
-vector<string> strSplit(string str);
-
 /////////////
 // Readers //
 /////////////
@@ -66,8 +63,6 @@ class LineReader {
   int* lineNumPtr;
   InputStream* inputStreamPtr;
   BoxBounds* boundsPtr;
-  vector<string> strSplit(string str);
-  void strToData(double* coords, double* velocities, double& dipole, string line);
 
  public:
   Atom atom;

@@ -185,36 +185,6 @@ string InputStream::peekLine() {
   return line;
 }
 
-//Split a string into a string vector of words
-vector<string> strSplit(string str)
-{
-  int len=str.length();
-  stringstream ss(str);
-  int numWords=1;
-  bool foundSpace=false;
-
-  //Count number of words
-  for(int ch=0;ch<len;ch++)
-    {
-      if(isspace(str[ch]))
-        foundSpace=true;
-      if(!isspace(str[ch])&&foundSpace)
-        {
-          numWords++;
-          foundSpace=false;
-        }
-    }
-
-  //Allocate array
-  vector<string> arr(numWords);
-
-  //Read string into array
-  for(int i=0;i<len;i++)
-    ss >> arr[i];
-
-  return arr;
-}
-
 /////////////
 // Readers //
 /////////////
@@ -256,73 +226,12 @@ void HeaderReader::readHeader() {
   cout << "Timestep " << timestepPtr->time << " @ line " << *lineNumPtr << endl;
 }
 
-
 void LineReader::setContext(Options _options, InputStream* _inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr, BoxBounds* _boundsPtr) {
   options = _options;
   inputStreamPtr = _inputStreamPtr;
   atomNumPtr = _atomNumPtr;
   lineNumPtr = _lineNumPtr;
   boundsPtr = _boundsPtr;
-}
-
-//Split a string into a string vector of words
-vector<string> LineReader::strSplit(string str)
-{
-  int len=str.length();
-  stringstream ss(str);
-  int numWords=1;
-  bool foundSpace=false;
-
-  //Count number of words
-  for(int ch=0;ch<len;ch++)
-    {
-      if(isspace(str[ch]))
-        foundSpace=true;
-      if(!isspace(str[ch])&&foundSpace)
-        {
-          numWords++;
-          foundSpace=false;
-        }
-    }
-
-  //Allocate array
-  vector<string> arr(numWords);
-
-  //Read string into array
-  for(int i=0;i<len;i++)
-    ss >> arr[i];
-
-  return arr;
-}
-
-//Get index and coordinates from string array of words
-void LineReader::strToData(double* coords,double* velocities,double& dipole,string line)
-{
-  string str;
-
-  int index;
-  //Split string into array of words
-  vector<string> strArr=strSplit(line);
-
-  //Get index
-  str=strArr[0];
-  index=atoi(str.data());
-
-  //Save values
-  //string -> cstring -> double
-  for(int i=0;i<3;i++)
-    {
-      //Get coordinates from the second, third, and fourth elements in the array
-      str=strArr[1+i];
-      *coords++=atof(str.data());
-
-      //Get velocities from the sixth, seventh, and eighth elements in the array
-      str=strArr[5+i];
-      *velocities++=atof(str.data());
-    }
-
-  //Save dipole moment cos(theta)
-  dipole=atof(strArr[10].data());
 }
 
 void LineReader::readLine() {
