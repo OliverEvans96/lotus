@@ -657,36 +657,23 @@ void TanhFigure::setValues() {
 }
 
 void TanhFigure::setText() {
-  stringstream ss;
+  char label[64];
 
   //Text lines (There are 5)
   tanhTexts[0]=tanhTextBox->AddText("ld: ");
   tanhTexts[2]=tanhTextBox->AddText("w: ");
   tanhTexts[4]=tanhTextBox->AddText("x0: ");
 
-  //Text - Where is this bin located?
-  // TODO: Delete this?
-  // ss.str("");
-  // ss << fitType << " pos: " << pos;
-  // posText = new TText(.45,.85,ss.str().data());
-  // posText->SetNDC();
-  // posText->Draw();
-
   //Set texts
-  // TODO: Do without ss
-  //pos
-  ss.str("");
-  ss << "ld: " << ld;
-  tanhTexts[0]->SetText(0,0,ss.str().data());
+  //ld
+  sprintf(label, "ld: %.2f", ld);
+  tanhTexts[0]->SetText(0,0, label);
   //w
-  ss.str("");
-  ss << "w: " << w;
-  tanhTexts[2]->SetText(0,0,ss.str().data());
+  sprintf(label, "w: %.2f", w);
+  tanhTexts[2]->SetText(0,0,label);
   //x0
-  ss.str("");
-  ss << "x0: " << x0;
-  tanhTexts[4]->SetText(0,0,ss.str().data());
-  ss.str("");
+  sprintf(label, "x0: %.2f", x0);
+  tanhTexts[4]->SetText(0,0,label);
 }
 
 void TanhFigure::setLinePositions() {
