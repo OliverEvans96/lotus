@@ -15,10 +15,9 @@ using namespace std;
 struct Atom
 {
  public:
-  double x, y, z, r, p;
-  double vx, vy, vz, vr, vp;
+  double x, y, z, r;
   int type;
-  void calculateNonCartesian();
+  void calculateRadius();
   void print();
 };
 
@@ -36,8 +35,7 @@ class AtomArray
   int numAtoms;
   SimData *simDataPtr;
   int *type;
-  double *x, *y, *z, *r, *p;
-  // double *vx, *vy, *vz, *vr, *vp;
+  double *x, *y, *z, *r;
 
   AtomArray(SimData &simData);
   ~AtomArray();

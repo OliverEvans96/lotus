@@ -48,7 +48,7 @@ void Monolayer::reset() {
 void Monolayer::fillOne(Atom &atom) {
   double mass;
   mass = simDataPtr->masses[atom.type];
-  atom.calculateNonCartesian();
+  atom.calculateRadius();
   // TODO: Make this more efficient by calculating
   // only the necessary "radius" (y or r).
   if(options.geometry == "spherical") {
@@ -377,7 +377,7 @@ void Droplet::fill(AtomArray &atoms) {
       atoms.getAtom(atomNum, stepInFrame, atom);
       // If liquid
       if(isIn(atom.type, simDataPtr->liquidTypes)) {
-        atom.calculateNonCartesian();
+        atom.calculateRadius();
         fillOne(atom);
       }
     }

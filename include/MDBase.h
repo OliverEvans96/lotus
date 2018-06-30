@@ -75,9 +75,6 @@ struct Grid {
 //double fitCircle(TGraph2D* circlePointsGraph,CircleFit circle,double xMax,int timestep);
 
 
-//Calculate MSD - mean squared displacement
-vector<double> calculateMSD(vector<double> xi,vector<double> yi,vector<double> zi,vector<double> x, vector<double> y,vector<double> z);
-
 //Count the number of atoms which have migrated from the bulk to the monolayer this timestep
 //double bulkMonoExchange(vector<double>z,double *monoLimits,int stepsPerFrame);
 

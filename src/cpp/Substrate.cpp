@@ -32,7 +32,7 @@ void Substrate::fill(AtomArray &atoms) {
       atoms.getAtom(atomNum, stepInFrame, atom);
       // If solid
       if(isIn(atom.type, simDataPtr->solidTypes)) {
-        atom.calculateNonCartesian();
+        atom.calculateRadius();
         // TODO: Remove or change
         if(atom.r < rDensCyl) {
           fillOne(atom);
