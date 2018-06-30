@@ -215,36 +215,6 @@ vector<string> strSplit(string str)
   return arr;
 }
 
-// TODO: Delete
-void strToData(double *coords,double *velocities,double &dipole,string line)
-{
-  string str;
-
-  int index;
-  //Split string into array of words
-  vector<string> strArr=strSplit(line);
-
-  //Get index
-  str=strArr[0];
-  index=atoi(str.data());
-
-  //Save values
-  //string -> cstring -> double
-  for(int i=0;i<3;i++)
-    {
-      //Get coordinates from the second, third, and fourth elements in the array
-      str=strArr[1+i];
-      *coords++=atof(str.data());
-
-      //Get velocities from the sixth, seventh, and eighth elements in the array
-      str=strArr[5+i];
-      *velocities++=atof(str.data());
-    }
-
-  //Save dipole moment cos(theta)
-  dipole=atof(strArr[10].data());
-}
-
 /////////////
 // Readers //
 /////////////

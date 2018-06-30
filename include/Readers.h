@@ -40,10 +40,6 @@ struct InputStream {
 //Split a string into a string vector of words
 vector<string> strSplit(string str);
 
-//Get index and coordinates from string array of words
-void strToData(double *coords,double *velocities,double& dipole,string line);
-
-
 /////////////
 // Readers //
 /////////////
