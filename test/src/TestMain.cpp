@@ -14,8 +14,8 @@ const int NUM_ATOMS = 513699;
 const int NUM_STEPS = 8;
 const int NUM_WATER = 1105;
 const int STEPS_PER_FRAME = 3;
-const double SUBSTRATE_MASS = 3130904.0;
-const double DROPLET_MASS = 6563.56701333;
+const double SUBSTRATE_MASS = 9856349.862;
+const double DROPLET_MASS = 19808.43551;
 
 TEST_CASE("Readers", "[lotus]") {
   int argc = 2;
@@ -83,9 +83,10 @@ TEST_CASE("Readers", "[lotus]") {
     }
     droplet.fill(atoms);
 
-    // TODO: Re-enable this test
-    // REQUIRE(abs(substrate.getMass() - SUBSTRATE_MASS) < 1e-3*SUBSTRATE_MASS);
-    // REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 1e-3*DROPLET_MASS);
+    // Some of the droplet may not fall in the histogram,
+    // hence we allow it to vary by 0.5%
+    REQUIRE(abs(substrate.getMass() - SUBSTRATE_MASS) < 5e-3*SUBSTRATE_MASS);
+    REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 5e-3*DROPLET_MASS);
 
     if(options.monolayer) {
       droplet.findMonolayer();
