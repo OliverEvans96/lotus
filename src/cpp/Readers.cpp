@@ -242,14 +242,15 @@ void LineReader::readLine() {
   // Read the line and store data in atom
   // xs, ys, zs are between 0 and 1,
   // ix, iy, iz are number of periodic image
-  // TODO: Account for periodic BCs
   inputStreamPtr->stream >> atomId >> atom.type
                          >> xs >> ys >> zs
                          >> ix >> iy >> iz;
 
-  atom.x = boundsPtr->xlo + (boundsPtr->xhi - boundsPtr->xlo) * (ix + xs);
-  atom.y = boundsPtr->ylo + (boundsPtr->yhi - boundsPtr->ylo) * (iy + ys);
-  atom.z = boundsPtr->zlo + (boundsPtr->zhi - boundsPtr->zlo) * (iz + zs);
+  // Ignore ix, iy, iz so that all
+  // periodic images are in same box
+  atom.x = boundsPtr->xlo + (boundsPtr->xhi - boundsPtr->xlo) * xs;
+  atom.y = boundsPtr->ylo + (boundsPtr->yhi - boundsPtr->ylo) * ys;
+  atom.z = boundsPtr->zlo + (boundsPtr->zhi - boundsPtr->zlo) * zs;
 
   inputStreamPtr->stream.ignore(256, '\n');
   (*lineNumPtr)++;
