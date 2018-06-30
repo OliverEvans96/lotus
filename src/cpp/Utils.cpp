@@ -133,6 +133,16 @@ double atanh(double x) {
   return log((1+x)/(1-x))/2;
 }
 
+double max(double a, double b) {
+  if(a>b) return a;
+  else return b;
+}
+
+double min(double a, double b) {
+  if(a<b) return a;
+  else return b;
+}
+
 bool isLess(int a,int b) {
   return (a<b);
 }

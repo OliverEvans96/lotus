@@ -55,6 +55,13 @@ struct Options
   int outputColWidth;
   int outputPrecision;
 
+  double circleX0Min;
+  double circleX0Max;
+  double circleY0Min;
+  double circleY0Max;
+  double circleRMin;
+  double circleRMax;
+
   vector<int> liquidTypes, solidTypes;
 
   StrVecMap parseYaml(const char* configPath);

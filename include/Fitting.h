@@ -98,7 +98,8 @@ class TanhFit {
   char fitOptions[16];
 
   //Set Bounds on parameters
-  // TODO: Set bounds from options
+  double xmin;
+  double xmax;
   double fitBounds[6];
 
   double ld;

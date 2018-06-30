@@ -185,6 +185,13 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("outputColWidth", outputColWidth, 15);
   parseDefaultOption("outputPrecision", outputPrecision, 6);
 
+  parseDefaultOption("circleX0Min", circleX0Min, -0.1);
+  parseDefaultOption("circleX0Max", circleX0Max, 0.1);
+  parseDefaultOption("circleY0Min", circleY0Min, -200.0);
+  parseDefaultOption("circleY0Max", circleY0Max, 200.0);
+  parseDefaultOption("circleRMin", circleRMin, 10.0);
+  parseDefaultOption("circleRMax", circleRMax, 250.0);
+
   // Set ROOT verbosity
   if(verbose) {
     gErrorIgnoreLevel = kInfo;
@@ -252,8 +259,16 @@ void Options::printOptions() {
   printOption("substrateTop", substrateTop);
   printOption("rDensCyl", rDensCyl);
   printOption("densMax", densMax);
+
   printOption("outputColWidth", outputColWidth);
   printOption("outputPrecision", outputPrecision);
+
+  printOption("circleX0Min", circleX0Min);
+  printOption("circleX0Max", circleX0Max);
+  printOption("circleY0Min", circleY0Min);
+  printOption("circleY0Max", circleY0Max);
+  printOption("circleRMin", circleRMin);
+  printOption("circleRMax", circleRMax);
 }
 
 CommandLineParser::CommandLineParser(int argc, const char* argv[]) {

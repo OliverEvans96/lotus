@@ -51,6 +51,9 @@ double square(double x);
 //Arctanh
 double atanh(double x);
 
+double min(double a, double b);
+double max(double a, double b);
+
 //Is a<b?
 bool isLess(int a,int b);
 

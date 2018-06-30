@@ -141,10 +141,9 @@ void CircleFit::innerFit() {
 
   //Initialize variables
   //cout << "init" << endl;
-  // TODO: Set limits from options
-  minimizer.SetLimitedVariable(0,"x0",init[0],step[0],-200,20);
-  minimizer.SetLimitedVariable(1,"y0",init[1],step[1],-200,100);
-  minimizer.SetLimitedVariable(2,"r",init[2],step[2],10,250);
+  minimizer.SetLimitedVariable(0, "x0", init[0], step[0], options.circleX0Min, options.circleX0Max);
+  minimizer.SetLimitedVariable(1, "y0", init[1], step[1], options.circleY0Min, options.circleY0Max);
+  minimizer.SetLimitedVariable(2, "r", init[2], step[2], options.circleRMin, options.circleRMax);
 
   //Minimize!
   minimizer.Minimize();
@@ -464,25 +463,22 @@ void TanhFit::setHist(TH1D* _hTanh) {
 }
 
 void TanhFit::createFunction() {
-  double xmin, xmax;
-  // TODO: Set bounds from options
   xmin = 0;
-  xmax = 300;
+  xmax = max(options.plot_zmax, options.plot_rmax);
   // TODO: Get rid of "4*"
   fTanh = new TF1("tanhFit","[0]/2*(1-tanh(4*(x-[2])/([1])))",xmin, xmax);
 }
 
 void TanhFit::setFitBounds() {
-  // TODO: Set from options?
   //ld min max
   fitBounds[0] = 0.1;
-  fitBounds[1] = 20.0;
+  fitBounds[1] = options.densMax;
   //w min max
   fitBounds[2] = 0.1;
-  fitBounds[3] = 100.0;
+  fitBounds[3] = xmax;
   //x0 min max
   fitBounds[4] = 0.0;
-  fitBounds[5] = 500.0;
+  fitBounds[5] = xmax;
 
   fTanh->SetParLimits(0, fitBounds[0], fitBounds[1]); //ld
   fTanh->SetParLimits(1, fitBounds[2], fitBounds[3]); //w
