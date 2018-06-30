@@ -646,7 +646,6 @@ void TanhFigure::updateRowCol() {
 void TanhFigure::setTitle() {
   char title[256];
   // Note timestep in title
-  // TODO: Actually set rowOrCol and rowColNum.
   sprintf(title, "%s %s %d, t=%09d", simDataPtr->options.dumpfile.data(), rowOrCol, rowColNum, simDataPtr->framePtr->time);
   tanhFitPtr->hTanh->SetTitle(title);
 }

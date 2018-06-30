@@ -124,7 +124,6 @@ double Substrate::getMass() {
   // "width" option does integral instead of sum
   mass = hSubstrateDens->Integral("width") * dx * dy;
   // Convert units to amu
-  // TODO: Not right yet?
   mass /= NANO_DENS_TO_MACRO;
   return mass;
 }
