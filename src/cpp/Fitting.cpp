@@ -592,8 +592,8 @@ void TanhFit::initialGuess(double _ld, double _w, double _x0) {
 }
 
 bool TanhFit::isEmpty() {
-  // TODO: GetEntries returns floats, doesn't seem to work as expected.
-  empty = (hTanh->GetEntries() == 0);
+  // GetEntries returns float, so do float comparison
+  empty = (hTanh->GetEntries() < 1e-3);
   return empty;
 }
 
