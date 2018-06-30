@@ -14,7 +14,7 @@ const int NUM_ATOMS = 513699;
 const int NUM_STEPS = 8;
 const int NUM_WATER = 1105;
 const int STEPS_PER_FRAME = 3;
-const double SUBSTRATE_MASS = 1.00228e+07;
+const double SUBSTRATE_MASS = 9.87359e+06;
 const double DROPLET_MASS = 19808.43551;
 
 TEST_CASE("Readers", "[lotus]") {
@@ -85,6 +85,7 @@ TEST_CASE("Readers", "[lotus]") {
 
     // Some of the droplet may not fall in the histogram,
     // hence we allow it to vary by 0.5%
+    cout << "substrate mass = " << substrate.getMass() << endl;
     REQUIRE(abs(substrate.getMass() - SUBSTRATE_MASS) < 5e-3*SUBSTRATE_MASS);
     REQUIRE(abs(droplet.getMass() - DROPLET_MASS) < 5e-3*DROPLET_MASS);
 

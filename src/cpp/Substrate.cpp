@@ -13,7 +13,6 @@ void Substrate::setContext(AtomArray &atomArray) {
   atomArrayPtr = &atomArray;
   simDataPtr = atomArrayPtr->simDataPtr;
   options = simDataPtr->options;
-  rDensCyl = options.rDensCyl;
 }
 
 void Substrate::fillOne(Atom &atom) {
@@ -32,10 +31,7 @@ void Substrate::fill(AtomArray &atoms) {
       // If solid
       if(isIn(atom.type, simDataPtr->solidTypes)) {
         atom.calculateRadius();
-        // TODO: Remove or change
-        if(atom.r < rDensCyl) {
-          fillOne(atom);
-        }
+        fillOne(atom);
       }
     }
   }
@@ -56,9 +52,7 @@ void Substrate::convertUnits() {
   dx = simDataPtr->simBounds.xhi - simDataPtr->simBounds.xlo;
   dy = simDataPtr->simBounds.yhi - simDataPtr->simBounds.ylo;
   // dz already defined as member variable
-  // dv = dx * dy * dz
-  // TODO: Remove or change (use whole xy plane)
-  dv = PI * dz * rDensCyl*rDensCyl;
+  dv = dx * dy * dz;
   hSubstrateDens->Scale(1.0/dv);
   // Convert units from amu/AA^3 to g/cc
   hSubstrateDens->Scale(NANO_DENS_TO_MACRO);
