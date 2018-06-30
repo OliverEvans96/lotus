@@ -11,10 +11,6 @@
 
 using namespace std;
 
-// TODO: Set in options
-const int COL_WIDTH = 15;
-const int PRECISION = 6;
-
 /////////////
 // Writers //
 /////////////

@@ -52,6 +52,8 @@ struct Options
   double substrateTop;
   double rDensCyl;
   double densMax;
+  int outputColWidth;
+  int outputPrecision;
 
   vector<int> liquidTypes, solidTypes;
 

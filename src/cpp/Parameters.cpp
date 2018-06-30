@@ -182,6 +182,8 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("substrateTop", substrateTop, 0.0);
   parseDefaultOption("rDensCyl", rDensCyl, 10.0);
   parseDefaultOption("densMax", densMax, 1.5);
+  parseDefaultOption("outputColWidth", outputColWidth, 15);
+  parseDefaultOption("outputPrecision", outputPrecision, 6);
 
   // Set ROOT verbosity
   if(verbose) {
@@ -250,6 +252,8 @@ void Options::printOptions() {
   printOption("substrateTop", substrateTop);
   printOption("rDensCyl", rDensCyl);
   printOption("densMax", densMax);
+  printOption("outputColWidth", outputColWidth);
+  printOption("outputPrecision", outputPrecision);
 }
 
 CommandLineParser::CommandLineParser(int argc, const char* argv[]) {

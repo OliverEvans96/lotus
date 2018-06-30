@@ -49,20 +49,20 @@ void WriterBase::getFmtStr(char* fmt, double* dataPtr) {
   char lj[2];
   lj[0] = leftJustify ? '-' : '\0';
   lj[1] = 0;
-  sprintf(fmt, "%%%s%d.%d%s", lj, COL_WIDTH, PRECISION, "f");
+  sprintf(fmt, "%%%s%d.%d%s", lj, options.outputColWidth, options.outputPrecision, "f");
 }
 
 void WriterBase::getFmtStr(char* fmt, int* dataPtr) {
   char lj[2];
   lj[0] = leftJustify ? '-' : '\0';
   lj[1] = 0;
-  sprintf(fmt, "%%%s%d%s", lj, COL_WIDTH, "d");
+  sprintf(fmt, "%%%s%d%s", lj, options.outputColWidth, "d");
 }
 void WriterBase::getFmtStr(char* fmt, const char* dataPtr) {
   char lj[2];
   lj[0] = leftJustify ? '-' : '\0';
   lj[1] = 0;
-  sprintf(fmt, "%%%s%d%s", lj, COL_WIDTH, "s");
+  sprintf(fmt, "%%%s%d%s", lj, options.outputColWidth, "s");
 }
 
 
