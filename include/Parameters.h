@@ -50,6 +50,7 @@ struct Options
   bool fitCircle;
   double monoTop;
   double substrateTop;
+  double rDensCyl;
 
   vector<int> liquidTypes, solidTypes;
 

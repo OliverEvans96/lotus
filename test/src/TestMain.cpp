@@ -14,7 +14,7 @@ const int NUM_ATOMS = 513699;
 const int NUM_STEPS = 8;
 const int NUM_WATER = 1105;
 const int STEPS_PER_FRAME = 3;
-const double SUBSTRATE_MASS = 9856349.862;
+const double SUBSTRATE_MASS = 1.00228e+07;
 const double DROPLET_MASS = 19808.43551;
 
 TEST_CASE("Readers", "[lotus]") {

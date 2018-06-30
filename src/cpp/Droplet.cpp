@@ -48,10 +48,8 @@ void Monolayer::reset() {
 void Monolayer::fillOne(Atom &atom) {
   double mass;
   mass = simDataPtr->masses[atom.type];
-  atom.calculateRadius();
-  // TODO: Make this more efficient by calculating
-  // only the necessary "radius" (y or r).
   if(options.geometry == "spherical") {
+    atom.calculateRadius();
     hMono->Fill(atom.r, mass);
   }
   else if(options.geometry == "cylindrical") {
@@ -329,9 +327,6 @@ double CircularBulk::fitCircle() {
 }
 
 Droplet::Droplet(AtomArray &atomArray) {
-  // TODO: Determine radius from options?
-  rDensCyl = 10;
-
   setContext(atomArray);
   createHists();
 }
@@ -344,6 +339,8 @@ void Droplet::setContext(AtomArray &atomArray) {
   atomArrayPtr = &atomArray;
   simDataPtr = atomArrayPtr->simDataPtr;
   options = simDataPtr->options;
+  rDensCyl = options.rDensCyl;
+  cout << "*)*)*)*) rDensCyl = " << rDensCyl << " (*(*(*(*" << endl;
 
   bulk.setContext(options, simDataPtr, atomArrayPtr);
   monolayer.setContext(options, simDataPtr, atomArrayPtr);

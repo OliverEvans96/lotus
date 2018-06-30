@@ -180,6 +180,7 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("fitCircle", fitCircle, true);
   parseDefaultOption("monoTop", monoTop, 0.0);
   parseDefaultOption("substrateTop", substrateTop, 0.0);
+  parseDefaultOption("rDensCyl", rDensCyl, 10.0);
 
   // Set ROOT verbosity
   if(verbose) {
@@ -245,6 +246,7 @@ void Options::printOptions() {
   printOption("fitCircle", fitCircle);
   printOption("monoTop", monoTop);
   printOption("substrateTop", substrateTop);
+  printOption("rDensCyl", rDensCyl);
 }
 
 CommandLineParser::CommandLineParser(int argc, const char* argv[]) {

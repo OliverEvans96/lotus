@@ -3,8 +3,6 @@
 Substrate::Substrate(AtomArray &atomArray, double dz) {
   setContext(atomArray);
   createHist();
-  // TODO: Remove or change
-  rDensCyl = 20;
 }
 
 Substrate::~Substrate() {
@@ -15,6 +13,7 @@ void Substrate::setContext(AtomArray &atomArray) {
   atomArrayPtr = &atomArray;
   simDataPtr = atomArrayPtr->simDataPtr;
   options = simDataPtr->options;
+  rDensCyl = options.rDensCyl;
 }
 
 void Substrate::fillOne(Atom &atom) {
