@@ -25,6 +25,7 @@ TEST_SRC=$(TEST)/src
 TEST_INC=$(TEST)/include
 RUN=$(BASE)/run
 TEST_RESULTS=$(TEST)/results
+DOCS=$(BASE)/docs
 
 # C++ Compiler
 CXX=g++
@@ -70,15 +71,20 @@ $(main_test_bin): $(main_test_obj) $(test_src) $(cpp_obj)
 # UTILITIES #
 #############
 
-.PHONY: all clean cleanall run echo test data $(test_bin) $(main_bin)
+.PHONY: all clean cleanall run docs echo test data $(test_bin) $(main_bin)
 
-all: $(main_bin)
+all: $(main_bin) docs
 
 clean:
 	rm $(BIN)/* -f
 	rm $(LIB)/*.o -f
 	rm $(INC)/*.o -f
 	rm $(main_test_obj) -f
+
+cleandocs:
+	rm $(DOCS)/html -rf 
+	rm $(DOCS)/latex -rf
+	rm $(DOCS)/xml -rf
 
 cleandata:
 	rm $(testdata_unzipped) -f
@@ -90,6 +96,9 @@ data: $(testdata_unzipped)
 
 run: $(BIN)/droplet_analysis.out
 	$(BIN)/droplet_analysis.out
+
+docs:
+	cd $(DOCS) && doxygen
 
 echo:
 	echo $(testdata_zipped)
