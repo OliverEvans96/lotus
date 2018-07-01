@@ -1,3 +1,18 @@
+/**
+   @file    Atoms.h
+   @author  Oliver Evans
+   @date    7/1/2018
+   @version 1.0
+
+   @brief Structures for atom data.
+
+   @section DESCRIPTION
+   Structures which facilitate storage and manipulation of atom positions
+   (and possibly velocities, but not currently), and calculation of
+   non-cartesian components of stored quantities.
+*/
+
+
 #ifndef ATOMS_H
 #define ATOMS_H
 
@@ -12,6 +27,9 @@ using namespace std;
 // Single-atom data //
 //////////////////////
 
+/**
+   @brief Simple structure to hold information about a single atom
+*/
 struct Atom
 {
  public:
@@ -25,6 +43,9 @@ struct Atom
 // Multi-atom data //
 /////////////////////
 
+/**
+   @brief Simple structure to hold information about multiple atoms.
+*/
 class AtomArray
 {
   bool allocated;

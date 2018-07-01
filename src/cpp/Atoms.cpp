@@ -4,10 +4,16 @@
 // Single-atom data //
 //////////////////////
 
+/**
+   @brief Calculate cylindrical radius from x and y coordinates.
+*/
 void Atom::calculateRadius() {
   r = sqrt(x*x + y*y);
 }
 
+/**
+   @brief Print atom coordinates
+*/
 void Atom::print() {
   printf("Atom: type %d @ (%.2f, %.2f, %.2f)\n", type, x, y, z);
 }
