@@ -1,3 +1,13 @@
+/**
+   @file MDBase.h
+
+   Basic quantities related to the MD simulation.
+
+   Contains time-independent data such as grid and
+   atom information, as well as time-dependent
+   information such as the substrate and monolayer extents.
+*/
+
 #ifndef MDBASE_H
 #define MDBASE_H
 
@@ -7,22 +17,27 @@
 
 using namespace std;
 
-// Conversion factor - number density to water mass density
-const double convFact = 18/.60221409;
-
 /////////////////////
 // Simulation Data //
 /////////////////////
 
+/**
+  Simulation box bounds, as defined in the LAMMPS dumpfile.
+  This data is updated each timestep.
+
+  @see DumpfileReader
+*/
 struct BoxBounds {
   double xlo, xhi;
   double ylo, yhi;
   double zlo, zhi;
 };
 
-// Source of truth for general MD variables.
-// Variables are set here, and this object (or a pointer)
-// is passed around and read elsewhere.
+/**
+  Source of truth for general MD variables.
+  Variables are set here, and a pointer to this object
+  is passed around and read elsewhere.
+*/
 struct SimData {
   // Static data
   Options options;
@@ -31,14 +46,31 @@ struct SimData {
   int numFrames;
   int stepsPerFrame;
   LastFrame lastFrame;
+  /// Which atom types correspond to liquid
   vector<int> liquidTypes;
+  /// Which atom types correspond to substrate
   vector<int> solidTypes;
+  /// Mass for each atom type
   map<int, double> masses;
+  /** Maps oxygen atom id to two hydrogen atom ids.
+      @see DatafileReader::readWaterBonds
+  */
   map<int, int*> waterBonds;
   BoxBounds simBounds;
 
   // Dynamic data
+  /** z coordinate of the top of the substrate.
+     If the substrate option is disabled,
+     this can be manually specified in options.
+     @todo link to actual option.
+     @see Substrate::findLimits
+  */
   double substrateTop;
+  /** z coordinate of the top of the substrate.
+     If the substrate option is disabled,
+     this can be manually specified in options.
+     @todo link to actual option.
+  */
   double monoTop;
   Frame *framePtr;
 

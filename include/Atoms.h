@@ -1,7 +1,9 @@
 /**
    @file Atoms.h
 
-   Structures which facilitate storage and manipulation of atom positions
+   Structures for single and multiple atom positions.
+
+   These objects facilitate storage and manipulation of atom positions
    (and possibly velocities, but not currently), and calculation of
    non-cartesian components of stored quantities.
 */
