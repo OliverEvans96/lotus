@@ -97,6 +97,8 @@ run: $(BIN)/droplet_analysis.out
 	$(BIN)/droplet_analysis.out
 
 docs:
+# Todo list should always be rebuilt
+	touch $(DOCS)/source/todo.rst
 	cd $(DOCS) && make html
 
 echo:
