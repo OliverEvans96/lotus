@@ -1,2 +1,4 @@
-build
-xml
+*
+!Makefile
+!.gitignore
+!source
