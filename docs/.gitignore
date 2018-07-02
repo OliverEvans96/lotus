@@ -1,4 +1,5 @@
 *
 !Makefile
+!environment.yaml
 !.gitignore
 !source
