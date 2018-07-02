@@ -82,9 +82,8 @@ clean:
 	rm $(main_test_obj) -f
 
 cleandocs:
-	rm $(DOCS)/html -rf 
-	rm $(DOCS)/latex -rf
 	rm $(DOCS)/xml -rf
+	rm $(DOCS)/build/html -rf
 
 cleandata:
 	rm $(testdata_unzipped) -f
@@ -98,7 +97,7 @@ run: $(BIN)/droplet_analysis.out
 	$(BIN)/droplet_analysis.out
 
 docs:
-	cd $(DOCS) && doxygen
+	cd $(DOCS) && make html
 
 echo:
 	echo $(testdata_zipped)
