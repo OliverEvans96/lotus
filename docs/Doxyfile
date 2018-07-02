@@ -1,6 +1,6 @@
 PROJECT_NAME      = "Lotus"
 XML_OUTPUT        = xml
-INPUT             = ../include
+INPUT             = ../include ../src/cpp
 GENERATE_LATEX    = NO
 GENERATE_MAN      = NO
 GENERATE_RTF      = NO
