@@ -5,14 +5,14 @@
 //////////////////////
 
 /**
-   @brief Calculate cylindrical radius from x and y coordinates.
+   Calculate cylindrical radius @f$r@f$ from @f$x@f$ and @f$y@f$ coordinates.
 */
 void Atom::calculateRadius() {
   r = sqrt(x*x + y*y);
 }
 
 /**
-   @brief Print atom coordinates
+   Print atom type and coordinates.
 */
 void Atom::print() {
   printf("Atom: type %d @ (%.2f, %.2f, %.2f)\n", type, x, y, z);
@@ -22,8 +22,13 @@ void Atom::print() {
 // Multi-atom data //
 /////////////////////
 
-// Must be created after DatafileReader
-// so that numAtoms is known
+
+/**
+   Sole constructor.
+
+   @param[in] simData
+   SimData object whose `numAtoms` member is already defined.
+*/
 AtomArray::AtomArray(SimData &simData) {
   allocated = false;
   setSimData(simData);
@@ -38,6 +43,15 @@ void AtomArray::setSimData(SimData &simData) {
   setNumAtoms(simDataPtr->numAtoms);
   cout << "numAtoms = " << numAtoms << endl;
 }
+
+/**
+   Allocate arrays.
+
+   Four arrays are allocated: `x`, `y`, `z`, `r`;
+   each of which are of length `numAtoms * stepsPerFrame`.
+   Since the last frame may have more steps than other frames,
+   we use `stepsPerFrame = simDataPtr->lastFrame.numSteps`.
+*/
 void AtomArray::allocateArrays() {
   // Last frame may be longer than the rest,
   // so allocate arrays accordingly.
@@ -48,7 +62,6 @@ void AtomArray::allocateArrays() {
       cout << "Allocating arrays of size " << arraySize;
       printf(" (%8.4f GB)\n", arraySize/pow(2.0,27)*3);
     }
-
 
     type = new int[arraySize];
     x = new double[arraySize];
@@ -69,6 +82,8 @@ void AtomArray::deallocateArrays() {
     delete [] y;
     delete [] z;
     delete [] r;
+
+    allocated = false;
   }
 }
 

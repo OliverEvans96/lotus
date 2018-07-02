@@ -13,7 +13,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 def setup(app):
     app.add_stylesheet("main_stylesheet.css")
 
-extensions = ['breathe']
+extensions = ['breathe', 'sphinx.ext.mathjax']
 breathe_projects = { 'lotus': '../xml' }
 breathe_default_project = "lotus"
 templates_path = ['_templates']
