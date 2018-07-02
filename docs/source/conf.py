@@ -3,16 +3,11 @@
 
 import os
 import subprocess
-
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
-if on_rtd:
-    subprocess.call('cd ..; doxygen', shell=True)
-
 import sphinx_rtd_theme
 
-html_theme = "sphinx_rtd_theme"
+subprocess.call('cd ..; doxygen', shell=True)
 
+html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 def setup(app):
