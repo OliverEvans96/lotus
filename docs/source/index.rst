@@ -24,7 +24,19 @@ Introduction
    :caption: API REFERENCE
    :maxdepth: 2
 
-   api
+   api/Utils
+   api/MDBase
+   api/Parameters
+   api/Readers
+   api/Writers
+   api/Atoms
+   api/Time
+   api/Droplet
+   api/Substrate
+   api/Fitting
+   api/Visualization
+   api/Quiver
+   api/FieldViz
 
 .. toctree::
    :caption: MISCELLANEOUS
