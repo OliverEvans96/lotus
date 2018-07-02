@@ -18,6 +18,16 @@ void SimData::deleteWaterBonds() {
   }
 }
 
+/**
+   Copy a few important options directly to this object.
+
+   @see #liquidTypes
+   @see #solidTypes
+   @see #stepsPerFrame
+   @see #monoTop
+   @see #substrateTop
+   @see #numAtoms
+*/
 void SimData::setOptions(Options _options) {
   options = _options;
   liquidTypes = options.liquidTypes;
@@ -34,6 +44,13 @@ void SimData::setOptions(Options _options) {
   }
 }
 
+/**
+   Set the number of steps per frame and determine
+   how many steps are in the last frame.
+   Must be called after #numSteps is defined.
+   This function is called by #setNumSteps.
+   @see LastFrame::setSteps
+*/
 void SimData::setStepsPerFrame(int _stepsPerFrame) {
   stepsPerFrame = _stepsPerFrame;
   lastFrame.setSteps(numSteps, stepsPerFrame);
@@ -49,68 +66,14 @@ void SimData::setStepsPerFrame(int _stepsPerFrame) {
   numFrames = (int) floor(numSteps/stepsPerFrame);
 }
 
+/**
+   Set numsteps and call #setStepsPerFrame
+   using value from Options::stepsPerFrame.
+*/
 void SimData::setNumSteps(int _numSteps) {
   numSteps = _numSteps;
   setStepsPerFrame(options.stepsPerFrame);
 }
-
-// void Grid::mmmmm() {
-//   // Replace with Grid object ////////////////////////////////
-//   double dz=1.5;                                            //
-//   double zlo=10;                                            //
-//   double zhi=142; //142 for 60A, 121 for others             //
-//   int nz=(int) round((zhi-zlo)/dz);                         //
-//                                                             //
-//   //Check that dz, zlo, and zhi are compatible              //
-//   if( !(fmod((zhi-zlo),dz)==0) )                            //
-//   {                                                         //
-//     cout << "(zhi-zlo) is not divisible by dz" << endl;     //
-//     return 1;                                               //
-//   }                                                         //
-//                                                             //
-//   cout << "nz=" << nz << endl;                              //
-//                                                             //
-//   const double dA=500;                                      //
-//   const double alo=0;                                       //
-//   const double ahi=125500;                                  //
-//   int nA=(int) round((ahi-alo)/dA);                         //
-//                                                             //
-//   double dr=dz;                                             //
-//   double rlo=sqrt(alo/PI);                                  //
-//   double rhi=sqrt(ahi/PI);                                  //
-//   int nr=(int) round((rhi-rlo)/dr);                         //
-//                                                             //
-//   double vlo=0;                                             //
-//   double vhi=1e7;                                           //
-//   int nV=(int) round((vhi-vlo)/dA);                         //
-//                                                             //
-//   double dp=dr;                                             //
-//   double plo=pow((3*vlo/(4*PI)),(1.0/3));                   //
-//   double phi=pow((3*vhi/(4*PI)),(1.0/3));                   //
-//   int  np=(int) round((phi-plo)/dp);                        //
-//                                                             //
-//   //Bin volume                                              //
-//   double dV=dA*dz;                                          //
-//                                                             //
-//   //Check that dA, alo, and ahi are compatible              //
-//   if( !(fmod((ahi-alo),dA)==0) )                            //
-//   {                                                         //
-//     cout << "(Ahi-Alo) is not divisible by dA" << endl;     //
-//     return 1;                                               //
-//   }                                                         //
-//                                                             //
-//   cout << "nA=" << nA << endl;                              //
-//                                                             //
-//   ////////////////////////////////////////////////////////////
-//
-//
-//   //Values to use for equal-area bins
-//   double aVals[nA];
-//   double vVals[nA];
-//   double rVals[nA];
-//   double pVals[nA];
-//
-// }
 
 void Grid::setBounds(double _zlo, double _zhi, double _rhi) {
   zlo = _zlo;
@@ -123,10 +86,12 @@ void Grid::setSpacing(double _dz, double _dv) {
   dv = _dv;
 }
 
+/**
+   Increase upper limits if total width is not divisible
+   by required spacing (i.e. (zhi-zlo)%dz != 0)
+*/
 void Grid::calculateVolumeLimits() {
   // Volume of full cylinder containing outer bin.
-  // Increase upper limits if total width is not divisible
-  // by required spacing (e.g. (zhi-zlo)%dz != 0)
   vhi_preround = dz * PI * rhi_preround * rhi_preround;
   nv = (int) ceil(vhi_preround / dv);
   nr = nv;
@@ -136,20 +101,27 @@ void Grid::calculateVolumeLimits() {
   zhi = zlo + nz * dz;
 }
 
+/**
+   Includes both endpoints
+   https://root.cern.ch/root/roottalk/roottalk10/1170.html
+*/
 void Grid::allocateBins() {
-  // Includes both endpoints
-  // https://root.cern.ch/root/roottalk/roottalk10/1170.html
   rVals = new double[nv+1];
   allocated = true;
 }
 
+/**
+   @f$r_i = \sqrt{\frac{i\,dv}{\pi\,dz}} @f$
+*/
 void Grid::calculateBins() {
   for(int i=0;i<=nv;i++) {
     rVals[i]=sqrt(i*dv/(PI*dz));
-    // pVals[i]=pow(((3*vVals[i])/(4*PI)),1.0/3);
   }
 }
 
+/**
+   Calls #calculateVolumeLimits, #allocateBins, #calculateBins
+*/
 void Grid::init() {
   calculateVolumeLimits();
   allocateBins();
@@ -162,6 +134,9 @@ void Grid::deallocateBins() {
   }
 }
 
+/**
+   Call #deallocateBins
+*/
 Grid::~Grid() {
   deallocateBins();
 }

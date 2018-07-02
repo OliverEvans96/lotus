@@ -77,19 +77,43 @@ struct SimData {
   SimData(Options options);
   ~SimData();
 
+  /** Since water bonds are stored as a map from int to int*,
+      those int*s must be allocated upon storage in the map.
+      So we delete them here.
+
+      @see DatafileReader::readWaterBonds
+  */
   void deleteWaterBonds();
   void setOptions(Options options);
   void setNumSteps(int _numSteps);
   void setStepsPerFrame(int _stepsPerFrame);
 };
 
+/**
+   Grid to use for 2D histogram.
+
+   Each bin in the grid has the same volume.
+   #dz and #dv are specified by Options::dz and Options::dv,
+   and determine the size of the bins.
+   `dr` is determined automatically for each bin from the other two.
+*/
 struct Grid {
   double zlo, zhi, rhi, vhi;
   double dz, dv;
   int nz, nv, nr;
 
+  /** r values of bin edges (including both min and max)
+      @see #calculateBins
+      @see #allocateBins
+  */
   double* rVals;
-  double zhi_preround, vhi_preround, rhi_preround;
+  /// @see calculateVolumeLimits
+  double zhi_preround;
+  /// @see calculateVolumeLimits
+  double vhi_preround;
+  /// @see calculateVolumeLimits
+  double rhi_preround;
+  /// Whether #rVals has been allocated
   bool allocated;
 
   ~Grid();
@@ -97,24 +121,18 @@ struct Grid {
   void setBounds(double _zlo, double _zhi, double _rhi);
   void setSpacing(double _dz, double _dv);
 
+  /// Set up grid after calling #setBounds and #setSpacing
   void init();
+  /** Round upper z and r bounds in case #dv or #dz
+      don't evenly divide the z and r ranges
+  */
   void calculateVolumeLimits();
+  /// Allocate #rVals before calling #calculateBins
   void allocateBins();
+  /// Set #rVals after calling #allocateBins
   void calculateBins();
+  /// Deallocate #rVals after using
   void deallocateBins();
 };
-
-//double fitCircle(TGraph2D* circlePointsGraph,CircleFit circle,double xMax,int timestep);
-
-
-//Count the number of atoms which have migrated from the bulk to the monolayer this timestep
-//double bulkMonoExchange(vector<double>z,double *monoLimits,int stepsPerFrame);
-
-
-//Find the lowest atom ID for a water molecule in this simulation
-int lowestID(ifstream &inFile);
-
-
-
 
 #endif
