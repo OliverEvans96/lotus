@@ -26,7 +26,7 @@ void Atom::print() {
 /**
    Sole constructor.
 
-   @param[in] simData
+   @param simData
    SimData object whose `numAtoms` member is already defined.
 */
 AtomArray::AtomArray(SimData &simData) {
@@ -47,7 +47,7 @@ void AtomArray::setSimData(SimData &simData) {
 /**
    Allocate arrays.
 
-   Four arrays are allocated: `x`, `y`, `z`, `r`;
+   Four arrays are allocated: #x, #y, #z, #r;
    each of which are of length `numAtoms * stepsPerFrame`.
    Since the last frame may have more steps than other frames,
    we use `stepsPerFrame = simDataPtr->lastFrame.numSteps`.

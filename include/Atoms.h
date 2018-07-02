@@ -43,12 +43,12 @@ struct Atom
 
    Can get and set coordinates from Atom.
    This object must be instantiated after DatafileReader
-   so that `simDataPtr->numAtoms` is already defined
+   so that SimData::numAtoms is already defined
    since this value is used to determine the size of allocated arrays.
 
    Atom positions for all timesteps in a frame are stored,
-   which may lead to memory issues if options.stepsPerFrame
-   or `simDataPtr->numAtoms` are very large.
+   which may lead to memory issues if Options::stepsPerFrame
+   or SimData::numAtoms are very large.
 */
 class AtomArray
 {
@@ -71,9 +71,9 @@ class AtomArray
   /// Set simDataPtr and number of atoms.
   void setSimData(SimData &simData);
   void setNumAtoms(int _numAtoms);
-  /// Copy data for atom `atomNum` at step `stepInFrame` to @p atom.
+  /// Copy data for atom @p atomNum at step @p stepInFrame to @p atom.
   void setAtom(int atomNum, int stepInFrame, Atom &atom);
-  /// Copy data for atom `atomNum` at step `stepInFrame` from @p atom.
+  /// Copy data for atom @p atomNum at step @p stepInFrame from @p atom.
   void getAtom(int atomNum, int stepInFrame, Atom &atom);
 
   /// Print min, max, mean, std. of each x, y, z components of positions.
