@@ -12,10 +12,7 @@ Analyze molecular dynamics simulations of nanoscale wetting.
    :maxdepth: 2
    :caption: Contents:
 
+   overview
    api
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
+   todo
+   genindex
