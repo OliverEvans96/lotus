@@ -1,5 +1,3 @@
-*
-!Makefile
-!environment.yml
-!.gitignore
-!source
+html
+xml
+build
