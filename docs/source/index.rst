@@ -3,16 +3,32 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Lotus-MD Documentation
-======================
-
 Analyze molecular dynamics simulations of nanoscale wetting.
 
+Introduction
+============
+
 .. toctree::
+   :caption: INSTALLATION
    :maxdepth: 2
-   :caption: Contents:
+
+   install
+
+.. toctree::
+   :caption: USAGE
+   :maxdepth: 2
 
    overview
+
+.. toctree::
+   :caption: API REFERENCE
+   :maxdepth: 2
+
    api
+
+.. toctree::
+   :caption: MISCELLANEOUS
+   :maxdepth: 2
+
    todo
    genindex
