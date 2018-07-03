@@ -30,4 +30,4 @@ exclude_patterns = []
 highlight_language = 'c++'
 pygments_style = 'sphinx'
 todo_include_todos = True
-htmlhelp_basename = 'lotusdoc'
+htmlhelp_basename = 'lotus-doc'
