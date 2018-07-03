@@ -36,7 +36,7 @@
 using namespace std;
 
 const double PI = 3.141592653589793;
-/// Multiply amu/AA^3 by this number to get g/cc.
+/// Multiply @f$\mathrm{amu}/\mathrm{\mathring{A}}^3@f$ by this number to get @f$\mathrm{g}/\mathrm{cm}^3 @f$.
 const double NANO_DENS_TO_MACRO = 1.0/0.60221409;
 
 /// Count the number of lines in a file.
