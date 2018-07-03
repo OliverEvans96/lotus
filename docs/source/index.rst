@@ -1,12 +1,16 @@
-.. lotus documentation master file, created by
-   sphinx-quickstart on Sun Jul  1 16:03:27 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+===================
+Lotus Documentation
+===================
 
 Analyze molecular dynamics simulations of nanoscale wetting.
 
-Introduction
-============
+This is a C++ package which parses output from LAMMPS_,
+and uses ROOT_ to determine geometrical quantities over time
+such as droplet height, radius, and contact angle.
+
+.. _ROOT: https://root.cern.ch/
+
+.. _LAMMPS: http://lammps.sandia.gov/
 
 .. toctree::
    :caption: INSTALLATION
@@ -19,24 +23,14 @@ Introduction
    :maxdepth: 2
 
    overview
+   output
 
 .. toctree::
    :caption: API REFERENCE
    :maxdepth: 2
+   :glob:
 
-   api/Utils
-   api/MDBase
-   api/Parameters
-   api/Readers
-   api/Writers
-   api/Atoms
-   api/Time
-   api/Droplet
-   api/Substrate
-   api/Fitting
-   api/Visualization
-   api/Quiver
-   api/FieldViz
+   api/*
 
 .. toctree::
    :caption: MISCELLANEOUS
