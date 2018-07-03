@@ -128,7 +128,7 @@ double square(double x) {
   return x*x;
 }
 
-//Arctanh
+/// @see Wolfram Mathworld, [Equation (1)](http://mathworld.wolfram.com/InverseHyperbolicTangent.html).
 double atanh(double x) {
   return log((1+x)/(1-x))/2;
 }
