@@ -5,41 +5,6 @@
 
 using namespace std;
 
-/////////////////////////
-// Variables over time //
-/////////////////////////
-
-struct StepVariables
-{
-  double monoEdge;
-  double bulkEdge;
-  double contactAngle;
-  double dropletHeight;
-  double avgRadius;
-  double avgDipole;
-  double MSD;
-  double frameFlux;
-  double dMe_dt;
-  double nMono;
-  double chi2;
-};
-
-struct FrameVariables
-{
-  double monoEdge;
-  double bulkEdge;
-  double contactAngle;
-  double dropletHeight;
-  double avgRadius;
-  double avgDipole;
-  double MSD;
-  double frameFlux;
-  double dMe_dt;
-  double nMono;
-  double chi2;
-};
-
-
 //////////////////
 // Time Keepers //
 //////////////////
