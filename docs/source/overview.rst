@@ -23,16 +23,31 @@ All further z positions will be shifted such that the substrate top is :math:`z=
 The droplet density profile is used to determine the :math:`z` extent
 of the monolayer if this feature is desired.
 
-.. image:: img/dens.png
+
+.. todo:: remove
+
+.. _dens-figure:
+
+.. figure:: img/dens.png
    :width: 600px
+
+   Figure 1
+
+   1D Density Profile.
 
 2D Density Profile
 --------------------
 A mass density histogram is created from atom positions
 using equal-volume rectangular bins in the cylindrical :math:`r-z` plane.
 
-.. image:: img/cyl-hist-bin.svg
+.. _bin-figure:
+
+.. figure:: img/cyl-hist-bin.svg
    :width: 600px
+
+   Figure 2
+
+   Shape of a histogram bin for spherical droplets.
 
 .. todo:: expand on this
 
@@ -59,8 +74,14 @@ and consider the fitted value of :math:`x_0` (the location where :math:`\rho(x) 
 .. todo::
    Remove 4*
 
-.. image:: img/tanh.png
+.. _tanh-figure:
+
+.. figure:: img/tanh.png
    :width: 600px
+
+   Figure 3
+
+   Hyperbolic tangent fitting for boundary location.
 
 Calculation of Geometric Quantities of Interest
 -----------------------------------------------
@@ -78,8 +99,14 @@ The geometrical quantities of interest are:
 - Bulk height (:math:`h_b`)
 - Contact angle (:math:`\theta`)
 
-.. image:: img/droplet-quantities.png
+.. _quantities-figure:
+
+.. figure:: img/droplet-quantities.png
    :width: 600px
+
+   Figure 4
+
+   Quantities of interest for spherical droplets.
 
 If monolayer calculations are enabled, a 1D histogram (:math:`r` vs :math:`\rho`)
 is created and filled with atoms within the :math:`z`-extent of the monolayer
@@ -99,9 +126,14 @@ makes with the :math:`r`-axis (rotating the tangent line in to the droplet)
 is the contact angle.
 The positive :math:`z`-value of the circle at :math:`r=0` is the bulk height.
 
-.. image:: img/droplet.png
+.. _droplet-figure:
+
+.. figure:: img/droplet.png
    :width: 600px
 
+   Figure 5
+
+   Density histogram with calculated quantities annotated.
 
 If monolayer calculations are disabled, then the top of the substrate
 is taken to be the plane of intersection rather than the top of the monolayer.
