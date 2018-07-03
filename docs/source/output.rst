@@ -56,13 +56,15 @@ and contains all numerical output.
   are produced by :cpp:class:`ScalarWriter`.
   Each of these files are single-column data,
   one row per :cpp:class:`Frame`.
+  The first row in each file is the name of the file,
+  without ".txt", and with '#' prepended.
 
 * The subdirectories of ``data``
   are produced by :cpp:class:`ArrayWriter`.
   Each subdirectory (there is currently only ``circlePoints``)
   contains one ``.txt`` file per :cpp:class:`Frame`,
   each of which contains multiple columns,
-  with headers in the first line of each column.
+  with headers in the first line of each column with '#' prepended.
   For the ``circlePoints`` files, these are the
   :math:`r` and :math:`z` coordinates of the boundary points.
 

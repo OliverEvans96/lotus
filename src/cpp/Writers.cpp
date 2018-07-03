@@ -30,7 +30,6 @@ void WriterBase::setOutputDir(const char* path) {
   }
 }
 
-// Create `outputDir`/`subdir`/`title`
 void WriterBase::createDataDir() {
   char dataDir[256];
   // Create `outputDir`
@@ -78,6 +77,12 @@ void WriterBase::deleteFmtStrs() {
 // ScalarWriter //
 //////////////////
 
+/**
+   Save appropriate pointers,
+   left justify scalar data,
+   set output quantities,
+   and write appropriate headers.
+*/
 ScalarWriter::ScalarWriter(DumpfileReader &dumpfileReader, Droplet &droplet) : WriterBase(*droplet.simDataPtr) {
   dumpfileReaderPtr = &dumpfileReader;
   dropletPtr = &droplet;
@@ -110,17 +115,20 @@ void ScalarWriter::openFile(const char* quantityName) {
   files.push_back(openFileBase(filename));
 }
 
+/// Only close files which are actually open.
 void ScalarWriter::closeFiles() {
   for(int i=0; i<numQuantities; i++) {
-    // Only close if file is actually open
     if(files[i] != NULL) {
       fclose(files[i]);
     }
   }
 }
 
-// Choose which quantities are written to the main results file
-// A quantity name and pointer to the quantity are given for each
+/**
+   A quantity name and pointer to the quantity are given for each.
+
+   @see #addQuantity
+*/
 void ScalarWriter::setOutputQuantities() {
   addQuantity("timestep", &dumpfileReaderPtr->frameReader.frame.time);
   if(options.monolayer) {
@@ -133,6 +141,17 @@ void ScalarWriter::setOutputQuantities() {
   }
 }
 
+/**
+   Since #dataPtrArray is a vector of void pointers,
+   this function checks #typeArray in order to know
+   how to appropriately dereference the pointer.
+
+   Also, values larger than @p 1e20 are replaced with "INF"
+   (formatted as the quantity would have been).
+
+   @param[out] quantityStr    Final formatted quantity string.
+   @param[in]  i              Index of the quantity.
+*/
 void ScalarWriter::getQuantityStr(char* quantityStr, int i) {
   double doubleVal;
   int intVal;
@@ -164,7 +183,6 @@ void ScalarWriter::getQuantityStr(char* quantityStr, int i) {
   }
 }
 
-// Write quantity names to first line of files
 void ScalarWriter::writeHeaders() {
   char headerStr[256];
   char fmtStr[16];
@@ -179,6 +197,7 @@ void ScalarWriter::writeHeaders() {
   }
 }
 
+/// `FILE*`s are flushed after each write.
 void ScalarWriter::writeFrame() {
   char quantityStr[256];
   for(int i=0; i<numQuantities; i++) {
@@ -192,6 +211,11 @@ void ScalarWriter::writeFrame() {
 // ArrayWriter //
 //////////////////
 
+/**
+   Save appropriate pointers,
+   left justify scalar data,
+   and set output quantities.
+*/
 ArrayWriter::ArrayWriter(DumpfileReader &dumpfileReader, Droplet &droplet) : WriterBase(*droplet.simDataPtr) {
   dumpfileReaderPtr = &dumpfileReader;
   dropletPtr = &droplet;
@@ -204,11 +228,41 @@ ArrayWriter::ArrayWriter(DumpfileReader &dumpfileReader, Droplet &droplet) : Wri
 ArrayWriter::~ArrayWriter() {
 }
 
+/**
+   Each quantity requires:
+   - A quantity name, a pointer to the data array,
+   - a pointer to the number of rows,
+   - a pointer to the array of header strings,
+   - the number of columns.
+
+   Currently, only @p boundaryPoints (CircularBulk::boundaryPointsArray)
+   is written in this manner.
+
+   @see #addQuantity
+*/
 void ArrayWriter::setOutputQuantities() {
-  addQuantity("boundaryPoints", dropletPtr->bulk.boundaryPointsArray, &dropletPtr->bulk.numPoints, dropletPtr->bulk.headers, 2);
+  addQuantity(
+      "boundaryPoints",
+      dropletPtr->bulk.boundaryPointsArray,
+      &dropletPtr->bulk.numPoints,
+      dropletPtr->bulk.headers,
+      2
+  );
 }
 
-// Get formatted string for quantity column
+/**
+   Since #dataPtrArray is a vector of void pointers,
+   this function checks #typeArray in order to know
+   how to appropriately dereference the pointer.
+
+   Also, values larger than @p 1e20 are replaced with "INF"
+   (formatted as the quantity would have been).
+
+   @param[out]  quantityStr    Final formatted string for this element.
+   @param[in]   quantityNum    Index of the quantity.
+   @param[in]   i              Row number of this element.
+   @param[in]   j              Column number of this element.
+*/
 void ArrayWriter::getQuantityStr(char* quantityStr, int quantityNum, int i, int j) {
   double **doubleArr;
   int **intArr;
@@ -245,6 +299,12 @@ void ArrayWriter::getQuantityStr(char* quantityStr, int quantityNum, int i, int 
   }
 }
 
+/**
+   Final formatted quantity string is saved to #quantityStr.
+
+   @param quantityNum   Index of the quantity.
+   @param i             Row number of the quantity
+*/
 void ArrayWriter::concatenateQuantityStrs(int quantityNum, int i) {
   char quantityStr[256];
   line[0] = 0;
@@ -271,6 +331,10 @@ void ArrayWriter::createQuantityDir(const char* quantityName) {
   }
 }
 
+/**
+   @param[out] filePath       Final path to quantity file for this timestep.
+   @param[in]  quantityName   Name of this quantity
+*/
 void ArrayWriter::getFilePath(char* filePath, const char* quantityName) {
   char filename[256];
   char dataDir[256];
@@ -282,7 +346,6 @@ void ArrayWriter::getFilePath(char* filePath, const char* quantityName) {
   joinPath(filePath, quantityDir, filename);
 }
 
-// Write quantity names to first line of files
 void ArrayWriter::writeHeader(FILE* file, int quantityNum) {
   char headerStr[256];
   char fmtStr[16];
