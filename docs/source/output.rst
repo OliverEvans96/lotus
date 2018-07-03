@@ -3,6 +3,8 @@
 Output Files
 ============
 
+.. _`output-dir`:
+
 Directory Structure
 -------------------
 The following is the output directory structure,
@@ -43,6 +45,8 @@ in the `Data Directory`_, `Image Directory`_, and `ROOT Directory`_.
            |-- ...
 
 
+.. _`output-data`:
+
 Data Directory
 --------------
 The ``data`` directory is produced in :doc:`api/Writers`,
@@ -62,6 +66,9 @@ and contains all numerical output.
   For the ``circlePoints`` files, these are the
   :math:`r` and :math:`z` coordinates of the boundary points.
 
+
+.. _`output-image`:
+
 Image Directory
 ---------------
 The ``img`` directory is produced in :doc:`api/Visualization`,
@@ -72,6 +79,9 @@ but can be disabled via :cpp:var:`Options::saveImages`.
 * ``dens``: See :ref:`dens-figure`, produced by :cpp:class:`DensFigure`.
 * ``tanh``: See :ref:`tanh-figure`, produced by :cpp:class:`TanhFigure`.
 * ``droplet``: See :ref:`droplet-figure`, produced by :cpp:class:`DropletFigure`.
+
+
+.. _`output-root`:
 
 ROOT Directory
 --------------
