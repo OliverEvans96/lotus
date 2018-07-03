@@ -15,3 +15,6 @@ MACRO_EXPANSION   = YES
 EXTRACT_ALL       = YES
 EXTRACT_PRIVATE   = YES
 EXCLUDE           = ../include/yaml.h
+
+ALIASES = "rst=\verbatim embed:rst"
+ALIASES += "endrst=\endverbatim"
