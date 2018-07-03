@@ -1,3 +1,3 @@
-Visualization
-=============
+Visualization.h
+===============
 .. doxygenfile:: Visualization.h

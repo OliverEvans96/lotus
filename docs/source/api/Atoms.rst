@@ -1,3 +1,3 @@
-Atoms
-=====
+Atoms.h
+=======
 .. doxygenfile:: Atoms.h

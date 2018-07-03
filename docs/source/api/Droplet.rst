@@ -1,3 +1,3 @@
-Droplet
-=======
+Droplet.h
+=========
 .. doxygenfile:: Droplet.h

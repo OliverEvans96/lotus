@@ -1,3 +1,3 @@
-MDBase
-======
+MDBase.h
+========
 .. doxygenfile:: MDBase.h

@@ -1,3 +1,3 @@
-Parameters
-==========
+Parameters.h
+============
 .. doxygenfile:: Parameters.h

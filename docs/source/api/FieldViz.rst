@@ -1,3 +1,3 @@
-FieldViz
-========
+FieldViz.h
+==========
 .. doxygenfile:: FieldViz.h

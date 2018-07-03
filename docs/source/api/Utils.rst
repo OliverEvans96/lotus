@@ -1,3 +1,3 @@
-Utils
-=====
+Utils.h
+=======
 .. doxygenfile:: Utils.h

@@ -1,3 +1,3 @@
-Quiver
-======
+Quiver.h
+========
 .. doxygenfile:: Quiver.h

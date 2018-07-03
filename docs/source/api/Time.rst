@@ -1,3 +1,3 @@
-Time
-====
+Time.h
+======
 .. doxygenfile:: Time.h
