@@ -51,12 +51,13 @@ void InputStream::skipWhitespace() {
   num = stream.tellg();
 }
 
+/**
+   Move the ifstream cursor to the beginning of
+   the first line containing @p term.
+   (the matching line will not be consumed)
+   Returns whether the line was found
+*/
 bool InputStream::search(string term) {
-  // Move the ifstream cursor to the beginning of
-  // the first line containing `term`.
-  // (the matching line will not be consumed)
-  // Returns whether the line was found
-
   string line;
   bool found;
   int pos;
@@ -78,13 +79,14 @@ bool InputStream::search(string term) {
   return found;
 }
 
+/**
+   Move the ifstream cursor one line past
+   the first line containing one of the
+   strings in @p terms.
+   (the matching line will be consumed)
+   Returns the line found
+*/
 string InputStream::search(vector<string> terms) {
-  // Move the ifstream cursor one line past
-  // the first line containing one of the
-  // strings in `terms`.
-  // (the matching line will be consumed)
-  // Returns the line found
-
   string line;
   string term;
   bool found;
@@ -111,11 +113,13 @@ string InputStream::search(vector<string> terms) {
   return term;
 }
 
+/**
+   Move the ifstream cursor one line past
+   the first line exactly equal to @p term.
+   (the matching line will be consumed)
+   Returns whether the line was found.
+*/
 bool InputStream::searchLine(string term) {
-  // Move the ifstream cursor one line past
-  // the first line exactly equal to `term`.
-  // (the matching line will be consumed)
-  // Returns whether the line was found
 
   string line;
   bool found;
@@ -133,12 +137,14 @@ bool InputStream::searchLine(string term) {
   return found;
 }
 
+/*
+   Move the ifstream cursor one line past
+   the first line exactly equal to one of the
+   strings in `terms`.
+   (the matching line will be consumed)
+   Returns the line found
+*/
 string InputStream::searchLine(vector<string> terms) {
-  // Move the ifstream cursor one line past
-  // the first line exactly equal to one of the
-  // strings in `terms`.
-  // (the matching line will be consumed)
-  // Returns the line found
 
   string line;
   string term;
@@ -234,12 +240,12 @@ void LineReader::setContext(Options _options, InputStream* _inputStreamPtr, int*
   boundsPtr = _boundsPtr;
 }
 
+/// Read the line and store data in #atom.
 void LineReader::readLine() {
   int atomId;
   double xs, ys, zs;
   int ix, iy, iz;
 
-  // Read the line and store data in atom
   // xs, ys, zs are between 0 and 1,
   // ix, iy, iz are number of periodic image
   inputStreamPtr->stream >> atomId >> atom.type
@@ -275,6 +281,10 @@ void TimestepReader::resetAtomCounter() {
   atomNum = 0;
 }
 
+/**
+   @p stepInFrame is necessary to determine the index
+   to store atom position in #atomArrayPtr.
+*/
 void TimestepReader::readTimestep(int stepInFrame) {
   if(options.verbose)
     cout << "Reading timestep: @ " << inputStreamPtr->stream.tellg() << " '" << inputStreamPtr->peekLine() << "'" << endl;
@@ -314,14 +324,20 @@ FrameReader::FrameReader(Options options, AtomArray* _atomArrayPtr, SimData* _si
   setContext(options, _atomArrayPtr, _simDataPtr);
 }
 
+/**
+   Timestep::stepNum -> Frame::frameStep
+   Timestep::time -> Frame::time
+*/
 void FrameReader::updateFrame() {
   frame.frameStep = timestep.stepNum;
   frame.time = timestep.time;
 }
 
+/**
+   Read first timestep separately to set frame variables
+   to those of the first timestep in the frame.
+*/
 void FrameReader::readFrame() {
-  // Read first timestep separately to set frame variables
-  // to those of the first timestep in the frame.
   if(options.verbose)
     cout << "Reading frame: @" << inputStream.stream.tellg() << " '" << inputStream.peekLine() << "'" << endl;
   timestepReader.readTimestep(0);
@@ -491,12 +507,12 @@ void DatafileReader::readMasses() {
   }
 }
 
+/// Assume that O atom comes first in bond, then H
 void DatafileReader::readWaterBonds() {
   int bondId, bondType, OId, HId;
   map<int, bool> foundOne;
 
   while(!inputStream.nextLineBlank() && streamPtr->good()) {
-    // Assume that O atom comes first in bond, then H
     *streamPtr >> bondId >> bondType >> OId >> HId;
     if(bondType == options.waterBondType) {
       if(foundOne[OId]) {
@@ -544,7 +560,7 @@ DumpfileReader::DumpfileReader(AtomArray &atomArray) {
   countSteps();
 }
 
-//Count the number of water atoms in the first timestep
+/// @note This method is not currently called anywhere.
 void DumpfileReader::countAtoms() {
   //Count number of atoms
   bool countFlag=true;
@@ -624,6 +640,7 @@ void DumpfileReader::readFrame() {
   }
 }
 
+/// Compare frame numbers to see if this is the end.
 bool DumpfileReader::good() {
   return frameReader.frame.frameNum < simDataPtr->numFrames;
 }
