@@ -96,9 +96,8 @@ data: $(testdata_unzipped)
 run: $(BIN)/droplet_analysis.out
 	$(BIN)/droplet_analysis.out
 
-docs:
+docs: cleandocs
 # Todo list should always be rebuilt
-	touch $(DOCS)/source/todo.rst
 	cd $(DOCS) && make html
 
 echo:
