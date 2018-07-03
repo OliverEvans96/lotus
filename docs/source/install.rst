@@ -1,3 +1,5 @@
+.. _`install.rst`:
+
 Installation
 ============
 

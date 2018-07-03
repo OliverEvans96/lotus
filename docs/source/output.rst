@@ -1,3 +1,5 @@
+.. _`output.rst`:
+
 Output Files
 ============
 

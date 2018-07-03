@@ -1,3 +1,5 @@
+.. _`overview.rst`:
+
 Overview
 ========
 

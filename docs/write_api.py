@@ -6,7 +6,9 @@ import os
 files = os.listdir('include')
 names = [f[:-2] for f in files if f[-2:] == '.h' and f[0] != '.' and f != 'yaml.h']
 
-template = """{name}.h
+template = """.. _`{name}.rst`:
+
+{name}.h
 {line}
 .. doxygenfile:: {name}.h
 """

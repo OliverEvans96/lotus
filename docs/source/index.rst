@@ -1,3 +1,5 @@
+.. _`index.rst`:
+
 ===================
 Lotus Documentation
 ===================
