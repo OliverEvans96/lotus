@@ -187,37 +187,6 @@ class FrameReader {
   void countSteps();
 };
 
-/**
-   Read the first timestep in a simulation (not just one dumpfile).
-   Read from dumpfile or from another dedicated file
-   if this is not the first dumpfile.
-
-   This is useful for calculating dynamical quantities such as MSD.
-
-   This is not currently used anywhere.
-*/
-class InitialTimestepReader {
-  Options options;
- public:
-  InitialTimestepReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
-  void setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
-  string initLoc;
-  TimestepReader timestepReader;
-  AtomArray* atomArrayPtr;
-  Timestep* timestepPtr;
-  InputStream inputStream;
-  Timestep emptyTimestep;
-  SimData* simDataPtr;
-  Atom atom;
-
-  bool fileExists();
-  void openStream(Options _options);
-  void readFromFile();
-  void readFromStream();
-  void writeToFile();
-  void readInitialTimestep();
-};
-
 ///////////////////////
 // Top-level Readers //
 ///////////////////////
