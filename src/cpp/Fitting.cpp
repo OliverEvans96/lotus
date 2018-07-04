@@ -583,6 +583,8 @@ void TanhFit::initialGuess(double _ld, double _w, double _x0) {
   w = _w;
   x0 = _x0;
 
+  // TODO: Set ld  = options.expectedLiquidDensity
+
   // Set initial guess
   fTanh->SetParameters(ld, w, x0);
 }

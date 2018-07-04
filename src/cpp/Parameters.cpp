@@ -145,31 +145,24 @@ void Options::readConfig(const char* _configPath) {
   strcpy(configPath, _configPath);
   yamlMap = parseYaml(configPath);
 
-  parseRequiredOption("liquidTypes", liquidTypes);
-  parseRequiredOption("solidTypes", solidTypes);
   parseRequiredOption("dumpfile", dumpfile);
   parseRequiredOption("datafile", datafile);
   parseRequiredOption("outLoc", outLoc);
+  parseRequiredOption("liquidTypes", liquidTypes);
+  parseRequiredOption("solidTypes", solidTypes);
 
   parseDefaultOption("numAtoms", numAtoms, 0);
   parseDefaultOption("geometry", geometry, (string)"spherical");
   parseDefaultOption("stepsPerFrame", stepsPerFrame, 5);
   parseDefaultOption("waterBondType", waterBondType, 2);
-  parseDefaultOption("skipToEnd", skipToEnd, false);
-  parseDefaultOption("trackMonoAtoms", trackMonoAtoms, false);
   parseDefaultOption("saveImages", saveImages, false);
   parseDefaultOption("saveROOT", saveROOT, false);
-  parseDefaultOption("plotHist", plotHist, false);
-  parseDefaultOption("plotDipole", plotDipole, false);
-  parseDefaultOption("plotVr", plotVr, false);
-  parseDefaultOption("plotDensity", plotDensity, false);
-  parseDefaultOption("plotAllTogether", plotAllTogether, false);
   parseDefaultOption("verbose", verbose, false);
-  parseDefaultOption("onlyFindInterface", onlyFindInterface, false);
   parseDefaultOption("dz", dz, 1.0);
   parseDefaultOption("dv", dv, 250.0);
   parseDefaultOption("dens_min", dens_min, 0.0);
   parseDefaultOption("dens_max", dens_max, 5.0);
+  parseDefaultOption("densMax", densMax, 1.5);
   parseDefaultOption("plot_rmax", plot_rmax, 150.0);
   parseDefaultOption("plot_zmax", plot_zmax, 100.0);
   parseDefaultOption("plot_aspect", plot_aspect, 1.0);
@@ -181,7 +174,6 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("monoTop", monoTop, 0.0);
   parseDefaultOption("substrateTop", substrateTop, 0.0);
   parseDefaultOption("rDensCyl", rDensCyl, 10.0);
-  parseDefaultOption("densMax", densMax, 1.5);
   parseDefaultOption("outputColWidth", outputColWidth, 15);
   parseDefaultOption("outputPrecision", outputPrecision, 6);
 
@@ -229,19 +221,12 @@ void Options::printOptions() {
   printOption("numAtoms", numAtoms);
   printOption("geometry", geometry);
   printOption("stepsPerFrame", stepsPerFrame);
-  printOption("skipToEnd", skipToEnd);
-  printOption("trackMonoAtoms", trackMonoAtoms);
   printOption("saveImages", saveImages);
   printOption("saveROOT", saveROOT);
-  printOption("plotHist", plotHist);
-  printOption("plotDipole", plotDipole);
-  printOption("plotVr", plotVr);
-  printOption("plotDensity", plotDensity);
-  printOption("plotAllTogether", plotAllTogether);
   printOption("verbose", verbose);
-  printOption("onlyFindInterface", onlyFindInterface);
   printOption("dens_min", dens_min);
   printOption("dens_max", dens_max);
+  printOption("densMax", densMax);
   printOption("plot_rmax", plot_rmax);
   printOption("plot_zmax", plot_zmax);
   printOption("plot_aspect", plot_aspect);
@@ -258,7 +243,6 @@ void Options::printOptions() {
   printOption("monoTop", monoTop);
   printOption("substrateTop", substrateTop);
   printOption("rDensCyl", rDensCyl);
-  printOption("densMax", densMax);
 
   printOption("outputColWidth", outputColWidth);
   printOption("outputPrecision", outputPrecision);
