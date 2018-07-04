@@ -300,7 +300,7 @@ void ArrayWriter::getQuantityStr(char* quantityStr, int quantityNum, int i, int 
 }
 
 /**
-   Final formatted quantity string is saved to #quantityStr.
+   Final formatted quantity string is appended to #line.
 
    @param quantityNum   Index of the quantity.
    @param i             Row number of the quantity

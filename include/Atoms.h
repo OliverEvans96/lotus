@@ -1,7 +1,7 @@
 /**
    @file Atoms.h
 
-   Structures for single and multiple atom positions.
+   @brief Structures for single and multiple atom positions.
 
    These objects facilitate storage and manipulation of atom positions
    (and possibly velocities, but not currently), and calculation of
@@ -23,7 +23,7 @@ using namespace std;
 //////////////////////
 
 /**
-   Simple structure to hold information about a single atom.
+   @brief Simple structure to hold information about a single atom.
 */
 struct Atom
 {
@@ -39,7 +39,7 @@ struct Atom
 /////////////////////
 
 /**
-   Data structure to hold information about multiple atoms.
+   @brief Data structure to hold information about multiple atoms.
 
    Can get and set coordinates from Atom.
    This object must be instantiated after DatafileReader
@@ -52,10 +52,10 @@ struct Atom
 */
 class AtomArray
 {
-  /// Whether the position arrays have been allocated
+  /// @brief Whether the position arrays have been allocated
   bool allocated;
   void deallocateArrays();
-  /// Return index of atom position in arrays.
+  /// @brief Return index of atom position in arrays.
   int getIndex(int atomNum, int stepInFrame);
 
  public:
@@ -68,15 +68,15 @@ class AtomArray
   AtomArray(SimData &simData);
   ~AtomArray();
 
-  /// Set simDataPtr and number of atoms.
+  /// @brief Set simDataPtr and number of atoms.
   void setSimData(SimData &simData);
   void setNumAtoms(int _numAtoms);
-  /// Copy data for atom @p atomNum at step @p stepInFrame to @p atom.
+  /// @brief Copy data for atom @p atomNum at step @p stepInFrame to @p atom.
   void setAtom(int atomNum, int stepInFrame, Atom &atom);
-  /// Copy data for atom @p atomNum at step @p stepInFrame from @p atom.
+  /// @brief Copy data for atom @p atomNum at step @p stepInFrame from @p atom.
   void getAtom(int atomNum, int stepInFrame, Atom &atom);
 
-  /// Print min, max, mean, std. of each x, y, z components of positions.
+  /// @brief Print min, max, mean, std. of each x, y, z components of positions.
   void printStats();
 };
 

@@ -1,7 +1,7 @@
 /**
    @file Readers.h
 
-   Readers for parsing LAMMPS dumpfiles and datafiles.
+   @brief Readers for parsing LAMMPS dumpfiles and datafiles.
 */
 
 #ifndef READERS_H
@@ -23,42 +23,42 @@ using namespace std;
 //////////////////
 
 /**
-   Convenience wrapper around ifstream.
+   @brief Convenience wrapper around ifstream.
 */
 struct InputStream {
-  /// Line number (starting from 1).
+  /// @brief Line number (starting from 1).
   unsigned long int lineNum;
-  /// Byte offset in file.
+  /// @brief Byte offset in file.
   unsigned long int pos;
-  /// Path to file.
+  /// @brief Path to file.
   string filename;
-  /// Actual ifstream object.
+  /// @brief Actual ifstream object.
   ifstream stream;
 
   InputStream();
-  /// Open the stream upon instantiation.
+  /// @brief Open the stream upon instantiation.
   InputStream(string _filename);
-  /// Close the stream.
+  /// @brief Close the stream.
   ~InputStream();
-  /// Open the stream and call #verifyStream.
+  /// @brief Open the stream and call #verifyStream.
   void open(string _filename);
-  /// Check whether #stream is ``good()``.
+  /// @brief Check whether #stream is ``good()``.
   void verifyStream();
-  /// Skip @p numLines lines forward in the file.
+  /// @brief Skip @p numLines lines forward in the file.
   void skipLines(int numLines);
-  /// Consume consecutive whitespace following the cursor.
+  /// @brief Consume consecutive whitespace following the cursor.
   void skipWhitespace();
-  /// Search for line containing @p term.
+  /// @brief Search for line containing @p term.
   bool search(string term);
-  /// Search for line containing an element of @p terms.
+  /// @brief Search for line containing an element of @p terms.
   string search(vector<string> terms);
-  /// Skip past line containing @p term.
+  /// @brief Skip past line containing @p term.
   bool searchLine(string term);
-  /// Skip past line containing an element of @p terms.
+  /// @brief Skip past line containing an element of @p terms.
   string searchLine(vector<string> terms);
-  /// Whether the next line is blank.
+  /// @brief Whether the next line is blank.
   bool nextLineBlank();
-  /// Read the next line and return the cursor to its previous position.
+  /// @brief Read the next line and return the cursor to its previous position.
   string peekLine();
 };
 
@@ -67,7 +67,8 @@ struct InputStream {
 /////////////
 
 /**
-   Reads the header from a LAMMPS dumpfile.
+   @brief Reads the header from a LAMMPS dumpfile.
+
    Read the timestep and box bounds.
    @note Could also (but currently does not) read the number of atoms.
 
@@ -82,7 +83,8 @@ class HeaderReader {
 
  public:
   int* lineNumPtr;
-  /** Copy #options and save pointers to relevant quantities.
+  /** @brief Copy #options and save pointers to relevant quantities.
+
       Called by TimestepReader::setContext.
   */
   void setContext(Options options, InputStream* _inputStreamPtr, SimData* _simDataPtr, Timestep* _timestepPtr, int* _lineNumPtr, BoxBounds* _boundsPtr);
@@ -90,7 +92,8 @@ class HeaderReader {
 };
 
 /**
-   Reads one line at a time of atom positions from LAMMPS dumpfile.
+   @brief Reads one line at a time of atom positions from LAMMPS dumpfile.
+
    Reads scaled positions and calculates unitful positions.
 
    @see TimestepReader.
@@ -106,7 +109,8 @@ class LineReader {
 
  public:
   Atom atom;
-  /** Copy #options and save pointers to relevant quantities.
+  /** @brief Copy #options and save pointers to relevant quantities.
+
       Called by TimestepReader::setContext.
   */
   void setContext(Options options, InputStream *_inputStreamPtr, int* _atomNumPtr, int* _lineNumPtr, BoxBounds* _boundsPtr);
@@ -114,7 +118,8 @@ class LineReader {
 };
 
 /**
-   Read one timestep at a time from a LAMMP dumpfile.
+   @brief Read one timestep at a time from a LAMMP dumpfile.
+
    Reads both the header and position lines.
    @see FrameReader.
 */
@@ -136,18 +141,20 @@ class TimestepReader {
   int lineNum;
 
   TimestepReader();
-  /** Copy #options and save pointers to relevant quantities.
+  /** @brief Copy #options and save pointers to relevant quantities.
+
       Called by FrameReader::setContext.
   */
   void setContext(Options _options, InputStream* _inputStreamPtr, AtomArray* _atomArrayPtr, Timestep* _timestepPtr, SimData* _simDataPtr);
-  /// Set #atomNum = 0.
+  /// @brief Set #atomNum = 0.
   void resetAtomCounter();
-  /// Read one timestep.
+  /// @brief Read one timestep.
   void readTimestep(int stepInFrame);
 };
 
 /**
-   Read one frame, containing multiple timesteps from a LAMMP dumpfile.
+   @brief Read one frame, containing multiple timesteps from a LAMMP dumpfile.
+
    The size of a frame is determined by Options::stepsPerFrame
    (although the last frame may be a different size).
    @see Frame::stepsThisFrame.
@@ -168,20 +175,22 @@ class FrameReader {
 
   FrameReader();
   FrameReader(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
-  /** Copy #options and save pointers to relevant quantities.
+  /** @brief Copy #options and save pointers to relevant quantities.
+
       Called by DumpfileReader::DumpfileReader.
   */
   void setContext(Options options, AtomArray* _atomArrayPtr, SimData* _simDataPtr);
-  /// Open #inputStream with Options::dumpfile.
+  /// @brief Open #inputStream with Options::dumpfile.
   void openStream();
-  /// Set frame variables from first timestep in frame.
+  /// @brief Set frame variables from first timestep in frame.
   void updateFrame();
-  /// Read one frame.
+  /// @brief Read one frame.
   void readFrame();
 
-  /// Count the number of atoms in the simulation (in one timestep).
+  /// @brief Count the number of atoms in the simulation (in one timestep).
   void countAtoms();
-  /** Count the number of timesteps in the dumpfile.
+  /** @brief Count the number of timesteps in the dumpfile.
+
       Called by DumpfileReader::DumpfileReader.
   */
   void countSteps();
@@ -192,7 +201,7 @@ class FrameReader {
 ///////////////////////
 
 /**
-   Read a LAMMPS Datafile.
+   @brief Read a LAMMPS Datafile.
 
    Reads box dimensions, number of atoms, masses of each type,
    and water bonds (useful if water molecule orientation is desired).
@@ -202,9 +211,9 @@ class DatafileReader {
   Options options;
   InputStream inputStream;
   vector<int> liquidTypes;
-  /// Atom type of water hydrogen atoms
+  /// @brief Atom type of water hydrogen atoms
   int HType;
-  /// Atom type of water oxygen atoms
+  /// @brief Atom type of water oxygen atoms
   int OType;
   ifstream *streamPtr;
   SimData *simDataPtr;
@@ -217,33 +226,32 @@ class DatafileReader {
 
  public:
   DatafileReader(SimData &simData);
-  /// Open Options::datafile for reading.
+  /// @brief Open Options::datafile for reading.
   void openStream();
-  /// Read the whole datafile.
+  /// @brief Read the whole datafile.
   void read();
 };
 
 /**
-   Read a LAMMPS Dumpfile one frame at a time.
+   @brief Read a LAMMPS Dumpfile one frame at a time.
 */
 struct DumpfileReader {
   Options options;
   FrameReader frameReader;
   SimData *simDataPtr;
   AtomArray *atomArrayPtr;
-  /** Index of current frame.
+  /** @brief Index of current frame.
      @see Frame::frameNum.
   */
   int frameNum;
 
   DumpfileReader(AtomArray &atomArray);
-  /// Count the number of water atoms in the first timestep
+  /// @brief Count the number of water atoms in the first timestep
   void countAtoms();
   void countSteps();
   void readFrame();
-  /// Whether another frame can be read.
+  /// @brief Whether another frame can be read.
   bool good();
 };
-
 
 #endif
