@@ -70,7 +70,7 @@ class WriterBase {
 
   /// @brief Get format string, e.g. '%15.6f'.
   void getFmtStr(char* fmt, double* dataPtr);
-  /// @brief Get format string, e.g. '%15s'.
+  /// @brief Get format string, e.g. '%15d'.
   void getFmtStr(char* fmt, int* dataPtr);
   /// @brief Get format string, e.g. '%15s'.
   void getFmtStr(char* fmt, const char* dataPtr);
