@@ -29,6 +29,7 @@ The source code is available on GitHub_.
    :maxdepth: 2
 
    overview
+   input
    output
 
 .. toctree::
