@@ -63,15 +63,16 @@ struct SimData {
   /** @brief z coordinate of the top of the substrate.
 
      If the substrate option is disabled,
-     this can be manually specified in options.
-     @todo link to actual option.
+     this can be manually specified via Options::substrateTop.
      @see Substrate::findLimits
   */
   double substrateTop;
-  /** @brief z coordinate of the top of the substrate.
-     If the substrate option is disabled,
-     this can be manually specified in options.
-     @todo link to actual option.
+  /** @brief z coordinate of the top of the monolayer.
+
+     If the monolayer option is disabled,
+     this can be manually specified in Options::monoTop.
+     @see Droplet::findMonolayer
+     @see Monolayer::findMonoLimits
   */
   double monoTop;
   Frame *framePtr;
