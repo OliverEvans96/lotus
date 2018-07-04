@@ -22,7 +22,9 @@ TEST_CASE("Readers", "[lotus]") {
   const char* argv[2] = {"test", "../test/data/test_config.yaml"};
   CommandLineParser commandLineParser(argc, argv);
   Options options = commandLineParser.options;
-  REQUIRE(strcmp(options.configPath, argv[1]) == 0);
+  // Making configPath private precludes using this test,
+  // which is not so meaningful anyhow.
+  // REQUIRE(strcmp(options.configPath, argv[1]) == 0);
   REQUIRE(options.liquidTypes[0] == 4);
   REQUIRE(options.liquidTypes[1] == 5);
   REQUIRE(options.solidTypes[0] == 1);
