@@ -9,6 +9,8 @@ The basic idea is as follows
 
 .. todo:: mention cylinder droplets
 
+.. _`overview-1d`:
+
 1D Density Profile
 ------------------
 A 1-dimensional density profile in :math:`z` is constructed for
@@ -25,10 +27,7 @@ All further z positions will be shifted such that the substrate top is :math:`z=
 The droplet density profile is used to determine the :math:`z` extent
 of the monolayer if this feature is desired.
 
-
-.. todo:: remove
-
-.. _dens-figure:
+.. _`dens-figure`:
 
 .. figure:: img/dens.png
    :width: 600px
@@ -37,12 +36,14 @@ of the monolayer if this feature is desired.
 
    1D Density Profile.
 
+.. _`overview-2d`:
+
 2D Density Profile
 --------------------
 A mass density histogram is created from atom positions
 using equal-volume rectangular bins in the cylindrical :math:`r-z` plane.
 
-.. _bin-figure:
+.. _`bin-figure`:
 
 .. figure:: img/cyl-hist-bin.svg
    :width: 600px
@@ -52,6 +53,8 @@ using equal-volume rectangular bins in the cylindrical :math:`r-z` plane.
    Shape of a histogram bin for spherical droplets.
 
 .. todo:: expand on this
+
+.. _`overview-boundary`:
 
 Location of Boundary Points
 ---------------------------
@@ -76,7 +79,7 @@ and consider the fitted value of :math:`x_0` (the location where :math:`\rho(x) 
 .. todo::
    Remove 4*
 
-.. _tanh-figure:
+.. _`tanh-figure`:
 
 .. figure:: img/tanh.png
    :width: 600px
@@ -84,6 +87,8 @@ and consider the fitted value of :math:`x_0` (the location where :math:`\rho(x) 
    Figure 3
 
    Hyperbolic tangent fitting for boundary location.
+
+.. _`overview-quantities`:
 
 Calculation of Geometric Quantities of Interest
 -----------------------------------------------
@@ -101,7 +106,7 @@ The geometrical quantities of interest are:
 - Bulk height (:math:`h_b`)
 - Contact angle (:math:`\theta`)
 
-.. _quantities-figure:
+.. _`quantities-figure`:
 
 .. figure:: img/droplet-quantities.png
    :width: 600px
@@ -128,7 +133,7 @@ makes with the :math:`r`-axis (rotating the tangent line in to the droplet)
 is the contact angle.
 The positive :math:`z`-value of the circle at :math:`r=0` is the bulk height.
 
-.. _droplet-figure:
+.. _`droplet-figure`:
 
 .. figure:: img/droplet.png
    :width: 600px
