@@ -33,8 +33,10 @@ which we can't share until we publish our results).
 All public member variables of :cpp:class:`Options`
 are valid YAML keys for this input file,
 some of which are required while others are optional.
-Acceptable and default values are described in
-the documentation for :cpp:class:`Options`.
+
+.. seealso::
+   All options and their acceptable and default values
+   are described in depth in the :cpp:class:`Options` documentation.
 
 .. todo:: mention LAMMPS dumpfile/datafile requirements somewhere.
 
