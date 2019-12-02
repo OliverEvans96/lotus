@@ -140,6 +140,19 @@ class Options
   vector<int> solidTypes;
 
   /**
+     @brief Integer specifying the format of dumpfile lines
+
+     Optional. Default: 1
+
+     Format 1 (scaled):
+     id type xs ys zs ix iy iz
+
+     Format 2 (unscaled):
+     type x y z
+  */
+  int lineFormat;
+
+  /**
      @brief Number of atoms in the LAMMPS dumpfile.
 
      Optional. Default: 0

@@ -209,22 +209,22 @@ void HeaderReader::readHeader() {
   if(options.verbose)
     cout << "Reading header: @ " << inputStreamPtr->stream.tellg() << " '" << inputStreamPtr->peekLine() << "'" << endl;
 
-  getline(inputStreamPtr->stream, junk);
+  getline(inputStreamPtr->stream, junk); // ITEM: TIMESTEP
   inputStreamPtr->stream >> timestepPtr->time;
   inputStreamPtr->stream.ignore(256, '\n');
 
-  getline(inputStreamPtr->stream, junk);
+  getline(inputStreamPtr->stream, junk); // ITEM: NUMBER OF ATOMS
   inputStreamPtr->stream >> simDataPtr->numAtoms;
   inputStreamPtr->stream.ignore(256, '\n');
 
-  getline(inputStreamPtr->stream, junk);
+  getline(inputStreamPtr->stream, junk); // ITEM: BOX BOUNDS pp pp pp
 
   inputStreamPtr->stream >> boundsPtr->xlo >> boundsPtr->xhi;
   inputStreamPtr->stream >> boundsPtr->ylo >> boundsPtr->yhi;
   inputStreamPtr->stream >> boundsPtr->zlo >> boundsPtr->zhi;
   inputStreamPtr->stream.ignore(256, '\n');
 
-  getline(inputStreamPtr->stream, junk);
+  getline(inputStreamPtr->stream, junk); // ITEM: ATOMS type x y z
 
   *(lineNumPtr) += 9;
 
@@ -238,10 +238,28 @@ void LineReader::setContext(Options _options, InputStream* _inputStreamPtr, int*
   atomNumPtr = _atomNumPtr;
   lineNumPtr = _lineNumPtr;
   boundsPtr = _boundsPtr;
+
+  // Chose which line reading function to use
+  switch(options.lineFormat) {
+  case 1:
+    _readLineFunctionPtr = &LineReader::readLineFormat1;
+    break;
+  case 2:
+    _readLineFunctionPtr = &LineReader::readLineFormat2;
+    break;
+  default:
+    cout << "ERROR: INVALID LINE FORMAT " << options.lineFormat << endl;
+    throw 1;
+  }
 }
 
-/// Read the line and store data in #atom.
 void LineReader::readLine() {
+  // Call the function pointed to by the pointer
+  (this->*_readLineFunctionPtr)();
+}
+
+/// Read the line (format 1) and store data in #atom.
+void LineReader::readLineFormat1() {
   int atomId;
   double xs, ys, zs;
   int ix, iy, iz;
@@ -258,6 +276,15 @@ void LineReader::readLine() {
   atom.y = boundsPtr->ylo + (boundsPtr->yhi - boundsPtr->ylo) * ys;
   atom.z = boundsPtr->zlo + (boundsPtr->zhi - boundsPtr->zlo) * zs;
 
+  inputStreamPtr->stream.ignore(256, '\n');
+  (*lineNumPtr)++;
+  (*atomNumPtr)++;
+}
+
+
+/// Read the line (format 2) and store data in #atom.
+void LineReader::readLineFormat2() {
+  inputStreamPtr->stream >> atom.type >> atom.x >> atom.y >> atom.z;
   inputStreamPtr->stream.ignore(256, '\n');
   (*lineNumPtr)++;
   (*atomNumPtr)++;
@@ -339,7 +366,7 @@ void FrameReader::updateFrame() {
 */
 void FrameReader::readFrame() {
   if(options.verbose)
-    cout << "Reading frame: @" << inputStream.stream.tellg() << " '" << inputStream.peekLine() << "'" << endl;
+    cout << "Reading frame: @ " << inputStream.stream.tellg() << " '" << inputStream.peekLine() << "'" << endl;
   timestepReader.readTimestep(0);
   updateFrame();
 
