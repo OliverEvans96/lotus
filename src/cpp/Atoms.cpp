@@ -118,6 +118,7 @@ void AtomArray::getAtom(int atomNum, int stepInFrame, Atom &atom) {
 void AtomArray::printStats() {
   int N = simDataPtr->framePtr->atomsThisFrame;
   cout << "===ATOM STATS===" << endl;
+  printf("num: %d\n", N);
   printf("min: %.2f, %.2f, %.2f\n", min(x,N), min(y,N), min(z,N));
   printf("max: %.2f, %.2f, %.2f\n", max(x,N), max(y,N), max(z,N));
   printf("mean: %.2f, %.2f, %.2f\n", mean(x,N), mean(y,N), mean(z,N));
