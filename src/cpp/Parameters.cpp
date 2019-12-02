@@ -170,6 +170,7 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("expectedLiquidDensity", expectedLiquidDensity, 1.0);
   parseDefaultOption("monolayer", monolayer, true);
   parseDefaultOption("substrate", substrate, true);
+  parseDefaultOption("bubble", bubble, false);
   parseDefaultOption("fitCircle", fitCircle, true);
   parseDefaultOption("monoTop", monoTop, 0.0);
   parseDefaultOption("substrateTop", substrateTop, 0.0);

@@ -377,6 +377,16 @@ class Options
   bool substrate;
 
   /**
+     @brief Consider the liquid to be outside of the "droplet" and the inside to be empty space.
+
+     Optional. Default: false
+
+     If enabled, perform all calculations assuming that the liquid is
+     surrounding the droplet, which is actually a bubble of empty space.
+  */
+  bool bubble;
+
+  /**
      @brief Whether to fit a circle to the boundary points.
 
      Optional. Default: true

@@ -474,8 +474,14 @@ void TanhFit::setFitBounds() {
   fitBounds[0] = 0.1;
   fitBounds[1] = options.densMax;
   //w min max
-  fitBounds[2] = 0.1;
-  fitBounds[3] = xmax;
+  if(options.bubble) {
+    fitBounds[2] = -xmax;
+    fitBounds[3] = -0.1;
+  }
+  else {
+    fitBounds[2] = 0.1;
+    fitBounds[3] = xmax;
+  }
   //x0 min max
   fitBounds[4] = 0.0;
   fitBounds[5] = xmax;
@@ -532,23 +538,36 @@ void TanhFit::guessTanhFit()
   double tmp;
 
   double xlo, xhi;
+  double ylo, yhi;
+
   //Lower and upper edges for width
-  double ylo=ld/2*(1-tanh(2));
-  double yhi=ld/2*(1+tanh(2));
+  ylo=ld/2*(1-tanh(2));
+  yhi=ld/2*(1+tanh(2));
 
   //Whether edges and boundary have been found
   bool foundLower=false;
   bool foundUpper=false;
   bool foundBoundary=false;
 
+  // Direction of iteration
+  // i.e. Whether to scan rows forwards or backwards
+  // If bubble option is enabled, then scan forwards.
+  // Otherwise, backwards
+  int di = options.bubble ? 1 : -1;
+  // Actual row index
+  // (start from beginning if bubble, otherwise start from end)
+  int i = options.bubble ? 0 : n;
+  // Number of rows iterated so far
+  int iterCount;
+
   //Scan rows from top to bottom to find the boundary and width
-  for(int i=n;i>0;i--)
+  for(iterCount=0;iterCount<n;iterCount++)
   {
     yc=hTanh->GetBinContent(i);
     //Find the first bin with boundary density (ld) then draw a line between this bin and the previous (above) and solve for where the line=ld
     if( yc>ld/2 && !foundBoundary )
     {
-      tmp=solveLinear(i,i+1,ld/2);
+      tmp=solveLinear(i,i-di,ld/2);
       foundBoundary=true;
       if(fitBounds[4]<tmp && tmp<fitBounds[5])
         x0=tmp;
@@ -557,16 +576,19 @@ void TanhFit::guessTanhFit()
     //Look for lower edge
     if( yc>ylo && !foundLower )
     {
-      xlo=solveLinear(i,i+1,ylo);
+      xlo=solveLinear(i,i-di,ylo);
       foundLower=true;
     }
 
     //Look for upper edge
     if( yc>yhi && !foundUpper )
     {
-      xhi=solveLinear(i,i+1,yhi);
+      xhi=solveLinear(i,i-di,yhi);
       foundUpper=true;
     }
+
+    // Proceed to next row
+    i += di;
   }
 
   //Guess width if within bounds. Otherwise, revert to default guess (5)
@@ -605,7 +627,14 @@ void TanhFit::solve() {
   if(!isEmpty()) {
     err = hTanh->Fit(fTanh, fitOptions);
     ld = fTanh->GetParameter(0);
-    w = fTanh->GetParameter(1);
+    if(options.bubble) {
+      // If bubble is enabled, the fit is mirrored (x -> -x)
+      // therefore, the width is negative and should be flipped.
+      w = -fTanh->GetParameter(1);
+    }
+    else {
+      w = fTanh->GetParameter(1);
+    }
     x0 = fTanh->GetParameter(2);
   }
   else {
