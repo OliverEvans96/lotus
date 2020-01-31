@@ -159,6 +159,8 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("saveImages", saveImages, false);
   parseDefaultOption("saveROOT", saveROOT, false);
   parseDefaultOption("verbose", verbose, false);
+  parseDefaultOption("xCenter", xCenter, 0.0);
+  parseDefaultOption("yCenter", yCenter, 0.0);
   parseDefaultOption("dz", dz, 1.0);
   parseDefaultOption("dv", dv, 250.0);
   parseDefaultOption("dens_min", dens_min, 0.0);
@@ -233,6 +235,8 @@ void Options::printOptions() {
   printOption("plot_rmax", plot_rmax);
   printOption("plot_zmax", plot_zmax);
   printOption("plot_aspect", plot_aspect);
+  printOption("xCenter", xCenter);
+  printOption("yCenter", yCenter);
   printOption("dz", dz);
   printOption("dv", dv);
   printOption("plot_rmax", plot_rmax);

@@ -237,6 +237,28 @@ class Options
   int waterBondType;
 
   /**
+     @brief x center of droplet
+
+     Optional. Default: 0.0
+
+     Units are angstroms.
+
+     @see Grid
+  */
+  double xCenter;
+
+  /**
+     @brief y center of droplet
+
+     Optional. Default: 0.0
+
+     Units are angstroms.
+
+     @see Grid
+  */
+  double yCenter;
+
+  /**
      @brief @f$ z @f$ width of 1D and 2D histogram bins.
 
      Optional. Default: 1.0
