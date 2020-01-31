@@ -110,14 +110,14 @@ void CircleFit::guessFit() {
 
   //Report
   if(options.verbose) {
+    printf("MLS: n=%d\n", n);
+    printf("MLS: A=%.2f, B=%.2f, C=%.2f, D=%.2f, E=%.2f\n", A, B, C, D, E);
     cout << "Using MLS: (" << setprecision(10) << x0 << "," << y0 << "," << r << ")" << endl;
   }
 }
 
 //Fit circle to points using numerical minimization
 void CircleFit::innerFit() {
-  mirrorPoints();
-
   //Initialize minimizer
   minimizer.SetMaxFunctionCalls((int)1e7);
   minimizer.SetMaxIterations((int)1e7);
@@ -165,13 +165,17 @@ void CircleFit::innerFit() {
 
 void CircleFit::fit() {
   const int numRefines = 3;
-  double max_resid[numRefines] = {1e3, 1e2, 1e1};
+  double max_resid[numRefines] = {1e4, 1e4, 1e4};
 
+  cout << "CIRCLE FITTING" << endl;
+  mirrorPoints();
   innerFit();
 
   for(int i=0; i<numRefines; i++) {
+    cout << "Fit refine #" << i << endl;
     refineFit(max_resid[i]);
   }
+  cout << "Finished circle fitting." << endl;
 
 }
 
@@ -483,7 +487,7 @@ void TanhFit::setFitBounds() {
     fitBounds[3] = xmax;
   }
   //x0 min max
-  fitBounds[4] = 0.0;
+  fitBounds[4] = 0;
   fitBounds[5] = xmax;
 
   fTanh->SetParLimits(0, fitBounds[0], fitBounds[1]); //ld
@@ -593,10 +597,12 @@ void TanhFit::guessTanhFit()
 
   //Guess width if within bounds. Otherwise, revert to default guess (5)
   tmp=xlo-xhi;
-  if(fitBounds[2]<tmp && tmp<fitBounds[3])
+  if(fitBounds[2]<tmp && tmp<fitBounds[3]) {
     w=tmp;
+  }
 
   fTanh->SetParameters(ld, w, x0);
+  printf("Guessing tanhfit parameters: ld=%.2f, w=%.2f, x0=%.2f\n", ld, w, x0);
 }
 
 // First guess, not very good, just for the sake of assigning some values.
@@ -627,18 +633,12 @@ void TanhFit::solve() {
   if(!isEmpty()) {
     err = hTanh->Fit(fTanh, fitOptions);
     ld = fTanh->GetParameter(0);
-    if(options.bubble) {
-      // If bubble is enabled, the fit is mirrored (x -> -x)
-      // therefore, the width is negative and should be flipped.
-      w = -fTanh->GetParameter(1);
-    }
-    else {
-      w = fTanh->GetParameter(1);
-    }
+    w = fTanh->GetParameter(1);
     x0 = fTanh->GetParameter(2);
   }
   else {
   }
+  printf("Solved for tanhfit parameters: ld=%.2f, w=%.2f, x0=%.2f\n", ld, w, x0);
 }
 
 // Calculate average squared difference
@@ -664,17 +664,44 @@ double TanhFit::residual() {
 bool TanhFit::good() {
   bool success = true;
 
-  if(err != 0) success = false;
+  if(err != 0) {
+    success = false;
+  }
   // Disallow equality to insist that minimum is on interior
   // since bounds are mostly arbitrary
-  if(ld <= fitBounds[0]) success = false;
-  if(ld >= fitBounds[1]) success = false;
-  if(w <= fitBounds[2]) success = false;
-  if(w >= fitBounds[3]) success = false;
-  if(x0 <= fitBounds[4]) success = false;
-  if(x0 >= fitBounds[5]) success = false;
-  if(empty) success = false;
-  if(residual() > 1e-1) success = false;
+  if(ld <= fitBounds[0]) {
+    cout << "FAIL 1" << endl;
+    success = false;
+  }
+  if(ld >= fitBounds[1]) {
+    cout << "FAIL 2" << endl;
+    success = false;
+  }
+  if(w <= fitBounds[2]) {
+    printf("FAIL w-TOOLOW: w=%.2f <= bnd=%.2f\n", w, fitBounds[2]);
+    success = false;
+  }
+  if(w >= fitBounds[3]) {
+    printf("FAIL w-TOOHIGH: w=%.2f >= bnd=%.2f\n", w, fitBounds[3]);
+    success = false;
+  }
+  if(x0 <= 2.5) {
+    cout << "FAIL 5" << endl;
+    success = false;
+  }
+  if(x0 >= fitBounds[5]) {
+    cout << "FAIL 6" << endl;
+    success = false;
+  }
+  if(empty) {
+    cout << "FAIL 7" << endl;
+    success = false;
+  }
+  if(residual() > 0.05) {
+    cout << "FAIL 8" << endl;
+    success = false;
+  }
+  cout << "resid = " << residual() << endl;
 
   return success;
 }
