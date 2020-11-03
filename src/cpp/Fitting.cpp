@@ -110,14 +110,14 @@ void CircleFit::guessFit() {
 
   //Report
   if(options.verbose) {
+    printf("MLS: n=%d\n", n);
+    printf("MLS: A=%.2f, B=%.2f, C=%.2f, D=%.2f, E=%.2f\n", A, B, C, D, E);
     cout << "Using MLS: (" << setprecision(10) << x0 << "," << y0 << "," << r << ")" << endl;
   }
 }
 
 //Fit circle to points using numerical minimization
 void CircleFit::innerFit() {
-  mirrorPoints();
-
   //Initialize minimizer
   minimizer.SetMaxFunctionCalls((int)1e7);
   minimizer.SetMaxIterations((int)1e7);
@@ -165,13 +165,17 @@ void CircleFit::innerFit() {
 
 void CircleFit::fit() {
   const int numRefines = 3;
-  double max_resid[numRefines] = {1e3, 1e2, 1e1};
+  double max_resid[numRefines] = {1e4, 1e4, 1e4};
 
+  cout << "CIRCLE FITTING" << endl;
+  mirrorPoints();
   innerFit();
 
   for(int i=0; i<numRefines; i++) {
+    cout << "Fit refine #" << i << endl;
     refineFit(max_resid[i]);
   }
+  cout << "Finished circle fitting." << endl;
 
 }
 
@@ -474,10 +478,16 @@ void TanhFit::setFitBounds() {
   fitBounds[0] = 0.1;
   fitBounds[1] = options.densMax;
   //w min max
-  fitBounds[2] = 0.1;
-  fitBounds[3] = xmax;
+  if(options.bubble) {
+    fitBounds[2] = -xmax;
+    fitBounds[3] = -0.1;
+  }
+  else {
+    fitBounds[2] = 0.1;
+    fitBounds[3] = xmax;
+  }
   //x0 min max
-  fitBounds[4] = 0.0;
+  fitBounds[4] = 0;
   fitBounds[5] = xmax;
 
   fTanh->SetParLimits(0, fitBounds[0], fitBounds[1]); //ld
@@ -532,23 +542,36 @@ void TanhFit::guessTanhFit()
   double tmp;
 
   double xlo, xhi;
+  double ylo, yhi;
+
   //Lower and upper edges for width
-  double ylo=ld/2*(1-tanh(2));
-  double yhi=ld/2*(1+tanh(2));
+  ylo=ld/2*(1-tanh(2));
+  yhi=ld/2*(1+tanh(2));
 
   //Whether edges and boundary have been found
   bool foundLower=false;
   bool foundUpper=false;
   bool foundBoundary=false;
 
+  // Direction of iteration
+  // i.e. Whether to scan rows forwards or backwards
+  // If bubble option is enabled, then scan forwards.
+  // Otherwise, backwards
+  int di = options.bubble ? 1 : -1;
+  // Actual row index
+  // (start from beginning if bubble, otherwise start from end)
+  int i = options.bubble ? 0 : n;
+  // Number of rows iterated so far
+  int iterCount;
+
   //Scan rows from top to bottom to find the boundary and width
-  for(int i=n;i>0;i--)
+  for(iterCount=0;iterCount<n;iterCount++)
   {
     yc=hTanh->GetBinContent(i);
     //Find the first bin with boundary density (ld) then draw a line between this bin and the previous (above) and solve for where the line=ld
     if( yc>ld/2 && !foundBoundary )
     {
-      tmp=solveLinear(i,i+1,ld/2);
+      tmp=solveLinear(i,i-di,ld/2);
       foundBoundary=true;
       if(fitBounds[4]<tmp && tmp<fitBounds[5])
         x0=tmp;
@@ -557,24 +580,29 @@ void TanhFit::guessTanhFit()
     //Look for lower edge
     if( yc>ylo && !foundLower )
     {
-      xlo=solveLinear(i,i+1,ylo);
+      xlo=solveLinear(i,i-di,ylo);
       foundLower=true;
     }
 
     //Look for upper edge
     if( yc>yhi && !foundUpper )
     {
-      xhi=solveLinear(i,i+1,yhi);
+      xhi=solveLinear(i,i-di,yhi);
       foundUpper=true;
     }
+
+    // Proceed to next row
+    i += di;
   }
 
   //Guess width if within bounds. Otherwise, revert to default guess (5)
   tmp=xlo-xhi;
-  if(fitBounds[2]<tmp && tmp<fitBounds[3])
+  if(fitBounds[2]<tmp && tmp<fitBounds[3]) {
     w=tmp;
+  }
 
   fTanh->SetParameters(ld, w, x0);
+  printf("Guessing tanhfit parameters: ld=%.2f, w=%.2f, x0=%.2f\n", ld, w, x0);
 }
 
 // First guess, not very good, just for the sake of assigning some values.
@@ -610,6 +638,7 @@ void TanhFit::solve() {
   }
   else {
   }
+  printf("Solved for tanhfit parameters: ld=%.2f, w=%.2f, x0=%.2f\n", ld, w, x0);
 }
 
 // Calculate average squared difference
@@ -635,17 +664,44 @@ double TanhFit::residual() {
 bool TanhFit::good() {
   bool success = true;
 
-  if(err != 0) success = false;
+  if(err != 0) {
+    success = false;
+  }
   // Disallow equality to insist that minimum is on interior
   // since bounds are mostly arbitrary
-  if(ld <= fitBounds[0]) success = false;
-  if(ld >= fitBounds[1]) success = false;
-  if(w <= fitBounds[2]) success = false;
-  if(w >= fitBounds[3]) success = false;
-  if(x0 <= fitBounds[4]) success = false;
-  if(x0 >= fitBounds[5]) success = false;
-  if(empty) success = false;
-  if(residual() > 1e-1) success = false;
+  if(ld <= fitBounds[0]) {
+    cout << "FAIL 1" << endl;
+    success = false;
+  }
+  if(ld >= fitBounds[1]) {
+    cout << "FAIL 2" << endl;
+    success = false;
+  }
+  if(w <= fitBounds[2]) {
+    printf("FAIL w-TOOLOW: w=%.2f <= bnd=%.2f\n", w, fitBounds[2]);
+    success = false;
+  }
+  if(w >= fitBounds[3]) {
+    printf("FAIL w-TOOHIGH: w=%.2f >= bnd=%.2f\n", w, fitBounds[3]);
+    success = false;
+  }
+  if(x0 <= 2.5) {
+    cout << "FAIL 5" << endl;
+    success = false;
+  }
+  if(x0 >= fitBounds[5]) {
+    cout << "FAIL 6" << endl;
+    success = false;
+  }
+  if(empty) {
+    cout << "FAIL 7" << endl;
+    success = false;
+  }
+  if(residual() > 0.05) {
+    cout << "FAIL 8" << endl;
+    success = false;
+  }
+  cout << "resid = " << residual() << endl;
 
   return success;
 }

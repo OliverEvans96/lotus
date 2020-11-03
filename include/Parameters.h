@@ -140,6 +140,19 @@ class Options
   vector<int> solidTypes;
 
   /**
+     @brief Integer specifying the format of dumpfile lines
+
+     Optional. Default: 1
+
+     Format 1 (scaled):
+     id type xs ys zs ix iy iz
+
+     Format 2 (unscaled):
+     type x y z
+  */
+  int lineFormat;
+
+  /**
      @brief Number of atoms in the LAMMPS dumpfile.
 
      Optional. Default: 0
@@ -222,6 +235,28 @@ class Options
      @see DatafileReader::readWaterBonds
   */
   int waterBondType;
+
+  /**
+     @brief x center of droplet
+
+     Optional. Default: 0.0
+
+     Units are angstroms.
+
+     @see Grid
+  */
+  double xCenter;
+
+  /**
+     @brief y center of droplet
+
+     Optional. Default: 0.0
+
+     Units are angstroms.
+
+     @see Grid
+  */
+  double yCenter;
 
   /**
      @brief @f$ z @f$ width of 1D and 2D histogram bins.
@@ -375,6 +410,16 @@ class Options
      @see Substrate
   */
   bool substrate;
+
+  /**
+     @brief Consider the liquid to be outside of the "droplet" and the inside to be empty space.
+
+     Optional. Default: false
+
+     If enabled, perform all calculations assuming that the liquid is
+     surrounding the droplet, which is actually a bubble of empty space.
+  */
+  bool bubble;
 
   /**
      @brief Whether to fit a circle to the boundary points.

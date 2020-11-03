@@ -42,13 +42,15 @@ void InputStream::skipLines(int numLines) {
   lineNum += numLines;
 }
 
+/**
+   Skip whitespace in input stream, including newlines,
+   until the next non-whitespace character.
+**/
 void InputStream::skipWhitespace() {
   int num;
-  num = stream.tellg();
   while(isspace(stream.peek())) {
     stream.get();
   }
-  num = stream.tellg();
 }
 
 /**
@@ -68,6 +70,7 @@ bool InputStream::search(string term) {
     // Save beginning of line
     pos = stream.tellg();
     getline(stream, line);
+    lineNum++;
     if(isIn(term, line)) {
       found = true;
       // Rewind to line beginning
@@ -97,6 +100,7 @@ string InputStream::search(vector<string> terms) {
 
   while(stream.good()) {
     getline(stream, line);
+    lineNum++;
     for(it=terms.begin(); it<terms.end(); it++) {
       term = *it;
       if(isIn(line, term)) {
@@ -115,7 +119,7 @@ string InputStream::search(vector<string> terms) {
 
 /**
    Move the ifstream cursor one line past
-   the first line exactly equal to @p term.
+   the first line containing @p term.
    (the matching line will be consumed)
    Returns whether the line was found.
 */
@@ -128,10 +132,15 @@ bool InputStream::searchLine(string term) {
 
   while(stream.good()) {
     getline(stream, line);
-    if(line == term) {
+    lineNum++;
+    if(isIn(term, line)) {
       found = true;
       break;
     }
+  }
+
+  if(!found) {
+    cout << "SearchLine(string) failed for term '" << term << "'" << endl;
   }
 
   return found;
@@ -139,10 +148,10 @@ bool InputStream::searchLine(string term) {
 
 /*
    Move the ifstream cursor one line past
-   the first line exactly equal to one of the
+   the first line containing one of the
    strings in `terms`.
    (the matching line will be consumed)
-   Returns the line found
+   Returns the term found
 */
 string InputStream::searchLine(vector<string> terms) {
 
@@ -150,17 +159,15 @@ string InputStream::searchLine(vector<string> terms) {
   string term;
   bool found;
   vector<string>::iterator it;
-  int i = 0;
 
-  term = "";
   found = false;
 
   while(!found && stream.good()) {
     getline(stream, line);
-    i++;
+    lineNum++;
     for(it=terms.begin(); it<terms.end(); it++) {
       term = *it;
-      if(line == term) {
+      if(isIn(term, line)) {
         found = true;
         break;
       }
@@ -168,6 +175,12 @@ string InputStream::searchLine(vector<string> terms) {
   }
 
   if(!found) {
+    cout << "SearchLine(vector<string>) failed for terms: ";
+    for(it=terms.begin(); it<terms.end(); it++) {
+      term = *it;
+      cout << "'" << term << "' ";
+    }
+    cout << endl;
     term = "";
   }
 
@@ -209,22 +222,22 @@ void HeaderReader::readHeader() {
   if(options.verbose)
     cout << "Reading header: @ " << inputStreamPtr->stream.tellg() << " '" << inputStreamPtr->peekLine() << "'" << endl;
 
-  getline(inputStreamPtr->stream, junk);
+  getline(inputStreamPtr->stream, junk); // ITEM: TIMESTEP
   inputStreamPtr->stream >> timestepPtr->time;
   inputStreamPtr->stream.ignore(256, '\n');
 
-  getline(inputStreamPtr->stream, junk);
+  getline(inputStreamPtr->stream, junk); // ITEM: NUMBER OF ATOMS
   inputStreamPtr->stream >> simDataPtr->numAtoms;
   inputStreamPtr->stream.ignore(256, '\n');
 
-  getline(inputStreamPtr->stream, junk);
+  getline(inputStreamPtr->stream, junk); // ITEM: BOX BOUNDS pp pp pp
 
   inputStreamPtr->stream >> boundsPtr->xlo >> boundsPtr->xhi;
   inputStreamPtr->stream >> boundsPtr->ylo >> boundsPtr->yhi;
   inputStreamPtr->stream >> boundsPtr->zlo >> boundsPtr->zhi;
   inputStreamPtr->stream.ignore(256, '\n');
 
-  getline(inputStreamPtr->stream, junk);
+  getline(inputStreamPtr->stream, junk); // ITEM: ATOMS type x y z
 
   *(lineNumPtr) += 9;
 
@@ -238,10 +251,28 @@ void LineReader::setContext(Options _options, InputStream* _inputStreamPtr, int*
   atomNumPtr = _atomNumPtr;
   lineNumPtr = _lineNumPtr;
   boundsPtr = _boundsPtr;
+
+  // Chose which line reading function to use
+  switch(options.lineFormat) {
+  case 1:
+    _readLineFunctionPtr = &LineReader::readLineFormat1;
+    break;
+  case 2:
+    _readLineFunctionPtr = &LineReader::readLineFormat2;
+    break;
+  default:
+    cout << "ERROR: INVALID LINE FORMAT " << options.lineFormat << endl;
+    throw 1;
+  }
 }
 
-/// Read the line and store data in #atom.
 void LineReader::readLine() {
+  // Call the function pointed to by the pointer
+  (this->*_readLineFunctionPtr)();
+}
+
+/// Read the line (format 1) and store data in #atom.
+void LineReader::readLineFormat1() {
   int atomId;
   double xs, ys, zs;
   int ix, iy, iz;
@@ -254,10 +285,22 @@ void LineReader::readLine() {
 
   // Ignore ix, iy, iz so that all
   // periodic images are in same box
-  atom.x = boundsPtr->xlo + (boundsPtr->xhi - boundsPtr->xlo) * xs;
-  atom.y = boundsPtr->ylo + (boundsPtr->yhi - boundsPtr->ylo) * ys;
+  atom.x = boundsPtr->xlo + (boundsPtr->xhi - boundsPtr->xlo) * xs - options.xCenter;
+  atom.y = boundsPtr->ylo + (boundsPtr->yhi - boundsPtr->ylo) * ys - options.yCenter;
   atom.z = boundsPtr->zlo + (boundsPtr->zhi - boundsPtr->zlo) * zs;
 
+  inputStreamPtr->stream.ignore(256, '\n');
+  (*lineNumPtr)++;
+  (*atomNumPtr)++;
+}
+
+
+/// Read the line (format 2) and store data in #atom.
+void LineReader::readLineFormat2() {
+  double x, y;
+  inputStreamPtr->stream >> atom.type >> x >> y >> atom.z;
+  atom.x = x - options.xCenter;
+  atom.y = y - options.yCenter;
   inputStreamPtr->stream.ignore(256, '\n');
   (*lineNumPtr)++;
   (*atomNumPtr)++;
@@ -339,7 +382,7 @@ void FrameReader::updateFrame() {
 */
 void FrameReader::readFrame() {
   if(options.verbose)
-    cout << "Reading frame: @" << inputStream.stream.tellg() << " '" << inputStream.peekLine() << "'" << endl;
+    cout << "Reading frame: @ " << inputStream.stream.tellg() << " '" << inputStream.peekLine() << "'" << endl;
   timestepReader.readTimestep(0);
   updateFrame();
 
@@ -396,6 +439,7 @@ void DatafileReader::readNumAtoms() {
 void DatafileReader::readBoxBounds() {
   bool found;
   int pos = streamPtr->tellg();
+  cout << "bounds initial pos=" << pos << endl;
   streamPtr->seekg(0);
   found = inputStream.search("xlo");
   if(options.verbose) {
@@ -434,6 +478,11 @@ void DatafileReader::readMasses() {
   while(!inputStream.nextLineBlank() && streamPtr->good()) {
     *streamPtr >> type >> mass;
     simDataPtr->masses[type] = mass;
+    // Ignore the rest of the line (e.g. comments)
+    streamPtr->ignore(256,'\n');
+    // Back up one character
+    streamPtr->seekg(-1,ios_base::cur);
+    inputStream.lineNum++;
   }
 }
 
@@ -468,11 +517,12 @@ void DatafileReader::read() {
   }
   readBoxBounds();
 
-  for(int i=0; i<2; i++) {
+  // Search through the data file for these two sections
+  for(int i=0; i<sections.size(); i++) {
     section = inputStream.searchLine(sections);
     inputStream.skipWhitespace();
 
-    cout << "Reading '" << section  << "'" << endl;
+    cout << "Reading '" << section << "' @ " << inputStream.stream.tellg() << " '" << inputStream.peekLine() << "'" << endl;
     if(section == "Masses") {
       readMasses();
     }

@@ -240,6 +240,9 @@ void CircularBulk::setContext(Options _options, SimData *_simDataPtr, AtomArray 
   atomArrayPtr = _atomArrayPtr;
   tanhFit.setContext(*simDataPtr);
   circle.setContext(*simDataPtr, gCirclePoints);
+  // If options.monolayer=true, this will be changed automatically.
+  // Otherwise, assume that the first row is the bulk.
+  firstBulkBin = 0;
 }
 
 void CircularBulk::setHist(TH2D *_hDroplet) {
@@ -249,7 +252,7 @@ void CircularBulk::setHist(TH2D *_hDroplet) {
 bool CircularBulk::pointOk(double r, double z) {
   bool ok = true;
 
-  if(z < simDataPtr->monoTop) {
+  if(z <= simDataPtr->monoTop) {
     ok = false;
   }
 
@@ -260,6 +263,10 @@ void CircularBulk::saveBoundaryPoints() {
   numPoints = gCirclePoints->GetN();
   boundaryPointsArray[0] = gCirclePoints->GetX();
   boundaryPointsArray[1] = gCirclePoints->GetY();
+  cout << "SAVING BOUNDARY POINTS (" << numPoints << ")" << endl;
+  for(int i=0; i<numPoints; i++) {
+    printf("%2d: (%5.2f, %5.2f)\n", i, boundaryPointsArray[0][i], boundaryPointsArray[1][i]);
+  }
 }
 
 void CircularBulk::findBoundaryPoints() {
@@ -274,37 +281,56 @@ void CircularBulk::findBoundaryPoints() {
   pointNum = 0;
 
   // Row fits (start at first row above monolayer)
+  cout << "row fits (fbb=" << firstBulkBin << ")" << endl;
   tanhFit.setFitType("row");
   for(int j=firstBulkBin; j<=ny; j++) {
-    // cout << "j = " << j << endl;
+    cout << "j = " << j << endl;
     tanhFit.setHist(hDroplet->ProjectionX("px", j, j));
     tanhFit.setFitNum(j);
-    // cout << "solve" << endl;
     tanhFit.solve();
-    // cout << "verify" << endl;
     // Solve fails if droplet is not present in this row.
+    x = tanhFit.getBoundary();
+    y = hDroplet->GetYaxis()->GetBinCenter(j);
+    printf("Checking point (%.2f,%.2f)\n", x, y);
     if(tanhFit.good()) {
-      x = tanhFit.getBoundary();
-      y = hDroplet->GetYaxis()->GetBinCenter(j);
+      cout << "Solve is good!" << endl;
       if(pointOk(x, y)) {
+        cout << "Point is good!" << endl;
         gCirclePoints->SetPoint(pointNum++, x, y);
       }
+      else {
+        cout << "Point BAD" << endl;
+      }
+    }
+    else {
+      cout << "solve BAD" << endl;
     }
   }
 
   // Column fits
+  cout << "col fits" << endl;
   tanhFit.setFitType("col");
   for(int i=1; i<=nx; i++) {
+    cout << "i = " << i << endl;
     tanhFit.setHist(hDroplet->ProjectionY("py", i, i));
     tanhFit.setFitNum(i);
     // Solve fails if droplet is not present in this row.
     tanhFit.solve();
+    x = hDroplet->GetXaxis()->GetBinCenter(i);
+    y = tanhFit.getBoundary();
+    printf("Checking point (%.2f,%.2f)\n", x, y);
     if(tanhFit.good()) {
-      x = hDroplet->GetXaxis()->GetBinCenter(i);
-      y = tanhFit.getBoundary();
+      cout << "Solve is good." << endl;
       if(pointOk(x, y)) {
+        cout << "Point is good!" << endl;
         gCirclePoints->SetPoint(pointNum++, x, y);
       }
+      else {
+        cout << "Point is BAD" << endl;
+      }
+    }
+    else {
+      cout << "Solve BAD" << endl;
     }
   }
 
@@ -317,10 +343,6 @@ double CircularBulk::fitCircle() {
 
   circle.fit();
   circle.Print();
-
-  // Update points stored for writing
-  // since fitting may discard some
-  saveBoundaryPoints();
 
   //Get chi2 scaled by number of points in fit
   return circle.GetChi2s();

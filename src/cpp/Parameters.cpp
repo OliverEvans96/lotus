@@ -151,6 +151,7 @@ void Options::readConfig(const char* _configPath) {
   parseRequiredOption("liquidTypes", liquidTypes);
   parseRequiredOption("solidTypes", solidTypes);
 
+  parseDefaultOption("lineFormat", lineFormat, 1);
   parseDefaultOption("numAtoms", numAtoms, 0);
   parseDefaultOption("geometry", geometry, (string)"spherical");
   parseDefaultOption("stepsPerFrame", stepsPerFrame, 5);
@@ -158,6 +159,8 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("saveImages", saveImages, false);
   parseDefaultOption("saveROOT", saveROOT, false);
   parseDefaultOption("verbose", verbose, false);
+  parseDefaultOption("xCenter", xCenter, 0.0);
+  parseDefaultOption("yCenter", yCenter, 0.0);
   parseDefaultOption("dz", dz, 1.0);
   parseDefaultOption("dv", dv, 250.0);
   parseDefaultOption("dens_min", dens_min, 0.0);
@@ -170,6 +173,7 @@ void Options::readConfig(const char* _configPath) {
   parseDefaultOption("expectedLiquidDensity", expectedLiquidDensity, 1.0);
   parseDefaultOption("monolayer", monolayer, true);
   parseDefaultOption("substrate", substrate, true);
+  parseDefaultOption("bubble", bubble, false);
   parseDefaultOption("fitCircle", fitCircle, true);
   parseDefaultOption("monoTop", monoTop, 0.0);
   parseDefaultOption("substrateTop", substrateTop, 0.0);
@@ -218,6 +222,7 @@ void Options::printOptions() {
   printOption("datafile", datafile);
   printOption("outLoc", outLoc);
   printOption("waterBondType", waterBondType);
+  printOption("lineFormat", lineFormat);
   printOption("numAtoms", numAtoms);
   printOption("geometry", geometry);
   printOption("stepsPerFrame", stepsPerFrame);
@@ -230,6 +235,8 @@ void Options::printOptions() {
   printOption("plot_rmax", plot_rmax);
   printOption("plot_zmax", plot_zmax);
   printOption("plot_aspect", plot_aspect);
+  printOption("xCenter", xCenter);
+  printOption("yCenter", yCenter);
   printOption("dz", dz);
   printOption("dv", dv);
   printOption("plot_rmax", plot_rmax);
