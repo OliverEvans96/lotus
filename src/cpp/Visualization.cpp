@@ -250,10 +250,12 @@ void DropletFigure::setGraphStyle() {
 }
 
 void DropletFigure::setLegendStyle() {
+  // Disable built-in stats box
+  hDroplet->SetStats(0);
   //Text to show data
   textBox->SetX1NDC(.65);
   textBox->SetY1NDC(.5);
-  textBox->SetX2NDC(.85);
+  textBox->SetX2NDC(.9);
   textBox->SetY2NDC(.625);
 
   textBox->SetShadowColor(0);

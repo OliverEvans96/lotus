@@ -2,9 +2,6 @@
 
 SimData::SimData(Options options) {
   setOptions(options);
-
-  // Default values
-  substrateTop = 0;
 }
 
 SimData::~SimData() {

@@ -107,6 +107,10 @@ class LineReader {
   InputStream* inputStreamPtr;
   BoxBounds* boundsPtr;
 
+  void readLineFormat1();
+  void readLineFormat2();
+  void(LineReader::*_readLineFunctionPtr)();
+
  public:
   Atom atom;
   /** @brief Copy #options and save pointers to relevant quantities.
